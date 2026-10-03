@@ -26,7 +26,8 @@ Design procedure:
 15. In demo mode, add generatedContent with status mockup for every puzzle. It illustrates the intended artifact but need not be independently solvable. In production, omit generatedContent until a puzzle generator supplies it.
 16. Before submission, audit every output by completing: “The player uses this value to ___.” Reject any answer whose only purpose is to unlock a node, repeat another answer, or sit beside another value.
 17. If no valid design exists, return a structured needs-game-design-revision result identifying the blocked hard requirement, attempted alternatives, and minimal suggestions.
-18. Call submit_level_design exactly once after checking the result. In demo mode, return the exact absolute output path reported by the tool.
+18. Do not supply schemaVersion in a success blueprint or revision result. It is system-owned and added by submit_level_design.
+19. Call submit_level_design exactly once after checking the result. In demo mode, return the exact absolute output path reported by the tool.
 `.trim();
 
 export function buildLevelDesignPrompt(catalog: PuzzleCatalog, request?: LevelDesignRequest): string {

@@ -6,17 +6,21 @@ import { writeLevelBlueprintFile, writeLevelDesignFailureFile } from "../../leve
 import {
     LevelBlueprintSchema,
     LevelDesignFailureSchema,
+    LEVEL_SCHEMA_VERSION,
     type LevelBlueprint,
     type LevelDesignFailure,
     type LevelDesignRequest
 } from "../../levels/types.js";
 import { validateLevelAgainstRequest, validateLevelBlueprint } from "../../levels/validator.js";
 
+const LevelBlueprintSubmissionSchema = Type.Omit(LevelBlueprintSchema, ["schemaVersion"], { additionalProperties: false });
+const LevelDesignFailureSubmissionSchema = Type.Omit(LevelDesignFailureSchema, ["schemaVersion"], { additionalProperties: false });
+
 const parameters = Type.Object({
     mode: Type.Union([Type.Literal("production"), Type.Literal("demo")]),
     result: Type.Union([
-        Type.Object({ status: Type.Literal("success"), blueprint: LevelBlueprintSchema }, { additionalProperties: false }),
-        LevelDesignFailureSchema
+        Type.Object({ status: Type.Literal("success"), blueprint: LevelBlueprintSubmissionSchema }, { additionalProperties: false }),
+        LevelDesignFailureSubmissionSchema
     ])
 }, { additionalProperties: false });
 
@@ -39,18 +43,25 @@ export function createSubmitLevelBlueprintTool(
 
         async execute(_toolCallId, params) {
             if (params.result.status === "needs-game-design-revision") {
-                if (request !== undefined && params.result.requestId !== request.levelId) {
+                const failure: LevelDesignFailure = {
+                    ...params.result,
+                    schemaVersion: LEVEL_SCHEMA_VERSION
+                };
+                if (request !== undefined && failure.requestId !== request.levelId) {
                     throw new Error(`Rejection requestId must be ${request.levelId}.`);
                 }
-                const outputPath = await writeLevelDesignFailureFile({ failure: params.result, outputDirectory });
+                const outputPath = await writeLevelDesignFailureFile({ failure, outputDirectory });
                 return {
                     content: [{ type: "text", text: `Level rejection JSON: ${outputPath}` }],
-                    details: { mode: params.mode, result: params.result, outputPath },
+                    details: { mode: params.mode, result: failure, outputPath },
                     terminate: true
                 };
             }
 
-            const blueprint = params.result.blueprint;
+            const blueprint: LevelBlueprint = {
+                ...params.result.blueprint,
+                schemaVersion: LEVEL_SCHEMA_VERSION
+            };
             const errors = request === undefined
                 ? validateLevelBlueprint(blueprint, catalog)
                 : validateLevelAgainstRequest(blueprint, request, catalog);
@@ -75,7 +86,7 @@ export function createSubmitLevelBlueprintTool(
                             status: "validated-metadata"
                         })
                 }],
-                details: { mode: params.mode, result: params.result, outputPath },
+                details: { mode: params.mode, result: { status: "success", blueprint }, outputPath },
                 terminate: true
             };
         }

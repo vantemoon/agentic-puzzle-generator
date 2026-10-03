@@ -3,6 +3,7 @@ import { mkdtemp, readFile } from "node:fs/promises";
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import Value from "typebox/value";
 
 import { createSubmitLevelBlueprintTool } from "../src/agents/level-design/tool.js";
 import { repositoryPuzzleCatalog } from "../src/levels/catalog.js";
@@ -17,19 +18,43 @@ function copyLevel(): LevelBlueprint {
     return structuredClone(laptopInvestigationLevel);
 }
 
+function copyLevelSubmission(): Omit<LevelBlueprint, "schemaVersion"> {
+    const { schemaVersion: _schemaVersion, ...blueprint } = copyLevel();
+    return blueprint;
+}
+
 describe("level metadata v3", () => {
     it("returns the generated JSON file path in demo mode", async () => {
         const outputDirectory = await mkdtemp(path.join(os.tmpdir(), "level-demo-"));
         const tool = createSubmitLevelBlueprintTool(repositoryPuzzleCatalog, undefined, outputDirectory);
         const result = await tool.execute("demo-tool-call", {
             mode: "demo",
-            result: { status: "success", blueprint: copyLevel() }
+            result: { status: "success", blueprint: copyLevelSubmission() }
         });
         const outputPath = path.join(outputDirectory, "investigate-alex-laptop.level.json");
 
         expect(result.content).toEqual([{ type: "text", text: `Level JSON: ${outputPath}` }]);
         expect(result.details.outputPath).toBe(outputPath);
-        expect(JSON.parse(await readFile(outputPath, "utf8")).id).toBe("investigate-alex-laptop");
+        const savedLevel = JSON.parse(await readFile(outputPath, "utf8"));
+        expect(savedLevel.id).toBe("investigate-alex-laptop");
+        expect(savedLevel.schemaVersion).toBe("3.0.0");
+        expect(result.details.result.status === "success" && result.details.result.blueprint.schemaVersion).toBe("3.0.0");
+    });
+
+    it("keeps the schema version out of the agent-owned submission contract", () => {
+        const tool = createSubmitLevelBlueprintTool(repositoryPuzzleCatalog);
+        const blueprint = copyLevelSubmission();
+        expect(Value.Check(tool.parameters, {
+            mode: "demo",
+            result: { status: "success", blueprint }
+        })).toBe(true);
+        expect(Value.Check(tool.parameters, {
+            mode: "demo",
+            result: {
+                status: "success",
+                blueprint: { ...blueprint, schemaVersion: "level-blueprint-1.0" }
+            }
+        })).toBe(false);
     });
 
     it("validates a complete metadata-only level", () => {
