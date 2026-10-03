@@ -1,0 +1,20 @@
+node_modules/
+dist/
+.env
+.env.*
+*.log
+results/
+docs/
+scripts/
+prompts/
+
+# Generated puzzles and levels
+generated-artifacts/
+generated-levels/
+
+# macOS metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*

@@ -1,0 +1,49 @@
+{
+  "name": "project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest run",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "pi:caesar": "pi --extension ./pi-extensions/caesar.ts",
+    "pi:morse": "pi --extension ./pi-extensions/morse.ts",
+    "pi:ascii": "pi --extension ./pi-extensions/ascii.ts",
+    "pi:substitution": "pi --extension ./pi-extensions/substitution.ts",
+    "pi:vigenere": "pi --extension ./pi-extensions/vigenere.ts",
+    "pi:secure-relay": "pi --extension ./pi-extensions/secure-relay.ts",
+    "pi:word-index": "pi --extension ./pi-extensions/word-index.ts",
+    "pi:acrostic": "pi --extension ./pi-extensions/acrostic.ts",
+    "pi:telestich": "pi --extension ./pi-extensions/telestich.ts",
+    "pi:binary-capitalization": "pi --extension ./pi-extensions/binary-capitalization.ts",
+    "pi:capital-letter-extraction": "pi --extension ./pi-extensions/capital-letter-extraction.ts",
+    "pi:nth-character": "pi --extension ./pi-extensions/nth-character.ts",
+    "pi:nth-word": "pi --extension ./pi-extensions/nth-word.ts",
+    "pi:anomalous-phrase": "pi --extension ./pi-extensions/anomalous-phrase.ts",
+    "pi:anagram": "pi --extension ./pi-extensions/anagram.ts",
+    "pi:html-comment": "pi --extension ./pi-extensions/html-comment.ts",
+    "pi:dom-element": "pi --extension ./pi-extensions/dom-element.ts",
+    "pi:alt-text": "pi --extension ./pi-extensions/alt-text.ts",
+    "pi:static-url": "pi --extension ./pi-extensions/static-url.ts",
+    "pi:source-code": "pi --extension ./pi-extensions/source-code.ts", "pi:page-version": "pi --extension ./pi-extensions/page-version.ts", "pi:visual-clue": "pi --extension ./pi-extensions/visual-clue.ts", "pi:steganography": "pi --extension ./pi-extensions/steganography.ts", "pi:reverse-audio": "pi --extension ./pi-extensions/reverse-audio.ts", "pi:alpha-channel": "pi --extension ./pi-extensions/alpha-channel.ts", "pi:color-channel": "pi --extension ./pi-extensions/color-channel.ts", "pi:morse-audio": "pi --extension ./pi-extensions/morse-audio.ts", "pi:qr-code": "pi --extension ./pi-extensions/qr-code.ts", "pi:ascii-art": "pi --extension ./pi-extensions/ascii-art.ts",
+    "pi:level-design": "pi --extension ./pi-extensions/level-design.ts",
+    "level:inspect": "python3 -m http.server 4173 --bind 127.0.0.1 --directory tools/level-inspector"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@earendil-works/pi-agent-core": "^0.86.1",
+    "@earendil-works/pi-ai": "^0.86.1",
+    "@earendil-works/pi-coding-agent": "^0.86.1",
+    "typebox": "1.3.27"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
+  }
+}
