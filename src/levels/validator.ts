@@ -173,17 +173,28 @@ export function validateLevelBlueprint(value: unknown, catalog: PuzzleCatalog): 
                     consumedStartingInputs.add(source.id);
                 }
             } else {
-                if (input.source.puzzleId === puzzle.id) errors.push(`Puzzle ${puzzle.id} input ${input.id} cannot depend on itself.`);
-                sourceValue = resolvePuzzleOutput(level, input.source.puzzleId, input.source.outputId);
+                const sourcePuzzleId = input.source.puzzleId;
+                const sourceOutputId = input.source.outputId;
+                if (sourcePuzzleId === puzzle.id) errors.push(`Puzzle ${puzzle.id} input ${input.id} cannot depend on itself.`);
+                sourceValue = resolvePuzzleOutput(level, sourcePuzzleId, sourceOutputId);
                 if (sourceValue === undefined) {
-                    errors.push(`Puzzle ${puzzle.id} input ${input.id} references missing output ${input.source.puzzleId}.${input.source.outputId}.`);
+                    errors.push(`Puzzle ${puzzle.id} input ${input.id} references missing output ${sourcePuzzleId}.${sourceOutputId}.`);
                 } else {
-                    const key = `${input.source.puzzleId}.${input.source.outputId}`;
+                    const sourcePuzzle = puzzleMap.get(sourcePuzzleId);
+                    const sourceOutput = sourcePuzzle?.design.outputs.find((output) => output.id === sourceOutputId);
+                    const key = `${sourcePuzzleId}.${sourceOutputId}`;
                     consumedOutputs.set(key, (consumedOutputs.get(key) ?? 0) + 1);
-                    edges.push({ from: input.source.puzzleId, to: puzzle.id });
-                    const sourcePhase = phaseMap.get(puzzleMap.get(input.source.puzzleId)?.phaseId ?? "");
+                    edges.push({ from: sourcePuzzleId, to: puzzle.id });
+                    const sourcePhase = phaseMap.get(sourcePuzzle?.phaseId ?? "");
                     if (sourcePhase !== undefined && phase !== undefined && sourcePhase.order > phase.order) {
                         errors.push(`Puzzle ${puzzle.id} depends on later phase ${sourcePhase.id}.`);
+                    }
+                    if (input.expectedSemanticRoles !== undefined && sourceOutput !== undefined) {
+                        if (!input.expectedSemanticRoles.includes(sourceOutput.semanticRole)) {
+                            errors.push(
+                                `Puzzle ${puzzle.id} input ${input.id} expects one of roles ${input.expectedSemanticRoles.join(", ")}, but ${sourcePuzzleId}.${sourceOutputId} has role ${sourceOutput.semanticRole}.`
+                            );
+                        }
                     }
                 }
             }

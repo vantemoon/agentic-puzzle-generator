@@ -150,6 +150,20 @@ describe("level metadata v3", () => {
         );
     });
 
+    it("rejects mismatched semantic roles on puzzle input bindings", () => {
+        const level = copyLevel();
+        level.puzzles[2].design.inputs[0].expectedSemanticRoles = ["location"];
+        expect(validateLevelBlueprint(level, repositoryPuzzleCatalog)).toContain(
+            "Puzzle find-meeting-place input project-search expects one of roles location, but find-project-name.project-name has role project-identifier."
+        );
+    });
+
+    it("accepts matched semantic roles on puzzle input bindings", () => {
+        const level = copyLevel();
+        level.puzzles[2].design.inputs[0].expectedSemanticRoles = ["project-identifier"];
+        expect(validateLevelBlueprint(level, repositoryPuzzleCatalog)).toEqual([]);
+    });
+
     it("reveals initial puzzles and derives later availability from input sources", () => {
         expect(availablePuzzleIds(openWebExampleLevel, [])).toEqual(["find-project-name", "find-event-date"]);
         const initial = toPublicLevelView(openWebExampleLevel);

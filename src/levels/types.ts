@@ -193,7 +193,8 @@ export const PuzzleInputSchema = Type.Object({
     id: Type.String({ minLength: 1 }),
     source: InputSourceSchema,
     transform: Type.Optional(TransformationBindingSchema),
-    use: Type.String({ minLength: 1 })
+    use: Type.String({ minLength: 1 }),
+    expectedSemanticRoles: Type.Optional(Type.Array(Type.String({ minLength: 1 }), { minItems: 1 }))
 }, closed);
 
 export const PuzzleOutputSchema = Type.Union([
