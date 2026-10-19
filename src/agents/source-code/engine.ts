@@ -12,7 +12,6 @@ export type SourceCodeCarrier =
     | "html-attribute"
     | "css-custom-property"
     | "javascript-source"
-    | "asset-reference"
     | "encoded-source-value";
 
 
@@ -33,7 +32,6 @@ const CARRIERS: readonly SourceCodeCarrier[] = [
     "html-attribute",
     "css-custom-property",
     "javascript-source",
-    "asset-reference",
     "encoded-source-value"
 ];
 
@@ -116,8 +114,6 @@ function buildCarrierSource(carrier: SourceCodeCarrier, payload: string, codeLab
                 "      function readImplementationNote() { return null; }",
                 "    </template>"
             ].join("\n");
-        case "asset-reference":
-            return `    <meta data-puzzle-role="source-code-payload" data-unused-asset="assets/${encodeURIComponent(payload)}.svg">`;
         case "encoded-source-value":
             return `    <meta data-puzzle-role="source-code-payload" data-encoding="base64" data-code-payload="${encodedPayload}">`;
     }
@@ -161,9 +157,6 @@ export function extractSourceCodePayloads(source: string, carrier: SourceCodeCar
         case "javascript-source":
             return [...source.matchAll(/const\s+[a-z0-9_]+\s*=\s*"([^"]*)"/gi)]
                 .map((match) => decodeHtmlAttribute(match[1]));
-        case "asset-reference":
-            return [...source.matchAll(/data-unused-asset="assets\/([^"/]+)\.svg"/gi)]
-                .map((match) => decodeURIComponent(match[1]));
         case "encoded-source-value":
             return [...source.matchAll(/data-code-payload="([A-Za-z0-9+/=]+)"/g)]
                 .map((match) => Buffer.from(match[1], "base64").toString("utf8"));

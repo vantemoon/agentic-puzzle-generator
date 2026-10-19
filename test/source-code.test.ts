@@ -83,7 +83,6 @@ describe("source-code engine", () => {
             "html-attribute",
             "css-custom-property",
             "javascript-source",
-            "asset-reference",
             "encoded-source-value"
         ] as const;
 

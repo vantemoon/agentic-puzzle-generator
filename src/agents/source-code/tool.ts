@@ -11,7 +11,6 @@ const carrierSchema = Type.Union([
     Type.Literal("html-attribute"),
     Type.Literal("css-custom-property"),
     Type.Literal("javascript-source"),
-    Type.Literal("asset-reference"),
     Type.Literal("encoded-source-value")
 ]);
 
