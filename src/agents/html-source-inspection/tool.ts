@@ -45,7 +45,7 @@ const parameters = objectUnion([productionSchema, demoSchema]);
 export async function writeSourceCodeArtifactPreview(puzzle: PrivatePuzzleInstance) {
     return writeSharedHtmlArtifactPreview({
         puzzle,
-        artifactDirectoryName: "source-code",
+        artifactDirectoryName: "html-source-inspection",
         fallbackFileStem: "source-code-preview"
     });
 }
@@ -53,9 +53,9 @@ export async function writeSourceCodeArtifactPreview(puzzle: PrivatePuzzleInstan
 export const createSourceCodePuzzleTool:
 AgentTool<typeof parameters, PrivatePuzzleInstance> = {
     name: "create_source_code_puzzle",
-    label: "Create a source-code puzzle",
+    label: "Create a html-source-inspection puzzle",
     description: [
-        "Validate an upstream puzzle ID, safe static source-code carrier, visible webpage context, and hidden payload;",
+        "Validate an upstream puzzle ID, safe static html-source-inspection carrier, visible webpage context, and hidden payload;",
         "construct a static HTML artifact where the clue is in inspectable source material;",
         "and return the finished private hidden-information puzzle instance."
     ].join(" "),

@@ -11,11 +11,11 @@ import {
     normalizeSourceCodePayload,
     normalizeVisibleBody,
     normalizeVisibleTitle
-} from "../src/agents/source-code/engine.js";
+} from "../src/agents/html-source-inspection/engine.js";
 import {
     createSourceCodePuzzleTool,
     writeSourceCodeArtifactPreview
-} from "../src/agents/source-code/tool.js";
+} from "../src/agents/html-source-inspection/tool.js";
 import {
     assertPrivatePuzzleInstance,
     assertPublicPuzzleInstance,
@@ -38,7 +38,7 @@ function removePayloadCarriers(source: string): string {
         .replace(/<template\b(?=[^>]*data-puzzle-role="source-code-payload")[\s\S]*?<\/template>/gi, "");
 }
 
-describe("source-code engine", () => {
+describe("html-source-inspection engine", () => {
     it("normalizes fields", () => {
         expect(normalizeSourceCodePayload("  OPEN   VAULT  ")).toBe("OPEN VAULT");
         expect(normalizeVisibleTitle("  Implementation   Review  ")).toBe("Implementation Review");
@@ -50,10 +50,10 @@ describe("source-code engine", () => {
 
     });
 
-    it("creates a deterministic hidden-information source-code puzzle", () => {
+    it("creates a deterministic hidden-information html-source-inspection puzzle", () => {
         const first = createSourceCodePuzzle(knownSpec("source-code-1"));
         const second = createSourceCodePuzzle(knownSpec("source-code-1"));
-        const metadata = first.extensions.sourceCode as {
+        const metadata = first.extensions.htmlSourceInspection as {
             templateVersion: string;
             carrier: string;
             requiresJavaScriptExecution: boolean;
@@ -64,12 +64,12 @@ describe("source-code engine", () => {
         expect(first).toEqual(second);
         expect(first.id).toBe("source-code-1");
         expect(first.puzzleType).toBe("hidden-information");
-        expect(first.subtype).toBe("source-code");
+        expect(first.subtype).toBe("html-source-inspection");
         expect(first.artifact.kind).toBe("html");
         expect(first.artifact.mediaType).toBe("text/html");
         expect(getHtmlEntrySource(first.artifact)).toContain('data-puzzle-role="source-code-payload"');
         expect(extractSourceCodePayloads(getHtmlEntrySource(first.artifact), "html-attribute")).toEqual(["OPEN-VAULT"]);
-        expect(first.prompt).toBe("Open the webpage artifact and recover the message hidden in the page source code.");
+        expect(first.prompt).toBe("Open the webpage artifact and recover the message hidden in the page html source inspection.");
         expect(metadata.templateVersion).toBe("safe-static-source-code-v1");
         expect(metadata.carrier).toBe("html-attribute");
         expect(metadata.requiresJavaScriptExecution).toBe(false);
@@ -78,7 +78,7 @@ describe("source-code engine", () => {
         expect(() => assertPrivatePuzzleInstance(first)).not.toThrow();
     });
 
-    it("supports all source-code carriers", () => {
+    it("supports all html-source-inspection carriers", () => {
         const carriers = [
             "html-attribute",
             "css-custom-property",
@@ -156,7 +156,7 @@ describe("source-code engine", () => {
         expect(() => normalizeSourceCodePayload("bad\u0000payload")).toThrow("printable ASCII");
         expect(() => normalizeVisibleTitle("   ")).toThrow("must not be empty");
         expect(() => normalizeVisibleBody("B".repeat(1_001))).toThrow("must not exceed 1000");
-        expect(() => normalizeCarrier("live-script")).toThrow("source-code carrier");
+        expect(() => normalizeCarrier("live-script")).toThrow("html-source-inspection carrier");
         expect(() => createSourceCodePuzzle({ ...knownSpec("   ") })).toThrow("ID must not be empty");
         expect(() => createSourceCodePuzzle({
             ...knownSpec("visible-leak"),
@@ -169,7 +169,7 @@ describe("source-code engine", () => {
         const preview = await writeSourceCodeArtifactPreview(puzzle);
 
         try {
-            expect(preview.path).toBe(path.join("generated-artifacts", "source-code", "source-code-preview", "index.html"));
+            expect(preview.path).toBe(path.join("generated-artifacts", "html-source-inspection", "source-code-preview", "index.html"));
             expect(preview.fileUrl).toMatch(/^file:\/\//);
             await expect(readFile(preview.path, "utf8")).resolves.toBe(getHtmlEntrySource(puzzle.artifact));
         } finally {
@@ -197,7 +197,7 @@ describe("source-code engine", () => {
         try {
             expect(payload.id).toBe("source-code-tool");
             expect(payload.artifactPreviewPath).toBe(
-                path.join("generated-artifacts", "source-code", "source-code-tool", "index.html")
+                path.join("generated-artifacts", "html-source-inspection", "source-code-tool", "index.html")
             );
             expect(payload.artifactPreviewUrl).toMatch(/^file:\/\//);
             expect(payload.answer).toBe("OPEN-VAULT");

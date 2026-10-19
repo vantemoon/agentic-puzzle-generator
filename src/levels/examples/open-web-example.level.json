@@ -255,7 +255,7 @@
             "purpose": "Use the cleanup date and meeting place to find the matching recap and identify the coordinator named in its source.",
             "design": {
                 "puzzleType": "hidden-information",
-                "subtype": "source-code",
+                "subtype": "html-source-inspection",
                 "difficulty": "easy",
                 "generationSpec": {
                     "mode": "production",

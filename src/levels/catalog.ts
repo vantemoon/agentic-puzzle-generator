@@ -21,7 +21,7 @@ import { createPageVersionPuzzleTool } from "../agents/page-version/tool.js";
 import { createQrCodePuzzleTool } from "../agents/qr-code/tool.js";
 import { createReverseAudioPuzzleTool } from "../agents/reverse-audio/tool.js";
 import { createSecureRelayPuzzleTool } from "../agents/secure-relay/tool.js";
-import { createSourceCodePuzzleTool } from "../agents/source-code/tool.js";
+import { createSourceCodePuzzleTool } from "../agents/html-source-inspection/tool.js";
 import { createStaticUrlPuzzleTool } from "../agents/static-url/tool.js";
 import { createSteganographyPuzzleTool } from "../agents/steganography/tool.js";
 import { createSubstitutionPuzzleTool } from "../agents/substitution/tool.js";
@@ -132,7 +132,7 @@ export const repositoryPuzzleCatalog: PuzzleCatalog = {
         textPuzzleEntry({ tool: createQrCodePuzzleTool, puzzleType: "encoding", subtype: "qr-code", displayName: "QR code", narrativeTags: ["image", "encoding", "identifier"] }),
         textPuzzleEntry({ tool: createReverseAudioPuzzleTool, puzzleType: "hidden-information", subtype: "reverse-audio", displayName: "Reverse audio", narrativeTags: ["audio", "forensics", "message"] }),
         textPuzzleEntry({ tool: createSecureRelayPuzzleTool, puzzleType: "secure-communication", subtype: "asymmetric-sealed-relay", displayName: "Secure relay", narrativeTags: ["communication", "cryptography", "identity"] }),
-        textPuzzleEntry({ tool: createSourceCodePuzzleTool, puzzleType: "hidden-information", subtype: "source-code", displayName: "Source code", narrativeTags: ["web", "source", "hidden-data"], difficultyControls: ["carrier"] }),
+        textPuzzleEntry({ tool: createSourceCodePuzzleTool, puzzleType: "hidden-information", subtype: "html-source-inspection", displayName: "HTML source inspection", narrativeTags: ["web", "source", "hidden-data"], difficultyControls: ["carrier"] }),
         textPuzzleEntry({ tool: createStaticUrlPuzzleTool, puzzleType: "hidden-information", subtype: "static-url", displayName: "Static URL", narrativeTags: ["web", "url", "investigation"], difficultyControls: ["manipulationKind"] }),
         textPuzzleEntry({ tool: createSteganographyPuzzleTool, puzzleType: "hidden-information", subtype: "steganography", displayName: "Steganography", narrativeTags: ["image", "forensics", "hidden-data"] }),
         textPuzzleEntry({ tool: createSubstitutionPuzzleTool, puzzleType: "encoding", subtype: "monoalphabetic-substitution", displayName: "Substitution cipher", narrativeTags: ["cipher", "message", "text"] }),

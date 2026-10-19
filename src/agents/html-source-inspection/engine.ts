@@ -48,7 +48,7 @@ function normalizeInlineText(input: string, fieldName: string, maximumLength: nu
 }
 
 export function normalizeSourceCodePayload(input: string): string {
-    return normalizeInlineText(input, "source-code payload", MAX_SOLUTION_LENGTH);
+    return normalizeInlineText(input, "html-source-inspection payload", MAX_SOLUTION_LENGTH);
 }
 
 export function normalizeVisibleTitle(input: string): string {
@@ -69,7 +69,7 @@ export function normalizeCodeLabel(input: string | undefined): string {
 
 export function normalizeCarrier(input: string): SourceCodeCarrier {
     if (!CARRIERS.includes(input as SourceCodeCarrier)) {
-        throw new Error(`The source-code carrier must be one of: ${CARRIERS.join(", ")}.`);
+        throw new Error(`The html-source-inspection carrier must be one of: ${CARRIERS.join(", ")}.`);
     }
     return input as SourceCodeCarrier;
 }
@@ -170,7 +170,7 @@ function assertSolutionNotVisible(
     visibleBody: string,
 ): void {
     if ([visibleTitle, visibleBody].join("\n").includes(solution)) {
-        throw new Error("The source-code payload must not appear in visible page text.");
+        throw new Error("The html-source-inspection payload must not appear in visible page text.");
     }
 }
 
@@ -196,7 +196,7 @@ export function createSourceCodePuzzle(spec: SourceCodePuzzleSpec): PrivatePuzzl
 
     const payloads = extractSourceCodePayloads(artifactSource, carrier);
     if (payloads.length !== 1 || payloads[0] !== solution) {
-        throw new Error("Internal validation failed: HTML source must contain exactly one intended source-code payload.");
+        throw new Error("Internal validation failed: HTML source must contain exactly one intended html-source-inspection payload.");
     }
 
     const normalization: Array<"trim" | "collapse-whitespace"> = ["trim", "collapse-whitespace"];
@@ -231,16 +231,16 @@ export function createSourceCodePuzzle(spec: SourceCodePuzzleSpec): PrivatePuzzl
     const puzzle: PrivatePuzzleInstance = {
         id: spec.id,
         puzzleType: "hidden-information",
-        subtype: "source-code",
+        subtype: "html-source-inspection",
         inputs,
         outputs: [{
             key: "extracted_message",
             valueType: "plain-text",
-            description: "The hidden message recovered from static source code.",
+            description: "The hidden message recovered from static html source inspection.",
             value: solution
         }],
         artifact: createSingleHtmlArtifact(artifactSource),
-        prompt: "Open the webpage artifact and recover the message hidden in the page source code.",
+        prompt: "Open the webpage artifact and recover the message hidden in the page html source inspection.",
         solution: solutionRecord,
         validator: {
             kind: "normalized-text",
@@ -249,7 +249,7 @@ export function createSourceCodePuzzle(spec: SourceCodePuzzleSpec): PrivatePuzzl
         },
         externalKnowledge: { required: false },
         extensions: {
-            sourceCode: {
+            htmlSourceInspection: {
                 templateVersion: TEMPLATE_VERSION,
                 carrier,
                 codeLabel,
