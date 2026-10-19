@@ -3,6 +3,8 @@ import { generateKeyPairSync } from "node:crypto";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import Type from "typebox";
 
+import { objectUnion } from "../../core/tool-schema.js";
+
 import type { PrivatePuzzleInstance } from "../../core/types.js";
 import {
     buildSecureRelayInstruction,
@@ -14,7 +16,7 @@ const pemSchema = Type.String({ minLength: 100, maxLength: 10000 });
 const identifierSchema = Type.String({ minLength: 1, maxLength: 32 });
 const referenceSchema = Type.String({ minLength: 1, maxLength: 120 });
 
-const parameters = Type.Union([
+const parameters = objectUnion([
     Type.Object({
         mode: Type.Literal("production"),
         id: Type.String({ minLength: 1 }),

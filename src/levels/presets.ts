@@ -11,7 +11,7 @@ export const LEVEL_PRESETS: Record<PresetName, LevelGenerationConfig> = {
             linearity: 0.9,
             maxParallelPuzzles: 2
         },
-        puzzleDifficulty: { preset: "easy", hintPolicy: "explicit" },
+        puzzleDifficulty: { preset: "easy" },
         transformationPolicy: { enabled: true, maxCount: 1, maxDifficulty: "easy" },
         reviewRetryLimit: 2,
         concealUnreachedContent: true,
@@ -25,7 +25,7 @@ export const LEVEL_PRESETS: Record<PresetName, LevelGenerationConfig> = {
             linearity: 0.55,
             maxParallelPuzzles: 3
         },
-        puzzleDifficulty: { preset: "medium", hintPolicy: "contextual" },
+        puzzleDifficulty: { preset: "medium" },
         transformationPolicy: { enabled: true, maxCount: 2, maxDifficulty: "medium" },
         reviewRetryLimit: 2,
         concealUnreachedContent: true,
@@ -39,7 +39,7 @@ export const LEVEL_PRESETS: Record<PresetName, LevelGenerationConfig> = {
             linearity: 0.25,
             maxParallelPuzzles: 5
         },
-        puzzleDifficulty: { preset: "hard", hintPolicy: "hidden" },
+        puzzleDifficulty: { preset: "hard" },
         transformationPolicy: { enabled: true, maxCount: 3, maxDifficulty: "hard" },
         reviewRetryLimit: 2,
         concealUnreachedContent: true,

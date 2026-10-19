@@ -5,7 +5,6 @@ import { writePngImageArtifactPreview } from "../../core/image-preview.js";
 import type { PrivatePuzzleInstance } from "../../core/types.js";
 import { createAlphaChannelPuzzle } from "./engine.js";
 
-const recognitionLevelSchema = Type.Union([Type.Literal("explicit"), Type.Literal("indirect"), Type.Literal("contextual"), Type.Literal("hidden")]);
 const acceptedAlternativesSchema = Type.Array(Type.String({ minLength: 1, maxLength: 300 }), { minItems: 1, maxItems: 10 });
 
 const parameters = Type.Object({
@@ -13,8 +12,6 @@ const parameters = Type.Object({
     id: Type.Optional(Type.String({ minLength: 1 })),
     intendedSolution: Type.String({ minLength: 1, maxLength: 300 }),
     coverTheme: Type.String({ minLength: 1, maxLength: 120 }),
-    recognitionLevel: recognitionLevelSchema,
-    alphaInspectionHint: Type.Optional(Type.String({ minLength: 1, maxLength: 300 })),
     acceptedAlternatives: Type.Optional(acceptedAlternativesSchema),
     width: Type.Optional(Type.Integer({ minimum: 16, maximum: 256 })),
     height: Type.Optional(Type.Integer({ minimum: 16, maximum: 256 }))
@@ -35,8 +32,6 @@ export const createAlphaChannelPuzzleTool: AgentTool<typeof parameters, PrivateP
             id: params.id ?? "demo-alpha-channel",
             intendedSolution: params.intendedSolution,
             coverTheme: params.coverTheme,
-            recognitionLevel: params.recognitionLevel,
-            alphaInspectionHint: params.alphaInspectionHint,
             acceptedAlternatives: params.acceptedAlternatives,
             width: params.width,
             height: params.height

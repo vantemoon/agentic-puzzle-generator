@@ -49,7 +49,6 @@ export interface PuzzleCatalogEntry {
     inputs: CatalogPort[];
     outputs: CatalogPort[];
     narrativeTags: string[];
-    supportedHintPolicies: Array<"explicit" | "contextual" | "hidden">;
     difficultyControls: string[];
 }
 
@@ -105,7 +104,6 @@ function textPuzzleEntry(options: {
             description: "The value recovered by solving the puzzle."
         }],
         narrativeTags: options.narrativeTags,
-        supportedHintPolicies: ["explicit", "contextual", "hidden"],
         difficultyControls: options.difficultyControls ?? []
     };
 }
@@ -114,8 +112,8 @@ export const repositoryPuzzleCatalog: PuzzleCatalog = {
     version: "repository-puzzles-2.0.0",
     entries: [
         textPuzzleEntry({ tool: createAcrosticPuzzleTool, puzzleType: "hidden-information", subtype: "cover-text-line-acrostic", displayName: "Acrostic", narrativeTags: ["document", "text", "investigation"] }),
-        textPuzzleEntry({ tool: createAlphaChannelPuzzleTool, puzzleType: "hidden-information", subtype: "alpha-channel", displayName: "Alpha channel", narrativeTags: ["image", "forensics", "hidden-data"], difficultyControls: ["recognitionLevel"] }),
-        textPuzzleEntry({ tool: createAltTextPuzzleTool, puzzleType: "hidden-information", subtype: "alt-text", displayName: "Alt text", narrativeTags: ["web", "image", "accessibility", "hidden-data"], difficultyControls: ["recognitionLevel"] }),
+        textPuzzleEntry({ tool: createAlphaChannelPuzzleTool, puzzleType: "hidden-information", subtype: "alpha-channel", displayName: "Alpha channel", narrativeTags: ["image", "forensics", "hidden-data"] }),
+        textPuzzleEntry({ tool: createAltTextPuzzleTool, puzzleType: "hidden-information", subtype: "alt-text", displayName: "Alt text", narrativeTags: ["web", "image", "accessibility", "hidden-data"] }),
         textPuzzleEntry({ tool: createAnagramPuzzleTool, puzzleType: "reconstruction", subtype: "anagram", displayName: "Anagram", narrativeTags: ["text", "reconstruction"] }),
         textPuzzleEntry({ tool: createAnomalousPhrasePuzzleTool, puzzleType: "hidden-information", subtype: "anomalous-phrase", displayName: "Anomalous phrase", narrativeTags: ["document", "research", "investigation"] }),
         textPuzzleEntry({ tool: createAsciiArtPuzzleTool, puzzleType: "visual-recognition", subtype: "ascii-art", displayName: "ASCII art", narrativeTags: ["terminal", "visual", "text"] }),
@@ -123,24 +121,24 @@ export const repositoryPuzzleCatalog: PuzzleCatalog = {
         textPuzzleEntry({ tool: createBinaryCapitalizationPuzzleTool, puzzleType: "hidden-information", subtype: "binary-capitalization-pattern", displayName: "Binary capitalization", narrativeTags: ["document", "binary", "hidden-data"] }),
         textPuzzleEntry({ tool: createCaesarPuzzleTool, puzzleType: "encoding", subtype: "caesar-cipher", displayName: "Caesar cipher", narrativeTags: ["cipher", "message", "text"], difficultyControls: ["shift"] }),
         textPuzzleEntry({ tool: createCapitalLetterExtractionPuzzleTool, puzzleType: "hidden-information", subtype: "capital-letter-extraction", displayName: "Capital-letter extraction", narrativeTags: ["document", "text", "hidden-data"] }),
-        textPuzzleEntry({ tool: createColorChannelPuzzleTool, puzzleType: "hidden-information", subtype: "color-channel", displayName: "Color channel", narrativeTags: ["image", "forensics", "hidden-data"], difficultyControls: ["recognitionLevel", "channel"] }),
-        textPuzzleEntry({ tool: createDomElementPuzzleTool, puzzleType: "hidden-information", subtype: "dom-element", displayName: "DOM element", narrativeTags: ["web", "source", "hidden-data"], difficultyControls: ["recognitionLevel", "hideStrategy"] }),
-        textPuzzleEntry({ tool: createHtmlCommentPuzzleTool, puzzleType: "hidden-information", subtype: "html-comment", displayName: "HTML comment", narrativeTags: ["web", "source", "hidden-data"], difficultyControls: ["recognitionLevel"] }),
-        textPuzzleEntry({ tool: createMorseAudioPuzzleTool, puzzleType: "hidden-information", subtype: "morse-audio", displayName: "Morse audio", narrativeTags: ["audio", "encoding", "message"], difficultyControls: ["recognitionLevel", "unitDurationMs"] }),
+        textPuzzleEntry({ tool: createColorChannelPuzzleTool, puzzleType: "hidden-information", subtype: "color-channel", displayName: "Color channel", narrativeTags: ["image", "forensics", "hidden-data"], difficultyControls: ["channel"] }),
+        textPuzzleEntry({ tool: createDomElementPuzzleTool, puzzleType: "hidden-information", subtype: "dom-element", displayName: "DOM element", narrativeTags: ["web", "source", "hidden-data"], difficultyControls: ["hideStrategy"] }),
+        textPuzzleEntry({ tool: createHtmlCommentPuzzleTool, puzzleType: "hidden-information", subtype: "html-comment", displayName: "HTML comment", narrativeTags: ["web", "source", "hidden-data"] }),
+        textPuzzleEntry({ tool: createMorseAudioPuzzleTool, puzzleType: "hidden-information", subtype: "morse-audio", displayName: "Morse audio", narrativeTags: ["audio", "encoding", "message"], difficultyControls: ["unitDurationMs"] }),
         textPuzzleEntry({ tool: createMorsePuzzleTool, puzzleType: "encoding", subtype: "morse-code", displayName: "Morse code", narrativeTags: ["encoding", "message", "text"] }),
         textPuzzleEntry({ tool: createNthCharacterPuzzleTool, puzzleType: "hidden-information", subtype: "periodic-letter-extraction", displayName: "Periodic letter extraction", narrativeTags: ["document", "text", "hidden-data"], difficultyControls: ["step", "startIndex"] }),
         textPuzzleEntry({ tool: createNthWordPuzzleTool, puzzleType: "hidden-information", subtype: "periodic-word-extraction", displayName: "Periodic word extraction", narrativeTags: ["document", "text", "hidden-data"], difficultyControls: ["step", "startIndex"] }),
-        textPuzzleEntry({ tool: createPageVersionPuzzleTool, puzzleType: "hidden-information", subtype: "page-version", displayName: "Page version", narrativeTags: ["web", "comparison", "investigation"], difficultyControls: ["recognitionLevel", "changeKind"] }),
-        textPuzzleEntry({ tool: createQrCodePuzzleTool, puzzleType: "encoding", subtype: "qr-code", displayName: "QR code", narrativeTags: ["image", "encoding", "identifier"], difficultyControls: ["recognitionLevel"] }),
-        textPuzzleEntry({ tool: createReverseAudioPuzzleTool, puzzleType: "hidden-information", subtype: "reverse-audio", displayName: "Reverse audio", narrativeTags: ["audio", "forensics", "message"], difficultyControls: ["recognitionLevel"] }),
+        textPuzzleEntry({ tool: createPageVersionPuzzleTool, puzzleType: "hidden-information", subtype: "page-version", displayName: "Page version", narrativeTags: ["web", "comparison", "investigation"], difficultyControls: ["changeKind"] }),
+        textPuzzleEntry({ tool: createQrCodePuzzleTool, puzzleType: "encoding", subtype: "qr-code", displayName: "QR code", narrativeTags: ["image", "encoding", "identifier"] }),
+        textPuzzleEntry({ tool: createReverseAudioPuzzleTool, puzzleType: "hidden-information", subtype: "reverse-audio", displayName: "Reverse audio", narrativeTags: ["audio", "forensics", "message"] }),
         textPuzzleEntry({ tool: createSecureRelayPuzzleTool, puzzleType: "secure-communication", subtype: "asymmetric-sealed-relay", displayName: "Secure relay", narrativeTags: ["communication", "cryptography", "identity"] }),
-        textPuzzleEntry({ tool: createSourceCodePuzzleTool, puzzleType: "hidden-information", subtype: "source-code", displayName: "Source code", narrativeTags: ["web", "source", "hidden-data"], difficultyControls: ["recognitionLevel", "carrier"] }),
-        textPuzzleEntry({ tool: createStaticUrlPuzzleTool, puzzleType: "hidden-information", subtype: "static-url", displayName: "Static URL", narrativeTags: ["web", "url", "investigation"], difficultyControls: ["recognitionLevel", "manipulationKind"] }),
-        textPuzzleEntry({ tool: createSteganographyPuzzleTool, puzzleType: "hidden-information", subtype: "steganography", displayName: "Steganography", narrativeTags: ["image", "forensics", "hidden-data"], difficultyControls: ["recognitionLevel"] }),
+        textPuzzleEntry({ tool: createSourceCodePuzzleTool, puzzleType: "hidden-information", subtype: "source-code", displayName: "Source code", narrativeTags: ["web", "source", "hidden-data"], difficultyControls: ["carrier"] }),
+        textPuzzleEntry({ tool: createStaticUrlPuzzleTool, puzzleType: "hidden-information", subtype: "static-url", displayName: "Static URL", narrativeTags: ["web", "url", "investigation"], difficultyControls: ["manipulationKind"] }),
+        textPuzzleEntry({ tool: createSteganographyPuzzleTool, puzzleType: "hidden-information", subtype: "steganography", displayName: "Steganography", narrativeTags: ["image", "forensics", "hidden-data"] }),
         textPuzzleEntry({ tool: createSubstitutionPuzzleTool, puzzleType: "encoding", subtype: "monoalphabetic-substitution", displayName: "Substitution cipher", narrativeTags: ["cipher", "message", "text"] }),
         textPuzzleEntry({ tool: createTelestichPuzzleTool, puzzleType: "hidden-information", subtype: "cover-text-line-telestich", displayName: "Telestich", narrativeTags: ["document", "text", "hidden-data"] }),
         textPuzzleEntry({ tool: createVigenerePuzzleTool, puzzleType: "encoding", subtype: "vigenere-cipher", displayName: "Vigenere cipher", narrativeTags: ["cipher", "message", "text"], difficultyControls: ["key"] }),
-        textPuzzleEntry({ tool: createVisualCluePuzzleTool, puzzleType: "hidden-information", subtype: "visual-clue", displayName: "Visual clue", narrativeTags: ["image", "observation", "investigation"], difficultyControls: ["recognitionLevel", "clueKind"] }),
+        textPuzzleEntry({ tool: createVisualCluePuzzleTool, puzzleType: "hidden-information", subtype: "visual-clue", displayName: "Visual clue", narrativeTags: ["image", "observation", "investigation"], difficultyControls: ["clueKind"] }),
         textPuzzleEntry({ tool: createWordIndexPuzzleTool, puzzleType: "hidden-information", subtype: "cover-text-word-index-cipher", displayName: "Word index", narrativeTags: ["document", "text", "hidden-data"] })
     ]
 };
@@ -170,7 +168,6 @@ export function catalogForPrompt(catalog: PuzzleCatalog): unknown {
             outputCapabilities: entry.outputs,
             levelInputGuidance: "Declare only data materially used by the puzzle. Sources and optional transformations are defined by the level blueprint.",
             narrativeTags: entry.narrativeTags,
-            supportedHintPolicies: entry.supportedHintPolicies,
             difficultyControls: entry.difficultyControls
         }))
     };

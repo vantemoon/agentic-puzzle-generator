@@ -1,18 +1,11 @@
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import Type from "typebox";
 
+import { objectUnion } from "../../core/tool-schema.js";
+
 import { writeHtmlArtifactPreview as writeSharedHtmlArtifactPreview } from "../../core/html-preview.js";
 import type { PrivatePuzzleInstance } from "../../core/types.js";
 import { createHtmlCommentPuzzle } from "./engine.js";
-
-const recognitionLevelSchema = Type.Union([
-    Type.Literal("explicit"),
-    Type.Literal("indirect"),
-    Type.Literal("contextual"),
-    Type.Literal("hidden")
-], {
-    description: "How directly the visible page should point solvers toward source inspection."
-});
 
 const acceptedAlternativesSchema = Type.Array(
     Type.String({ minLength: 1, maxLength: 300 }),
@@ -27,8 +20,6 @@ const baseFields = {
     intendedSolution: Type.String({ minLength: 1, maxLength: 300 }),
     visibleTitle: Type.String({ minLength: 1, maxLength: 120 }),
     visibleBody: Type.String({ minLength: 1, maxLength: 1000 }),
-    recognitionLevel: recognitionLevelSchema,
-    sourceInspectionHint: Type.Optional(Type.String({ minLength: 1, maxLength: 300 })),
     commentPrefix: Type.Optional(Type.String({ minLength: 1, maxLength: 40 })),
     acceptedAlternatives: Type.Optional(acceptedAlternativesSchema)
 } as const;
@@ -45,7 +36,7 @@ const demoSchema = Type.Object({
     ...baseFields
 }, { additionalProperties: false });
 
-const parameters = Type.Union([productionSchema, demoSchema]);
+const parameters = objectUnion([productionSchema, demoSchema]);
 
 export async function writeHtmlArtifactPreview(puzzle: PrivatePuzzleInstance) {
     return writeSharedHtmlArtifactPreview({
@@ -60,7 +51,7 @@ AgentTool<typeof parameters, PrivatePuzzleInstance> = {
     name: "create_html_comment_puzzle",
     label: "Create an HTML comment puzzle",
     description: [
-        "Validate an upstream puzzle ID, hidden payload, visible webpage text, and recognition level;",
+        "Validate an upstream puzzle ID, hidden payload, and visible webpage text;",
         "construct a safe static HTML artifact with the payload hidden in one source comment;",
         "and return the finished private puzzle instance."
     ].join(" "),
@@ -72,8 +63,6 @@ AgentTool<typeof parameters, PrivatePuzzleInstance> = {
             intendedSolution: params.intendedSolution,
             visibleTitle: params.visibleTitle,
             visibleBody: params.visibleBody,
-            recognitionLevel: params.recognitionLevel,
-            sourceInspectionHint: params.sourceInspectionHint,
             commentPrefix: params.commentPrefix,
             acceptedAlternatives: params.acceptedAlternatives
         });

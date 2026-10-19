@@ -18,11 +18,7 @@ import {
     validateNormalizedTextAnswer
 } from "../src/core/types.js";
 
-const CARRIER_TEXT = [
-    "quiet rivers cross the valley while lanterns glow beside the old stone road.",
-    "travelers pause near the bridge and listen as evening birds settle in the trees.",
-    "a cool wind moves through the grass before the last train reaches the village."
-].join(" ");
+const CARRIER_TEXT = "quiet rivers cross the valley while lanterns glow beside old roads.";
 
 const knownSpec = (id: string) => ({
     id,
@@ -69,6 +65,8 @@ describe("binary capitalization pattern engine", () => {
             ruleVersion: string;
             encodedLetterCount: number;
             carrierLetterCount: number;
+            trailingCarrierLetterCount: number;
+            maximumTrailingCarrierLetters: number;
             decodedMessage: string;
             artifactSha256: string;
         };
@@ -88,6 +86,9 @@ describe("binary capitalization pattern engine", () => {
         expect(metadata.ruleVersion).toBe("ascii-letter-case-bits-v1");
         expect(metadata.encodedLetterCount).toBe(32);
         expect(metadata.carrierLetterCount).toBeGreaterThanOrEqual(32);
+        expect(metadata.trailingCarrierLetterCount).toBe(metadata.carrierLetterCount - 32);
+        expect(metadata.maximumTrailingCarrierLetters).toBe(32);
+        expect(metadata.trailingCarrierLetterCount).toBeLessThanOrEqual(32);
         expect(metadata.decodedMessage).toBe("Hi!");
         expect(metadata.artifactSha256).toMatch(/^[0-9a-f]{64}$/);
         expect(first.externalKnowledge).toEqual({ required: false });
@@ -123,6 +124,10 @@ describe("binary capitalization pattern engine", () => {
             .toThrow("require at least 16");
         expect(() => decodeCapitalizationPattern("aBcdefgH"))
             .toThrow("complete null terminator");
+        expect(() => applyCapitalizationPattern(
+            "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz",
+            "A"
+        )).toThrow("redundant trailing prose");
     });
 
     it("rejects exposed answers, invalid values, and excessive lengths", () => {

@@ -7,17 +7,10 @@ import {
     type PuzzleGenerationSpec
 } from "../../core/types.js";
 
-export type HtmlCommentRecognitionLevel =
-    | "explicit"
-    | "indirect"
-    | "contextual"
-    | "hidden";
 
 export interface HtmlCommentPuzzleSpec extends PuzzleGenerationSpec {
     visibleTitle: string;
     visibleBody: string;
-    recognitionLevel: HtmlCommentRecognitionLevel;
-    sourceInspectionHint?: string;
     commentPrefix?: string;
     acceptedAlternatives?: string[];
 }
@@ -25,16 +18,9 @@ export interface HtmlCommentPuzzleSpec extends PuzzleGenerationSpec {
 const MAX_SOLUTION_LENGTH = 300;
 const MAX_TITLE_LENGTH = 120;
 const MAX_BODY_LENGTH = 1_000;
-const MAX_HINT_LENGTH = 300;
 const MAX_COMMENT_PREFIX_LENGTH = 40;
 const DEFAULT_COMMENT_PREFIX = "DEV NOTE";
 const TEMPLATE_VERSION = "safe-static-html-comment-v1";
-const RECOGNITION_LEVELS: readonly HtmlCommentRecognitionLevel[] = [
-    "explicit",
-    "indirect",
-    "contextual",
-    "hidden"
-];
 
 function normalizeInlineText(
     input: string,
@@ -76,10 +62,6 @@ export function normalizeVisibleBody(input: string): string {
     return normalizeInlineText(input, "visible body", MAX_BODY_LENGTH);
 }
 
-export function normalizeSourceInspectionHint(input: string | undefined): string | undefined {
-    if (input === undefined) return undefined;
-    return normalizeInlineText(input, "source-inspection hint", MAX_HINT_LENGTH);
-}
 
 export function normalizeCommentPrefix(input: string | undefined): string {
     const normalized = normalizeInlineText(
@@ -95,14 +77,6 @@ export function normalizeCommentPrefix(input: string | undefined): string {
     return normalized;
 }
 
-export function normalizeRecognitionLevel(input: string): HtmlCommentRecognitionLevel {
-    if (!RECOGNITION_LEVELS.includes(input as HtmlCommentRecognitionLevel)) {
-        throw new Error(
-            `The recognition level must be one of: ${RECOGNITION_LEVELS.join(", ")}.`
-        );
-    }
-    return input as HtmlCommentRecognitionLevel;
-}
 
 function normalizeAcceptedAlternatives(alternatives: string[] | undefined): string[] | undefined {
     if (alternatives === undefined) return undefined;
@@ -124,13 +98,8 @@ export function buildHtmlCommentArtifact(options: {
     visibleTitle: string;
     visibleBody: string;
     hiddenPayload: string;
-    recognitionLevel: HtmlCommentRecognitionLevel;
-    sourceInspectionHint?: string;
     commentPrefix: string;
 }): string {
-    const hintParagraph = options.sourceInspectionHint === undefined
-        ? ""
-        : `\n      <p class=\"hint\">${escapeHtmlText(options.sourceInspectionHint)}</p>`;
 
     return [
         "<!doctype html>",
@@ -142,7 +111,7 @@ export function buildHtmlCommentArtifact(options: {
         "  <body>",
         "    <main>",
         `      <h1>${escapeHtmlText(options.visibleTitle)}</h1>`,
-        `      <p>${escapeHtmlText(options.visibleBody)}</p>${hintParagraph}`,
+        `      <p>${escapeHtmlText(options.visibleBody)}</p>`,
         "    </main>",
         `    <!-- ${options.commentPrefix}: ${options.hiddenPayload} -->`,
         "  </body>",
@@ -181,25 +150,13 @@ export function assertSafeStaticHtml(source: string): void {
     }
 }
 
-function assertRecognitionHintPolicy(
-    recognitionLevel: HtmlCommentRecognitionLevel,
-    sourceInspectionHint: string | undefined
-): void {
-    if (recognitionLevel === "explicit" && sourceInspectionHint === undefined) {
-        throw new Error("Explicit HTML-comment puzzles require a source-inspection hint.");
-    }
-    if (recognitionLevel === "hidden" && sourceInspectionHint !== undefined) {
-        throw new Error("Hidden HTML-comment puzzles must not include a source-inspection hint.");
-    }
-}
 
 function assertSolutionNotVisible(
     solution: string,
     visibleTitle: string,
     visibleBody: string,
-    sourceInspectionHint: string | undefined
 ): void {
-    const visibleText = [visibleTitle, visibleBody, sourceInspectionHint ?? ""].join("\n");
+    const visibleText = [visibleTitle, visibleBody].join("\n");
     if (visibleText.includes(solution)) {
         throw new Error("The hidden comment payload must not appear in visible page text.");
     }
@@ -213,20 +170,14 @@ export function createHtmlCommentPuzzle(spec: HtmlCommentPuzzleSpec): PrivatePuz
     const solution = normalizeHtmlCommentSolution(spec.intendedSolution);
     const visibleTitle = normalizeVisibleTitle(spec.visibleTitle);
     const visibleBody = normalizeVisibleBody(spec.visibleBody);
-    const recognitionLevel = normalizeRecognitionLevel(spec.recognitionLevel);
-    const sourceInspectionHint = normalizeSourceInspectionHint(spec.sourceInspectionHint);
     const commentPrefix = normalizeCommentPrefix(spec.commentPrefix);
     const acceptedAlternatives = normalizeAcceptedAlternatives(spec.acceptedAlternatives);
-
-    assertRecognitionHintPolicy(recognitionLevel, sourceInspectionHint);
-    assertSolutionNotVisible(solution, visibleTitle, visibleBody, sourceInspectionHint);
+    assertSolutionNotVisible(solution, visibleTitle, visibleBody);
 
     const artifactSource = buildHtmlCommentArtifact({
         visibleTitle,
         visibleBody,
         hiddenPayload: solution,
-        recognitionLevel,
-        sourceInspectionHint,
         commentPrefix
     });
 
@@ -280,17 +231,6 @@ export function createHtmlCommentPuzzle(spec: HtmlCommentPuzzleSpec): PrivatePuz
         }
     ];
 
-    if (sourceInspectionHint !== undefined) {
-        inputs.push({
-            key: "source_inspection_hint",
-            valueType: "source-inspection-hint",
-            description: "A visible hint suggesting that the solver should inspect the page source.",
-            required: false,
-            constraints: { maximumCharacters: MAX_HINT_LENGTH },
-            value: sourceInspectionHint
-        });
-    }
-
     const puzzle: PrivatePuzzleInstance = {
         id: spec.id,
         puzzleType: "hidden-information",
@@ -314,9 +254,7 @@ export function createHtmlCommentPuzzle(spec: HtmlCommentPuzzleSpec): PrivatePuz
         extensions: {
             htmlComment: {
                 templateVersion: TEMPLATE_VERSION,
-                recognitionLevel,
                 commentPrefix,
-                hasSourceInspectionHint: sourceInspectionHint !== undefined,
                 artifactSha256: createHash("sha256").update(artifactSource, "utf8").digest("hex")
             }
         }

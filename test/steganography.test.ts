@@ -8,9 +8,7 @@ import {
     embedPngLsbRgb,
     extractPngLsbRgbPayload,
     normalizeCoverTheme,
-    normalizeSteganographyHint,
     normalizeSteganographyPayload,
-    normalizeSteganographyRecognitionLevel
 } from "../src/agents/steganography/engine.js";
 import {
     createSteganographyPuzzleTool,
@@ -28,7 +26,6 @@ const knownSpec = (id: string) => ({
     id,
     intendedSolution: "OPEN LOCKER 7",
     coverTheme: "quiet landscape",
-    recognitionLevel: "contextual" as const,
     width: 64,
     height: 48
 });
@@ -41,9 +38,9 @@ describe("steganography engine", () => {
     it("normalizes documented fields", () => {
         expect(normalizeSteganographyPayload("  OPEN   LOCKER 7  ")).toBe("OPEN LOCKER 7");
         expect(normalizeCoverTheme("  quiet   landscape  ")).toBe("quiet landscape");
-        expect(normalizeSteganographyHint("  Check   LSBs  ")).toBe("Check LSBs");
-        expect(normalizeSteganographyHint(undefined)).toBeUndefined();
-        expect(normalizeSteganographyRecognitionLevel("hidden")).toBe("hidden");
+
+
+
     });
 
     it("embeds and extracts PNG LSB RGB payloads deterministically", () => {
@@ -61,12 +58,10 @@ describe("steganography engine", () => {
         const metadata = first.extensions.steganography as {
             templateVersion: string;
             embeddingMethod: string;
-            recognitionLevel: string;
             imageFormat: string;
             encoding: string;
             width: number;
             height: number;
-            hasExtractionHint: boolean;
             artifactSha256: string;
         };
 
@@ -81,12 +76,10 @@ describe("steganography engine", () => {
         expect(extractPngLsbRgbPayload(getPngData(first))).toBe("OPEN LOCKER 7");
         expect(metadata.templateVersion).toBe("png-lsb-rgb-v1");
         expect(metadata.embeddingMethod).toBe("png-lsb-rgb");
-        expect(metadata.recognitionLevel).toBe("contextual");
         expect(metadata.imageFormat).toBe("png");
         expect(metadata.encoding).toBe("base64");
         expect(metadata.width).toBe(64);
         expect(metadata.height).toBe(48);
-        expect(metadata.hasExtractionHint).toBe(false);
         expect(metadata.artifactSha256).toMatch(/^[0-9a-f]{64}$/);
         expect(first.externalKnowledge).toEqual({ required: false });
         expect(() => assertPrivatePuzzleInstance(first)).not.toThrow();
@@ -125,25 +118,7 @@ describe("steganography engine", () => {
         expect(serialized).not.toContain("OPEN LOCKER 7");
     });
 
-    it("enforces recognition hint policy and leak checks", () => {
-        expect(() => createSteganographyPuzzle({
-            ...knownSpec("explicit-missing-hint"),
-            recognitionLevel: "explicit"
-        })).toThrow("require an extraction hint");
-
-        expect(() => createSteganographyPuzzle({
-            ...knownSpec("hidden-with-hint"),
-            recognitionLevel: "hidden",
-            extractionHint: "Check the PNG least significant bits."
-        })).toThrow("must not include an extraction hint");
-
-        const explicit = createSteganographyPuzzle({
-            ...knownSpec("explicit-with-hint"),
-            recognitionLevel: "explicit",
-            extractionHint: "Check the PNG least significant bits."
-        });
-        expect(explicit.inputs.map((port) => port.key)).toContain("extraction_hint");
-        expect(explicit.prompt).toContain("least significant bits");
+    it("rejects visible solution leaks", () => {
 
         expect(() => createSteganographyPuzzle({
             ...knownSpec("visible-leak"),
@@ -154,8 +129,6 @@ describe("steganography engine", () => {
     it("rejects invalid values and oversized payloads", () => {
         expect(() => normalizeSteganographyPayload("bad\u0000payload")).toThrow("printable ASCII");
         expect(() => normalizeCoverTheme("   ")).toThrow("must not be empty");
-        expect(() => normalizeSteganographyHint("H".repeat(301))).toThrow("must not exceed 300");
-        expect(() => normalizeSteganographyRecognitionLevel("obvious")).toThrow("recognition level");
         expect(() => createSteganographyPuzzle({ ...knownSpec("   ") })).toThrow("ID must not be empty");
         expect(() => createSteganographyPuzzle({ ...knownSpec("bad-width"), width: 15 })).toThrow("width");
         expect(() => embedPngLsbRgb({ width: 16, height: 16, coverTheme: "tiny", payload: "X".repeat(200) })).toThrow("too large");
@@ -182,8 +155,6 @@ describe("steganography engine", () => {
             id: "stego-tool-preview",
             intendedSolution: "OPEN LOCKER 7",
             coverTheme: "quiet landscape",
-            recognitionLevel: "explicit",
-            extractionHint: "Check the PNG RGB least significant bits.",
             width: 64,
             height: 48
         });

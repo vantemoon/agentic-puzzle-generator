@@ -7,7 +7,6 @@ import {
     createAlphaChannelPuzzle,
     extractAlphaChannelPayload,
     normalizeAlphaChannelPayload,
-    normalizeAlphaChannelRecognitionLevel
 } from "../src/agents/alpha-channel/engine.js";
 import { createAlphaChannelPuzzleTool, writeAlphaChannelArtifactPreview } from "../src/agents/alpha-channel/tool.js";
 import {
@@ -15,7 +14,6 @@ import {
     extractColorChannelPayload,
     normalizeColorChannel,
     normalizeColorChannelPayload,
-    normalizeColorChannelRecognitionLevel
 } from "../src/agents/color-channel/engine.js";
 import { createColorChannelPuzzleTool, writeColorChannelArtifactPreview } from "../src/agents/color-channel/tool.js";
 import { assertPrivatePuzzleInstance, assertPublicPuzzleInstance, getPngImageData, toPublicPuzzle, validateNormalizedTextAnswer } from "../src/core/types.js";
@@ -24,7 +22,6 @@ const alphaSpec = (id: string) => ({
     id,
     intendedSolution: "MAP ROOM",
     coverTheme: "decorative museum map",
-    recognitionLevel: "contextual" as const,
     width: 64,
     height: 48
 });
@@ -34,7 +31,6 @@ const colorSpec = (id: string) => ({
     intendedSolution: "RED DOOR",
     coverTheme: "busy signal poster",
     channel: "red" as const,
-    recognitionLevel: "contextual" as const,
     width: 64,
     height: 48
 });
@@ -42,7 +38,7 @@ const colorSpec = (id: string) => ({
 describe("alpha-channel puzzles", () => {
     it("creates deterministic PNG alpha-channel puzzles", () => {
         expect(normalizeAlphaChannelPayload(" MAP   ROOM ")).toBe("MAP ROOM");
-        expect(normalizeAlphaChannelRecognitionLevel("hidden")).toBe("hidden");
+
         const first = createAlphaChannelPuzzle(alphaSpec("alpha-1"));
         const second = createAlphaChannelPuzzle(alphaSpec("alpha-1"));
         expect(first).toEqual(second);
@@ -55,9 +51,9 @@ describe("alpha-channel puzzles", () => {
         expect(() => assertPrivatePuzzleInstance(first)).not.toThrow();
     });
 
-    it("enforces alpha-channel policies and public projection", () => {
-        expect(() => createAlphaChannelPuzzle({ ...alphaSpec("explicit"), recognitionLevel: "explicit" })).toThrow("require an alpha inspection hint");
-        expect(() => createAlphaChannelPuzzle({ ...alphaSpec("hidden"), recognitionLevel: "hidden", alphaInspectionHint: "Inspect alpha." })).toThrow("must not include");
+    it("enforces alpha-channel behavior and public projection", () => {
+
+
         expect(() => createAlphaChannelPuzzle({ ...alphaSpec("leak"), coverTheme: "MAP ROOM poster" })).toThrow("must not appear");
         const puzzle = createAlphaChannelPuzzle(alphaSpec("alpha-public"));
         const publicPuzzle = toPublicPuzzle(puzzle);
@@ -75,7 +71,7 @@ describe("alpha-channel puzzles", () => {
             await rm(preview.path, { force: true });
         }
 
-        const result = await createAlphaChannelPuzzleTool.execute("tool", { mode: "demo", id: "alpha-tool", intendedSolution: "MAP ROOM", coverTheme: "decorative museum map", recognitionLevel: "explicit", alphaInspectionHint: "Inspect the PNG alpha channel.", width: 64, height: 48 });
+        const result = await createAlphaChannelPuzzleTool.execute("tool", { mode: "demo", id: "alpha-tool", intendedSolution: "MAP ROOM", coverTheme: "decorative museum map", width: 64, height: 48 });
         const text = result.content[0];
         if (text.type !== "text") throw new Error("Expected text content.");
         const payload = JSON.parse(text.text) as { artifactPreviewPath: string; answer: string };
@@ -91,7 +87,7 @@ describe("alpha-channel puzzles", () => {
 describe("color-channel puzzles", () => {
     it("creates deterministic PNG color-channel puzzles", () => {
         expect(normalizeColorChannelPayload(" RED   DOOR ")).toBe("RED DOOR");
-        expect(normalizeColorChannelRecognitionLevel("hidden")).toBe("hidden");
+
         expect(normalizeColorChannel("green")).toBe("green");
         const first = createColorChannelPuzzle(colorSpec("color-1"));
         const second = createColorChannelPuzzle(colorSpec("color-1"));
@@ -105,10 +101,10 @@ describe("color-channel puzzles", () => {
         expect(() => assertPrivatePuzzleInstance(first)).not.toThrow();
     });
 
-    it("enforces color-channel policies and public projection", () => {
+    it("enforces color-channel behavior and public projection", () => {
         expect(() => normalizeColorChannel("alpha")).toThrow("color channel");
-        expect(() => createColorChannelPuzzle({ ...colorSpec("explicit"), recognitionLevel: "explicit" })).toThrow("require a channel inspection hint");
-        expect(() => createColorChannelPuzzle({ ...colorSpec("hidden"), recognitionLevel: "hidden", channelInspectionHint: "Inspect red." })).toThrow("must not include");
+
+
         expect(() => createColorChannelPuzzle({ ...colorSpec("leak"), coverTheme: "RED DOOR poster" })).toThrow("must not appear");
         const puzzle = createColorChannelPuzzle(colorSpec("color-public"));
         const publicPuzzle = toPublicPuzzle(puzzle);
@@ -126,7 +122,7 @@ describe("color-channel puzzles", () => {
             await rm(preview.path, { force: true });
         }
 
-        const result = await createColorChannelPuzzleTool.execute("tool", { mode: "demo", id: "color-tool", intendedSolution: "RED DOOR", coverTheme: "busy signal poster", channel: "red", recognitionLevel: "explicit", channelInspectionHint: "Inspect the red channel.", width: 64, height: 48 });
+        const result = await createColorChannelPuzzleTool.execute("tool", { mode: "demo", id: "color-tool", intendedSolution: "RED DOOR", coverTheme: "busy signal poster", channel: "red", width: 64, height: 48 });
         const text = result.content[0];
         if (text.type !== "text") throw new Error("Expected text content.");
         const payload = JSON.parse(text.text) as { artifactPreviewPath: string; answer: string };

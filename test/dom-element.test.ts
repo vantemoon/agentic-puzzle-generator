@@ -8,10 +8,8 @@ import {
     createDomElementPuzzle,
     extractHiddenDomPayloads,
     normalizeDomElementPayload,
-    normalizeDomInspectionHint,
     normalizeElementTag,
     normalizeHideStrategy,
-    normalizeRecognitionLevel,
     normalizeVisibleBody,
     normalizeVisibleTitle
 } from "../src/agents/dom-element/engine.js";
@@ -32,7 +30,6 @@ const knownSpec = (id: string) => ({
     intendedSolution: "DEPLOY-742",
     visibleTitle: "Release Dashboard",
     visibleBody: "The page looks complete, but the staging checklist says one DOM node was left behind.",
-    recognitionLevel: "contextual" as const,
     hideStrategy: "display-none" as const
 });
 
@@ -44,14 +41,13 @@ function removeMarkedHiddenPayload(source: string): string {
 }
 
 describe("hidden DOM element engine", () => {
-    it("normalizes documented fields, recognition levels, strategies, and tags", () => {
+    it("normalizes documented fields, strategies, and tags", () => {
         expect(normalizeDomElementPayload("  DEPLOY   742  ")).toBe("DEPLOY 742");
         expect(normalizeVisibleTitle("  Release   Dashboard  ")).toBe("Release Dashboard");
         expect(normalizeVisibleBody("  Staging   page  ")).toBe("Staging page");
-        expect(normalizeDomInspectionHint("  Inspect   the structure  "))
-            .toBe("Inspect the structure");
-        expect(normalizeDomInspectionHint(undefined)).toBeUndefined();
-        expect(normalizeRecognitionLevel("hidden")).toBe("hidden");
+
+
+
         expect(normalizeHideStrategy("display-none")).toBe("display-none");
         expect(normalizeElementTag(undefined)).toBe("p");
         expect(normalizeElementTag("span")).toBe("span");
@@ -63,10 +59,8 @@ describe("hidden DOM element engine", () => {
         const metadata = first.extensions.domElement as {
             templateVersion: string;
             payloadRole: string;
-            recognitionLevel: string;
             hideStrategy: string;
             elementTag: string;
-            hasDomInspectionHint: boolean;
             artifactSha256: string;
         };
 
@@ -87,10 +81,8 @@ describe("hidden DOM element engine", () => {
         expect(first.prompt).toBe("Open the webpage artifact and recover the hidden DOM message.");
         expect(metadata.templateVersion).toBe("safe-static-hidden-dom-element-v1");
         expect(metadata.payloadRole).toBe("hidden-payload");
-        expect(metadata.recognitionLevel).toBe("contextual");
         expect(metadata.hideStrategy).toBe("display-none");
         expect(metadata.elementTag).toBe("p");
-        expect(metadata.hasDomInspectionHint).toBe(false);
         expect(metadata.artifactSha256).toMatch(/^[0-9a-f]{64}$/);
         expect(first.externalKnowledge).toEqual({ required: false });
         expect(() => assertSafeStaticHtml(getHtmlEntrySource(first.artifact))).not.toThrow();
@@ -103,7 +95,6 @@ describe("hidden DOM element engine", () => {
             intendedSolution: "KEEP <CASE> & go",
             visibleTitle: "Build <Status>",
             visibleBody: "Check A & B before 'launch' and \"handoff\".",
-            recognitionLevel: "contextual",
             hideStrategy: "hidden-attribute",
             elementTag: "span"
         });
@@ -177,39 +168,10 @@ describe("hidden DOM element engine", () => {
         expect(removeMarkedHiddenPayload(getHtmlEntrySource(publicPuzzle.artifact))).not.toContain("DEPLOY-742");
     });
 
-    it("enforces recognition-level hint policy", () => {
-        expect(() => createDomElementPuzzle({
-            ...knownSpec("explicit-missing-hint"),
-            recognitionLevel: "explicit"
-        })).toThrow("require a DOM-inspection hint");
-
-        expect(() => createDomElementPuzzle({
-            ...knownSpec("hidden-with-hint"),
-            recognitionLevel: "hidden",
-            domInspectionHint: "Inspect the DOM."
-        })).toThrow("must not include a DOM-inspection hint");
-
-        const explicit = createDomElementPuzzle({
-            ...knownSpec("explicit-with-hint"),
-            recognitionLevel: "explicit",
-            domInspectionHint: "Inspect the page structure for a hidden node."
-        });
-        expect(explicit.inputs.map((port) => port.key)).toContain("dom_inspection_hint");
-        expect(getHtmlEntrySource(explicit.artifact)).toContain("Inspect the page structure");
-
-        const hidden = createDomElementPuzzle({
-            ...knownSpec("hidden-no-hint"),
-            recognitionLevel: "hidden"
-        });
-        expect(hidden.inputs.map((port) => port.key)).not.toContain("dom_inspection_hint");
-    });
-
     it("rejects invalid values", () => {
         expect(() => normalizeDomElementPayload("bad\u0000payload")).toThrow("printable ASCII");
         expect(() => normalizeVisibleTitle("   ")).toThrow("must not be empty");
         expect(() => normalizeVisibleBody("B".repeat(1_001))).toThrow("must not exceed 1000");
-        expect(() => normalizeDomInspectionHint("H".repeat(301))).toThrow("must not exceed 300");
-        expect(() => normalizeRecognitionLevel("obvious")).toThrow("recognition level");
         expect(() => normalizeHideStrategy("opacity-zero")).toThrow("hide strategy");
         expect(() => normalizeElementTag("section")).toThrow("element tag");
         expect(() => createDomElementPuzzle({
@@ -254,7 +216,6 @@ describe("hidden DOM element engine", () => {
             intendedSolution: "DEPLOY-742",
             visibleTitle: "Release Dashboard",
             visibleBody: "The page looks complete, but the staging checklist says one DOM node was left behind.",
-            recognitionLevel: "contextual",
             hideStrategy: "display-none"
         });
         const textContent = result.content[0];

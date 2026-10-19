@@ -1,6 +1,8 @@
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import Type from "typebox";
 
+import { objectUnion } from "../../core/tool-schema.js";
+
 import type { PrivatePuzzleInstance } from "../../core/types.js";
 import { createVigenerePuzzle } from "./engine.js";
 
@@ -13,7 +15,7 @@ const keySchema = Type.String({
     ].join(" ")
 });
 
-const parameters = Type.Union([
+const parameters = objectUnion([
     Type.Object({
         mode: Type.Literal("production"),
         id: Type.String({ minLength: 1 }),

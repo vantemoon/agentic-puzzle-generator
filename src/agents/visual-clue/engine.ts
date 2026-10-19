@@ -8,7 +8,6 @@ import {
 } from "../../core/types.js";
 import { escapeHtmlText } from "../html-comment/engine.js";
 
-export type VisualClueRecognitionLevel = "explicit" | "indirect" | "contextual" | "hidden";
 export type VisualClueKind = "object" | "symbol" | "text" | "pattern" | "contradiction";
 
 export interface VisualCluePuzzleSpec extends PuzzleGenerationSpec {
@@ -17,8 +16,6 @@ export interface VisualCluePuzzleSpec extends PuzzleGenerationSpec {
     sceneDescription: string;
     clueKind: VisualClueKind;
     clueLabel: string;
-    recognitionLevel: VisualClueRecognitionLevel;
-    observationHint?: string;
     imageCaption?: string;
     acceptedAlternatives?: string[];
 }
@@ -28,10 +25,8 @@ const MAX_TITLE_LENGTH = 120;
 const MAX_THEME_LENGTH = 160;
 const MAX_DESCRIPTION_LENGTH = 1_000;
 const MAX_CLUE_LABEL_LENGTH = 80;
-const MAX_HINT_LENGTH = 300;
 const MAX_CAPTION_LENGTH = 300;
 const TEMPLATE_VERSION = "safe-static-visual-clue-v1";
-const RECOGNITION_LEVELS: readonly VisualClueRecognitionLevel[] = ["explicit", "indirect", "contextual", "hidden"];
 const CLUE_KINDS: readonly VisualClueKind[] = ["object", "symbol", "text", "pattern", "contradiction"];
 
 function normalizeInlineText(input: string, fieldName: string, maximumLength: number): string {
@@ -64,22 +59,12 @@ export function normalizeClueLabel(input: string): string {
     return normalizeInlineText(input, "clue label", MAX_CLUE_LABEL_LENGTH);
 }
 
-export function normalizeObservationHint(input: string | undefined): string | undefined {
-    if (input === undefined) return undefined;
-    return normalizeInlineText(input, "observation hint", MAX_HINT_LENGTH);
-}
 
 export function normalizeImageCaption(input: string | undefined): string | undefined {
     if (input === undefined) return undefined;
     return normalizeInlineText(input, "image caption", MAX_CAPTION_LENGTH);
 }
 
-export function normalizeVisualClueRecognitionLevel(input: string): VisualClueRecognitionLevel {
-    if (!RECOGNITION_LEVELS.includes(input as VisualClueRecognitionLevel)) {
-        throw new Error(`The recognition level must be one of: ${RECOGNITION_LEVELS.join(", ")}.`);
-    }
-    return input as VisualClueRecognitionLevel;
-}
 
 export function normalizeVisualClueKind(input: string): VisualClueKind {
     if (!CLUE_KINDS.includes(input as VisualClueKind)) {
@@ -94,28 +79,19 @@ function normalizeAcceptedAlternatives(alternatives: string[] | undefined): stri
     return normalized.length > 0 ? normalized : undefined;
 }
 
-function assertRecognitionHintPolicy(recognitionLevel: VisualClueRecognitionLevel, observationHint: string | undefined): void {
-    if (recognitionLevel === "explicit" && observationHint === undefined) {
-        throw new Error("Explicit visual-clue puzzles require an observation hint.");
-    }
-    if (recognitionLevel === "hidden" && observationHint !== undefined) {
-        throw new Error("Hidden visual-clue puzzles must not include an observation hint.");
-    }
-}
 
 function assertSolutionNotLeaked(options: {
     solution: string;
     sceneTitle: string;
     sceneTheme: string;
     sceneDescription: string;
-    observationHint?: string;
     imageCaption?: string;
 }): void {
     const publicText = [
         options.sceneTitle,
         options.sceneTheme,
         options.sceneDescription,
-        options.observationHint ?? "",
+
         options.imageCaption ?? ""
     ].join("\n");
     if (publicText.includes(options.solution)) {
@@ -259,10 +235,9 @@ export function buildVisualClueSvg(options: {
     sceneDescription: string;
     clueKind: VisualClueKind;
     clueLabel: string;
-    observationHint?: string;
     imageCaption?: string;
 }): string {
-    const descriptionParts = [options.sceneTheme, options.sceneDescription, options.observationHint, options.imageCaption]
+    const descriptionParts = [options.sceneTheme, options.sceneDescription, options.imageCaption]
         .filter((part): part is string => part !== undefined);
     const palette = paletteForTheme(options.sceneTheme);
     const source = [
@@ -305,16 +280,13 @@ export function createVisualCluePuzzle(spec: VisualCluePuzzleSpec): PrivatePuzzl
     const sceneDescription = normalizeSceneDescription(spec.sceneDescription);
     const clueKind = normalizeVisualClueKind(spec.clueKind);
     const clueLabel = normalizeClueLabel(spec.clueLabel);
-    const recognitionLevel = normalizeVisualClueRecognitionLevel(spec.recognitionLevel);
-    const observationHint = normalizeObservationHint(spec.observationHint);
     const imageCaption = normalizeImageCaption(spec.imageCaption);
     const acceptedAlternatives = normalizeAcceptedAlternatives(spec.acceptedAlternatives);
 
     if (clueLabel !== solution) throw new Error("The clue label must match the intended visual clue answer.");
-    assertRecognitionHintPolicy(recognitionLevel, observationHint);
-    assertSolutionNotLeaked({ solution, sceneTitle, sceneTheme, sceneDescription, observationHint, imageCaption });
+    assertSolutionNotLeaked({ solution, sceneTitle, sceneTheme, sceneDescription, imageCaption });
 
-    const svgSource = buildVisualClueSvg({ sceneTitle, sceneTheme, sceneDescription, clueKind, clueLabel, observationHint, imageCaption });
+    const svgSource = buildVisualClueSvg({ sceneTitle, sceneTheme, sceneDescription, clueKind, clueLabel, imageCaption });
     const payloads = extractVisualCluePayloads(svgSource);
     if (payloads.length !== 1 || payloads[0] !== solution) {
         throw new Error("Internal validation failed: SVG artifact must contain exactly one intended visual clue payload.");
@@ -343,16 +315,6 @@ export function createVisualCluePuzzle(spec: VisualCluePuzzleSpec): PrivatePuzzl
             value: solution
         }
     ];
-    if (observationHint !== undefined) {
-        inputs.push({
-            key: "observation_hint",
-            valueType: "html-visible-text",
-            description: "Visible hint suggesting careful image inspection.",
-            required: false,
-            constraints: { maximumCharacters: MAX_HINT_LENGTH },
-            value: observationHint
-        });
-    }
 
     const puzzle: PrivatePuzzleInstance = {
         id: spec.id,
@@ -377,11 +339,9 @@ export function createVisualCluePuzzle(spec: VisualCluePuzzleSpec): PrivatePuzzl
         extensions: {
             visualClue: {
                 templateVersion: TEMPLATE_VERSION,
-                recognitionLevel,
                 clueKind,
                 sceneTheme,
                 imageFormat: "svg",
-                hasObservationHint: observationHint !== undefined,
                 hasImageCaption: imageCaption !== undefined,
                 artifactSha256: createHash("sha256").update(svgSource, "utf8").digest("hex")
             }

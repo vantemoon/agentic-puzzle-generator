@@ -1,6 +1,8 @@
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import Type from "typebox";
 
+import { objectUnion } from "../../core/tool-schema.js";
+
 import type { PrivatePuzzleInstance } from "../../core/types.js";
 import { createAnagramPuzzle } from "./engine.js";
 
@@ -43,7 +45,7 @@ const demoSchema = Type.Object({
     acceptedAlternatives: Type.Optional(acceptedAlternativesSchema)
 }, { additionalProperties: false });
 
-const parameters = Type.Union([productionSchema, demoSchema]);
+const parameters = objectUnion([productionSchema, demoSchema]);
 
 export const createAnagramPuzzleTool:
 AgentTool<typeof parameters, PrivatePuzzleInstance> = {

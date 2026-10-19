@@ -8,9 +8,7 @@ import {
     createPageVersionPuzzle,
     escapeHtmlText,
     extractPageVersionPayloads,
-    normalizeComparisonHint,
     normalizePageVersionChangeKind,
-    normalizePageVersionRecognitionLevel,
     normalizePageVersionSolution,
     normalizePageVersionTitle
 } from "../src/agents/page-version/engine.js";
@@ -32,7 +30,6 @@ const knownSpec = (id: string) => ({
     pageTitle: "Release Archive",
     baselineBody: "The archived release page lists routine maintenance notes.",
     currentBody: "The current release page lists routine maintenance notes.",
-    recognitionLevel: "contextual" as const,
     changeKind: "added-section" as const,
     baselineLabel: "2024-04-01",
     currentLabel: "2024-04-02"
@@ -53,9 +50,9 @@ describe("page-version engine", () => {
     it("normalizes documented fields", () => {
         expect(normalizePageVersionSolution("  OPEN   VAULT  ")).toBe("OPEN VAULT");
         expect(normalizePageVersionTitle("  Release   Archive  ")).toBe("Release Archive");
-        expect(normalizeComparisonHint("  Compare   both versions  ")).toBe("Compare both versions");
-        expect(normalizeComparisonHint(undefined)).toBeUndefined();
-        expect(normalizePageVersionRecognitionLevel("hidden")).toBe("hidden");
+
+
+
         expect(normalizePageVersionChangeKind("changed-field")).toBe("changed-field");
     });
 
@@ -64,7 +61,6 @@ describe("page-version engine", () => {
         const second = createPageVersionPuzzle(knownSpec("page-version-1"));
         const metadata = first.extensions.pageVersion as {
             templateVersion: string;
-            recognitionLevel: string;
             changeKind: string;
             baselinePath: string;
             currentPath: string;
@@ -94,7 +90,6 @@ describe("page-version engine", () => {
         expect(extractPageVersionPayloads(getArtifactFileSource(first, "/versions/current.html"))).toEqual(["OPEN-VAULT"]);
         expect(first.prompt).toBe("Open the webpage artifact and compare the included page versions to recover the hidden message.");
         expect(metadata.templateVersion).toBe("safe-static-page-version-v1");
-        expect(metadata.recognitionLevel).toBe("contextual");
         expect(metadata.changeKind).toBe("added-section");
         expect(metadata.comparisonMode).toBe("static-file-comparison");
         expect(metadata.requiresJavaScriptExecution).toBe(false);
@@ -112,7 +107,6 @@ describe("page-version engine", () => {
             pageTitle: "Archive <Review>",
             baselineBody: "Check A & B before 'launch'.",
             currentBody: "Check A & B before \"handoff\".",
-            recognitionLevel: "contextual",
             changeKind: "changed-field"
         });
         const current = getArtifactFileSource(puzzle, "/versions/current.html");
@@ -170,38 +164,9 @@ describe("page-version engine", () => {
         expect(serialized).toContain("OPEN-VAULT");
     });
 
-    it("enforces recognition-level hint policy", () => {
-        expect(() => createPageVersionPuzzle({
-            ...knownSpec("explicit-missing-hint"),
-            recognitionLevel: "explicit"
-        })).toThrow("require a comparison hint");
-
-        expect(() => createPageVersionPuzzle({
-            ...knownSpec("hidden-with-hint"),
-            recognitionLevel: "hidden",
-            comparisonHint: "Compare both versions."
-        })).toThrow("must not include a comparison hint");
-
-        const explicit = createPageVersionPuzzle({
-            ...knownSpec("explicit-with-hint"),
-            recognitionLevel: "explicit",
-            comparisonHint: "Compare the baseline and current pages."
-        });
-        expect(explicit.inputs.map((port) => port.key)).toContain("comparison_hint");
-        expect(getHtmlEntrySource(explicit.artifact)).toContain("Compare the baseline and current pages");
-
-        const hidden = createPageVersionPuzzle({
-            ...knownSpec("hidden-no-hint"),
-            recognitionLevel: "hidden"
-        });
-        expect(hidden.inputs.map((port) => port.key)).not.toContain("comparison_hint");
-    });
-
     it("rejects invalid and unsafe values", () => {
         expect(() => normalizePageVersionSolution("bad\u0000payload")).toThrow("printable ASCII");
         expect(() => normalizePageVersionTitle("   ")).toThrow("must not be empty");
-        expect(() => normalizeComparisonHint("H".repeat(301))).toThrow("must not exceed 300");
-        expect(() => normalizePageVersionRecognitionLevel("obvious")).toThrow("recognition level");
         expect(() => normalizePageVersionChangeKind("diff")).toThrow("change kind");
         expect(() => createPageVersionPuzzle({ ...knownSpec("   ") })).toThrow("ID must not be empty");
         expect(() => createPageVersionPuzzle({
@@ -242,7 +207,6 @@ describe("page-version engine", () => {
             pageTitle: "Release Archive",
             baselineBody: "The archived release page lists routine maintenance notes.",
             currentBody: "The current release page lists routine maintenance notes.",
-            recognitionLevel: "contextual",
             changeKind: "added-section"
         });
         const textContent = result.content[0];

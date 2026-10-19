@@ -8,9 +8,7 @@ import {
     extractSourceCodePayloads,
     normalizeCarrier,
     normalizeCodeLabel,
-    normalizeRecognitionLevel,
     normalizeSourceCodePayload,
-    normalizeSourceInspectionHint,
     normalizeVisibleBody,
     normalizeVisibleTitle
 } from "../src/agents/source-code/engine.js";
@@ -31,9 +29,7 @@ const knownSpec = (id: string) => ({
     intendedSolution: "OPEN-VAULT",
     visibleTitle: "Implementation Review",
     visibleBody: "The rendered page is ordinary, but the implementation may say more.",
-    carrier: "html-attribute" as const,
-    recognitionLevel: "contextual" as const
-});
+    carrier: "html-attribute" as const,});
 
 function removePayloadCarriers(source: string): string {
     return source
@@ -47,11 +43,11 @@ describe("source-code engine", () => {
         expect(normalizeSourceCodePayload("  OPEN   VAULT  ")).toBe("OPEN VAULT");
         expect(normalizeVisibleTitle("  Implementation   Review  ")).toBe("Implementation Review");
         expect(normalizeVisibleBody("  Inspect   carefully.  ")).toBe("Inspect carefully.");
-        expect(normalizeSourceInspectionHint("  Check   source.  ")).toBe("Check source.");
-        expect(normalizeSourceInspectionHint(undefined)).toBeUndefined();
+
+
         expect(normalizeCodeLabel("Implementation Note!")).toBe("implementation-note");
         expect(normalizeCarrier("css-custom-property")).toBe("css-custom-property");
-        expect(normalizeRecognitionLevel("hidden")).toBe("hidden");
+
     });
 
     it("creates a deterministic hidden-information source-code puzzle", () => {
@@ -60,7 +56,6 @@ describe("source-code engine", () => {
         const metadata = first.extensions.sourceCode as {
             templateVersion: string;
             carrier: string;
-            recognitionLevel: string;
             requiresJavaScriptExecution: boolean;
             liveNavigationSupported: boolean;
             artifactSha256: string;
@@ -77,7 +72,6 @@ describe("source-code engine", () => {
         expect(first.prompt).toBe("Open the webpage artifact and recover the message hidden in the page source code.");
         expect(metadata.templateVersion).toBe("safe-static-source-code-v1");
         expect(metadata.carrier).toBe("html-attribute");
-        expect(metadata.recognitionLevel).toBe("contextual");
         expect(metadata.requiresJavaScriptExecution).toBe(false);
         expect(metadata.liveNavigationSupported).toBe(false);
         expect(metadata.artifactSha256).toMatch(/^[0-9a-f]{64}$/);
@@ -123,37 +117,13 @@ describe("source-code engine", () => {
             intendedSolution: "KEEP <CASE> & go",
             visibleTitle: "Implementation <Review>",
             visibleBody: "Rendered text uses A & B plus 'quotes'.",
-            carrier: "css-custom-property",
-            recognitionLevel: "explicit",
-            sourceInspectionHint: "Inspect the page's \"style\" source."
-        });
+            carrier: "css-custom-property",});
 
         expect(getHtmlEntrySource(puzzle.artifact)).toContain("Implementation &lt;Review&gt;");
         expect(getHtmlEntrySource(puzzle.artifact)).toContain("Rendered text uses A &amp; B plus &#39;quotes&#39;.");
-        expect(getHtmlEntrySource(puzzle.artifact)).toContain("Inspect the page&#39;s &quot;style&quot; source.");
         expect(getHtmlEntrySource(puzzle.artifact)).toContain('"KEEP &lt;CASE&gt; &amp; go"');
         expect(extractSourceCodePayloads(getHtmlEntrySource(puzzle.artifact), "css-custom-property"))
             .toEqual(["KEEP <CASE> & go"]);
-    });
-
-    it("enforces recognition-level hint policy", () => {
-        expect(() => createSourceCodePuzzle({
-            ...knownSpec("explicit-missing-hint"),
-            recognitionLevel: "explicit"
-        })).toThrow("require a source-inspection hint");
-
-        expect(() => createSourceCodePuzzle({
-            ...knownSpec("hidden-with-hint"),
-            recognitionLevel: "hidden",
-            sourceInspectionHint: "Inspect source."
-        })).toThrow("must not include a source-inspection hint");
-
-        const explicit = createSourceCodePuzzle({
-            ...knownSpec("explicit-with-hint"),
-            recognitionLevel: "explicit",
-            sourceInspectionHint: "Inspect source."
-        });
-        expect(explicit.inputs.map((port) => port.key)).toContain("source_inspection_hint");
     });
 
     it("uses deterministic case-sensitive normalized answer validation and alternatives", () => {
@@ -187,9 +157,7 @@ describe("source-code engine", () => {
         expect(() => normalizeSourceCodePayload("bad\u0000payload")).toThrow("printable ASCII");
         expect(() => normalizeVisibleTitle("   ")).toThrow("must not be empty");
         expect(() => normalizeVisibleBody("B".repeat(1_001))).toThrow("must not exceed 1000");
-        expect(() => normalizeSourceInspectionHint("H".repeat(301))).toThrow("must not exceed 300");
         expect(() => normalizeCarrier("live-script")).toThrow("source-code carrier");
-        expect(() => normalizeRecognitionLevel("obvious")).toThrow("recognition level");
         expect(() => createSourceCodePuzzle({ ...knownSpec("   ") })).toThrow("ID must not be empty");
         expect(() => createSourceCodePuzzle({
             ...knownSpec("visible-leak"),
@@ -217,9 +185,7 @@ describe("source-code engine", () => {
             intendedSolution: "OPEN-VAULT",
             visibleTitle: "Implementation Review",
             visibleBody: "The rendered page is ordinary, but the implementation may say more.",
-            carrier: "html-attribute",
-            recognitionLevel: "contextual"
-        });
+            carrier: "html-attribute",});
         const textContent = result.content[0];
         if (textContent.type !== "text") throw new Error("Expected text tool content.");
         const payload = JSON.parse(textContent.text) as {

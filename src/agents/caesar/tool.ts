@@ -2,6 +2,7 @@ import type { AgentTool } from "@earendil-works/pi-agent-core";
 import { Type } from "typebox";
 
 import type { PrivatePuzzleInstance } from "../../core/types.js";
+import { objectUnion } from "../../core/tool-schema.js";
 import { createCaesarPuzzle } from "./engine.js";
 
 const shiftSchema = Type.Integer({
@@ -10,17 +11,23 @@ const shiftSchema = Type.Integer({
     maximum: 25
 });
 
-const parameters = Type.Union([
+const intendedSolutionSchema = Type.String({
+    minLength: 1,
+    pattern: "^[A-Za-z ]*[A-Za-z][A-Za-z ]*$",
+    description: "The upstream answer to encode. It must contain only English letters and spaces."
+});
+
+const parameters = objectUnion([
     Type.Object({
         mode: Type.Literal("production"),
         id: Type.String({ minLength: 1 }),
-        intendedSolution: Type.String({ minLength: 1 }),
+        intendedSolution: intendedSolutionSchema,
         shift: shiftSchema
     }, { additionalProperties: false }),
     Type.Object({
         mode: Type.Literal("demo"),
         id: Type.Optional(Type.String({ minLength: 1 })),
-        intendedSolution: Type.String({ minLength: 1 }),
+        intendedSolution: intendedSolutionSchema,
         shift: shiftSchema
     }, { additionalProperties: false })
 ]);

@@ -8,9 +8,10 @@ docs/
 scripts/
 prompts/
 
-# Generated puzzles and levels
+# Generated puzzles, levels, and artifact previews
 generated-artifacts/
 generated-levels/
+generated-puzzles/
 
 # macOS metadata
 .DS_Store

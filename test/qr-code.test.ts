@@ -10,7 +10,6 @@ import {
     extractQrCodePayload,
     normalizeQrCodePayload,
     normalizeQrCodePayloadKind,
-    normalizeQrCodeRecognitionLevel
 } from "../src/agents/qr-code/engine.js";
 import { createQrCodePuzzleTool, writeQrCodeArtifactPreview } from "../src/agents/qr-code/tool.js";
 import { assertPrivatePuzzleInstance, assertPublicPuzzleInstance, getSvgImageSource, toPublicPuzzle, validateNormalizedTextAnswer } from "../src/core/types.js";
@@ -20,7 +19,6 @@ const spec = (id: string) => ({
     intendedSolution: "CASE-417",
     payloadKind: "identifier" as const,
     documentTheme: "scanned investigation poster",
-    recognitionLevel: "contextual" as const,
     moduleSize: 6
 });
 
@@ -28,7 +26,7 @@ describe("qr-code engine", () => {
     it("normalizes documented fields", () => {
         expect(normalizeQrCodePayload(" CASE-417 ")).toBe("CASE-417");
         expect(normalizeQrCodePayloadKind("url")).toBe("url");
-        expect(normalizeQrCodeRecognitionLevel("hidden")).toBe("hidden");
+
     });
 
     it("builds a deterministic QR matrix that round trips its payload", () => {
@@ -53,7 +51,6 @@ describe("qr-code engine", () => {
             errorCorrectionLevel: string;
             maskPattern: number;
             payloadKind: string;
-            recognitionLevel: string;
             mediaType: string;
             moduleSize: number;
             matrixSize: number;
@@ -72,7 +69,6 @@ describe("qr-code engine", () => {
         expect(metadata.errorCorrectionLevel).toBe("L");
         expect(metadata.maskPattern).toBe(0);
         expect(metadata.payloadKind).toBe("identifier");
-        expect(metadata.recognitionLevel).toBe("contextual");
         expect(metadata.mediaType).toBe("image/svg+xml");
         expect(metadata.moduleSize).toBe(6);
         expect(metadata.matrixSize).toBe(21);
@@ -102,11 +98,11 @@ describe("qr-code engine", () => {
         expect(serialized).not.toContain("A1");
     });
 
-    it("enforces payload capacity, hint policy, leak checks, and module size", () => {
+    it("enforces payload capacity, leak checks, and module size", () => {
         expect(() => normalizeQrCodePayload("X".repeat(18))).toThrow("must not exceed 17");
         expect(() => normalizeQrCodePayloadKind("barcode")).toThrow("payload kind");
-        expect(() => createQrCodePuzzle({ ...spec("explicit"), recognitionLevel: "explicit" })).toThrow("require a scan hint");
-        expect(() => createQrCodePuzzle({ ...spec("hidden"), recognitionLevel: "hidden", scanHint: "Scan it." })).toThrow("must not include");
+
+
         expect(() => createQrCodePuzzle({ ...spec("leak"), documentTheme: "CASE-417 poster" })).toThrow("must not appear");
         expect(() => createQrCodePuzzle({ ...spec("bad-module"), moduleSize: 3 })).toThrow("module size");
     });
@@ -121,7 +117,7 @@ describe("qr-code engine", () => {
             await rm(preview.path, { force: true });
         }
 
-        const result = await createQrCodePuzzleTool.execute("tool", { mode: "demo", id: "qr-tool", intendedSolution: "CASE-417", payloadKind: "identifier", documentTheme: "scanned investigation poster", recognitionLevel: "explicit", scanHint: "Scan the QR code.", moduleSize: 6 });
+        const result = await createQrCodePuzzleTool.execute("tool", { mode: "demo", id: "qr-tool", intendedSolution: "CASE-417", payloadKind: "identifier", documentTheme: "scanned investigation poster", moduleSize: 6 });
         const text = result.content[0];
         if (text.type !== "text") throw new Error("Expected text content.");
         const payload = JSON.parse(text.text) as { artifactPreviewPath: string; answer: string };

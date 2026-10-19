@@ -8,11 +8,9 @@ import {
     buildVisualClueSvg,
     createVisualCluePuzzle,
     extractVisualCluePayloads,
-    normalizeObservationHint,
     normalizeSceneTheme,
     normalizeSceneTitle,
     normalizeVisualClueKind,
-    normalizeVisualClueRecognitionLevel,
     normalizeVisualClueSolution
 } from "../src/agents/visual-clue/engine.js";
 import {
@@ -35,7 +33,6 @@ const knownSpec = (id: string) => ({
     sceneDescription: "The office scene looks ordinary, with shelves, furniture, and a few background details.",
     clueKind: "symbol" as const,
     clueLabel: "STAR",
-    recognitionLevel: "contextual" as const,
     imageCaption: "An illustrated archive room."
 });
 
@@ -48,9 +45,9 @@ describe("visual-clue engine", () => {
         expect(normalizeVisualClueSolution("  BLUE   PIN  ")).toBe("BLUE PIN");
         expect(normalizeSceneTitle("  Archive   Room  ")).toBe("Archive Room");
         expect(normalizeSceneTheme("  dusty   archive room  ")).toBe("dusty archive room");
-        expect(normalizeObservationHint("  Inspect   the image  ")).toBe("Inspect the image");
-        expect(normalizeObservationHint(undefined)).toBeUndefined();
-        expect(normalizeVisualClueRecognitionLevel("hidden")).toBe("hidden");
+
+
+
         expect(normalizeVisualClueKind("pattern")).toBe("pattern");
     });
 
@@ -59,11 +56,9 @@ describe("visual-clue engine", () => {
         const second = createVisualCluePuzzle(knownSpec("visual-clue-1"));
         const metadata = first.extensions.visualClue as {
             templateVersion: string;
-            recognitionLevel: string;
             clueKind: string;
             sceneTheme: string;
             imageFormat: string;
-            hasObservationHint: boolean;
             hasImageCaption: boolean;
             artifactSha256: string;
         };
@@ -79,11 +74,9 @@ describe("visual-clue engine", () => {
         expect(svg).toContain('data-puzzle-role="visual-clue-payload"');
         expect(extractVisualCluePayloads(svg)).toEqual(["STAR"]);
         expect(metadata.templateVersion).toBe("safe-static-visual-clue-v1");
-        expect(metadata.recognitionLevel).toBe("contextual");
         expect(metadata.clueKind).toBe("symbol");
         expect(metadata.sceneTheme).toBe("dusty archive room with shelves and labels");
         expect(metadata.imageFormat).toBe("svg");
-        expect(metadata.hasObservationHint).toBe(false);
         expect(metadata.hasImageCaption).toBe(true);
         expect(metadata.artifactSha256).toMatch(/^[0-9a-f]{64}$/);
         expect(first.externalKnowledge).toEqual({ required: false });
@@ -140,25 +133,7 @@ describe("visual-clue engine", () => {
         expect(serialized).toContain("STAR");
     });
 
-    it("enforces recognition hint policy and leak checks", () => {
-        expect(() => createVisualCluePuzzle({
-            ...knownSpec("explicit-missing-hint"),
-            recognitionLevel: "explicit"
-        })).toThrow("require an observation hint");
-
-        expect(() => createVisualCluePuzzle({
-            ...knownSpec("hidden-with-hint"),
-            recognitionLevel: "hidden",
-            observationHint: "Inspect the image carefully."
-        })).toThrow("must not include an observation hint");
-
-        const explicit = createVisualCluePuzzle({
-            ...knownSpec("explicit-with-hint"),
-            recognitionLevel: "explicit",
-            observationHint: "Inspect the image carefully."
-        });
-        expect(explicit.inputs.map((port) => port.key)).toContain("observation_hint");
-        expect(getSvgArtifactSource(explicit)).toContain("Inspect the image carefully");
+    it("rejects visible solution leaks", () => {
 
         expect(() => createVisualCluePuzzle({
             ...knownSpec("visible-leak"),
@@ -169,8 +144,6 @@ describe("visual-clue engine", () => {
     it("rejects invalid values and unsafe SVG patterns", () => {
         expect(() => normalizeVisualClueSolution("bad\u0000payload")).toThrow("printable ASCII");
         expect(() => normalizeSceneTitle("   ")).toThrow("must not be empty");
-        expect(() => normalizeObservationHint("H".repeat(301))).toThrow("must not exceed 300");
-        expect(() => normalizeVisualClueRecognitionLevel("obvious")).toThrow("recognition level");
         expect(() => normalizeVisualClueKind("photo")).toThrow("clue kind");
         expect(() => createVisualCluePuzzle({ ...knownSpec("   ") })).toThrow("ID must not be empty");
         expect(() => createVisualCluePuzzle({
@@ -205,9 +178,7 @@ describe("visual-clue engine", () => {
             sceneTheme: "dusty archive room with shelves and labels",
             sceneDescription: "The office scene looks ordinary, with shelves and a few background details.",
             clueKind: "symbol",
-            clueLabel: "STAR",
-            recognitionLevel: "contextual"
-        });
+            clueLabel: "STAR",});
         const textContent = result.content[0];
         if (textContent.type !== "text") throw new Error("Expected text tool content.");
         const payload = JSON.parse(textContent.text) as {

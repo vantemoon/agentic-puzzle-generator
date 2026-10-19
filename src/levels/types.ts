@@ -9,10 +9,6 @@ export const DifficultyPresetSchema = Type.Union([
 export const RatedDifficultySchema = Type.Union([
     Type.Literal("easy"), Type.Literal("medium"), Type.Literal("hard")
 ]);
-export const HintPolicySchema = Type.Union([
-    Type.Literal("explicit"), Type.Literal("contextual"), Type.Literal("hidden")
-]);
-
 const StringValueSchema = Type.Object({
     dataType: Type.Literal("string"),
     value: Type.String({ minLength: 1 })
@@ -60,8 +56,7 @@ export const StructuralDifficultySchema = Type.Object({
 }, closed);
 
 export const PuzzleDifficultySchema = Type.Object({
-    preset: DifficultyPresetSchema,
-    hintPolicy: HintPolicySchema
+    preset: DifficultyPresetSchema
 }, closed);
 
 export const TransformationPolicySchema = Type.Object({
@@ -233,7 +228,6 @@ export const PuzzleDesignSchema = Type.Object({
     puzzleType: Type.String({ minLength: 1 }),
     subtype: Type.String({ minLength: 1 }),
     difficulty: RatedDifficultySchema,
-    hintPolicy: HintPolicySchema,
     generationSpec: Type.Record(Type.String(), Type.Unknown()),
     verification: VerificationSchema,
     inputs: Type.Array(PuzzleInputSchema),

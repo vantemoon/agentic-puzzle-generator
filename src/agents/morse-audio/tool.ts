@@ -5,7 +5,6 @@ import { writeWavAudioArtifactPreview } from "../../core/audio-preview.js";
 import type { PrivatePuzzleInstance } from "../../core/types.js";
 import { createMorseAudioPuzzle } from "./engine.js";
 
-const recognitionLevelSchema = Type.Union([Type.Literal("explicit"), Type.Literal("indirect"), Type.Literal("contextual"), Type.Literal("hidden")]);
 const toneStyleSchema = Type.Union([Type.Literal("radio-beep"), Type.Literal("soft-pulse"), Type.Literal("musical-note")]);
 const acceptedAlternativesSchema = Type.Array(Type.String({ minLength: 1, maxLength: 300 }), { minItems: 1, maxItems: 10 });
 
@@ -14,8 +13,6 @@ const parameters = Type.Object({
     id: Type.Optional(Type.String({ minLength: 1 })),
     intendedSolution: Type.String({ minLength: 1, maxLength: 300 }),
     audioDescription: Type.String({ minLength: 1, maxLength: 500 }),
-    recognitionLevel: recognitionLevelSchema,
-    morseAudioHint: Type.Optional(Type.String({ minLength: 1, maxLength: 300 })),
     toneStyle: Type.Optional(toneStyleSchema),
     sampleRate: Type.Optional(Type.Integer({ minimum: 8000, maximum: 48000 })),
     unitDurationMs: Type.Optional(Type.Integer({ minimum: 40, maximum: 250 })),
@@ -38,8 +35,6 @@ export const createMorseAudioPuzzleTool: AgentTool<typeof parameters, PrivatePuz
             id: params.id ?? "demo-morse-audio",
             intendedSolution: params.intendedSolution,
             audioDescription: params.audioDescription,
-            recognitionLevel: params.recognitionLevel,
-            morseAudioHint: params.morseAudioHint,
             toneStyle: params.toneStyle,
             sampleRate: params.sampleRate,
             unitDurationMs: params.unitDurationMs,

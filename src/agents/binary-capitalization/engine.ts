@@ -16,6 +16,7 @@ const MAX_CARRIER_TEXT_LENGTH = 8_000;
 const MAX_GENRE_LENGTH = 80;
 const BITS_PER_CHARACTER = 8;
 const TERMINATOR = "00000000";
+const MAX_TRAILING_CARRIER_LETTERS = 32;
 const RULE_VERSION = "ascii-letter-case-bits-v1";
 const ASCII_LETTER = /[A-Za-z]/;
 
@@ -106,6 +107,13 @@ export function applyCapitalizationPattern(carrierInput: string, solutionInput: 
         throw new Error(
             `The carrier text contains ${availableLetters} ASCII letters, but the encoded `
             + `solution and terminator require at least ${bits.length}.`
+        );
+    }
+    if (availableLetters > bits.length + MAX_TRAILING_CARRIER_LETTERS) {
+        throw new Error(
+            `The carrier text contains ${availableLetters} ASCII letters, but this payload uses `
+            + `${bits.length}. Remove at least ${availableLetters - bits.length - MAX_TRAILING_CARRIER_LETTERS} `
+            + `letters of redundant trailing prose.`
         );
     }
 
@@ -234,6 +242,8 @@ export function createBinaryCapitalizationPuzzle(
                 ...extractionRule,
                 encodedLetterCount: encodedBits.length,
                 carrierLetterCount: asciiLetterCount(artifactSource),
+                trailingCarrierLetterCount: asciiLetterCount(artifactSource) - encodedBits.length,
+                maximumTrailingCarrierLetters: MAX_TRAILING_CARRIER_LETTERS,
                 decodedMessage: decoded,
                 artifactSha256: artifactHash
             }

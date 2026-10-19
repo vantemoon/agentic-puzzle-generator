@@ -7,14 +7,11 @@ import {
     type PuzzleGenerationSpec
 } from "../../core/types.js";
 
-export type QrCodeRecognitionLevel = "explicit" | "indirect" | "contextual" | "hidden";
 export type QrCodePayloadKind = "message" | "identifier" | "url";
 
 export interface QrCodePuzzleSpec extends PuzzleGenerationSpec {
     payloadKind: QrCodePayloadKind;
     documentTheme: string;
-    recognitionLevel: QrCodeRecognitionLevel;
-    scanHint?: string;
     acceptedAlternatives?: string[];
     moduleSize?: number;
 }
@@ -35,7 +32,6 @@ const DATA_CODEWORDS = 19;
 const ECC_CODEWORDS = 7;
 const MAX_BYTE_PAYLOAD = 17;
 const FORMAT_BITS_L_MASK_0 = 0x77c4;
-const RECOGNITION_LEVELS: readonly QrCodeRecognitionLevel[] = ["explicit", "indirect", "contextual", "hidden"];
 const PAYLOAD_KINDS: readonly QrCodePayloadKind[] = ["message", "identifier", "url"];
 
 function normalizeInlineText(input: string, fieldName: string, maximumLength: number): string {
@@ -57,14 +53,7 @@ export function normalizeQrDocumentTheme(input: string): string {
     return normalizeInlineText(input, "document theme", 160);
 }
 
-export function normalizeQrScanHint(input: string | undefined): string | undefined {
-    return input === undefined ? undefined : normalizeInlineText(input, "QR scan hint", 300);
-}
 
-export function normalizeQrCodeRecognitionLevel(input: string): QrCodeRecognitionLevel {
-    if (!RECOGNITION_LEVELS.includes(input as QrCodeRecognitionLevel)) throw new Error(`The recognition level must be one of: ${RECOGNITION_LEVELS.join(", ")}.`);
-    return input as QrCodeRecognitionLevel;
-}
 
 export function normalizeQrCodePayloadKind(input: string): QrCodePayloadKind {
     if (!PAYLOAD_KINDS.includes(input as QrCodePayloadKind)) throw new Error(`The payload kind must be one of: ${PAYLOAD_KINDS.join(", ")}.`);
@@ -83,13 +72,9 @@ function normalizeAcceptedAlternatives(alternatives: string[] | undefined): stri
     return normalized.length > 0 ? normalized : undefined;
 }
 
-function assertHintPolicy(level: QrCodeRecognitionLevel, hint: string | undefined): void {
-    if (level === "explicit" && hint === undefined) throw new Error("Explicit QR-code puzzles require a scan hint.");
-    if (level === "hidden" && hint !== undefined) throw new Error("Hidden QR-code puzzles must not include a scan hint.");
-}
 
-function assertPayloadNotLeaked(options: { payload: string; documentTheme: string; scanHint?: string }): void {
-    if ([options.documentTheme, options.scanHint ?? ""].join("\n").includes(options.payload)) throw new Error("The QR-code payload must not appear in visible public text.");
+function assertPayloadNotLeaked(options: { payload: string; documentTheme: string }): void {
+    if (options.documentTheme.includes(options.payload)) throw new Error("The QR-code payload must not appear in visible public text.");
 }
 
 function emptyMatrix(): QrCodeMatrix {
@@ -286,12 +271,9 @@ export function createQrCodePuzzle(spec: QrCodePuzzleSpec): PrivatePuzzleInstanc
     const payload = normalizeQrCodePayload(spec.intendedSolution);
     const payloadKind = normalizeQrCodePayloadKind(spec.payloadKind);
     const documentTheme = normalizeQrDocumentTheme(spec.documentTheme);
-    const recognitionLevel = normalizeQrCodeRecognitionLevel(spec.recognitionLevel);
-    const scanHint = normalizeQrScanHint(spec.scanHint);
     const acceptedAlternatives = normalizeAcceptedAlternatives(spec.acceptedAlternatives);
     const moduleSize = normalizeModuleSize(spec.moduleSize);
-    assertHintPolicy(recognitionLevel, scanHint);
-    assertPayloadNotLeaked({ payload, documentTheme, scanHint });
+    assertPayloadNotLeaked({ payload, documentTheme });
 
     const matrix = createQrCodeMatrix(payload);
     if (extractQrCodePayload(matrix) !== payload) throw new Error("Internal validation failed: QR-code payload did not round trip.");
@@ -305,8 +287,6 @@ export function createQrCodePuzzle(spec: QrCodePuzzleSpec): PrivatePuzzleInstanc
         { key: "qr_code", valueType: "svg-image", description: "A machine-readable QR code containing the hidden payload.", required: true, constraints: { mediaType: "image/svg+xml", version: VERSION, errorCorrection: "L", mask: 0, payloadKind }, value: { documentTheme, payloadKind } },
         { key: "qr_payload", valueType: "hidden-text-payload", description: "The payload encoded in the QR code.", required: true, value: payload }
     ];
-    if (scanHint !== undefined) inputs.push({ key: "scan_hint", valueType: "visible-text-hint", description: "Visible hint suggesting QR-code scanning or decoding.", required: false, value: scanHint });
-
     const puzzle: PrivatePuzzleInstance = {
         id: spec.id,
         puzzleType: "encoding",
@@ -314,11 +294,11 @@ export function createQrCodePuzzle(spec: QrCodePuzzleSpec): PrivatePuzzleInstanc
         inputs,
         outputs: [{ key: "decoded_payload", valueType: "plain-text", description: "The message, identifier, or URL decoded from the QR code.", value: payload }],
         artifact: createSvgImageArtifact(svg),
-        prompt: scanHint === undefined ? `Inspect the machine-readable code on the ${documentTheme} and recover its payload.` : `Inspect the machine-readable code on the ${documentTheme}. ${scanHint}`,
+        prompt: `Inspect the machine-readable code on the ${documentTheme} and recover its payload.`,
         solution,
         validator: { kind: "normalized-text", mode: "deterministic", options: { trim: true, caseInsensitive: false, collapseWhitespace: true } },
         externalKnowledge: { required: false },
-        extensions: { qrCode: { templateVersion: TEMPLATE_VERSION, qrVersion: VERSION, errorCorrectionLevel: "L", maskPattern: 0, payloadKind, recognitionLevel, mediaType: "image/svg+xml", moduleSize, matrixSize: SIZE, artifactSha256: createHash("sha256").update(svg).digest("hex") } }
+        extensions: { qrCode: { templateVersion: TEMPLATE_VERSION, qrVersion: VERSION, errorCorrectionLevel: "L", maskPattern: 0, payloadKind, mediaType: "image/svg+xml", moduleSize, matrixSize: SIZE, artifactSha256: createHash("sha256").update(svg).digest("hex") } }
     };
 
     assertPrivatePuzzleInstance(puzzle);

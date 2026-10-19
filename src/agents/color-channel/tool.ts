@@ -5,7 +5,6 @@ import { writePngImageArtifactPreview } from "../../core/image-preview.js";
 import type { PrivatePuzzleInstance } from "../../core/types.js";
 import { createColorChannelPuzzle } from "./engine.js";
 
-const recognitionLevelSchema = Type.Union([Type.Literal("explicit"), Type.Literal("indirect"), Type.Literal("contextual"), Type.Literal("hidden")]);
 const channelSchema = Type.Union([Type.Literal("red"), Type.Literal("green"), Type.Literal("blue")]);
 const acceptedAlternativesSchema = Type.Array(Type.String({ minLength: 1, maxLength: 300 }), { minItems: 1, maxItems: 10 });
 
@@ -15,8 +14,6 @@ const parameters = Type.Object({
     intendedSolution: Type.String({ minLength: 1, maxLength: 300 }),
     coverTheme: Type.String({ minLength: 1, maxLength: 120 }),
     channel: channelSchema,
-    recognitionLevel: recognitionLevelSchema,
-    channelInspectionHint: Type.Optional(Type.String({ minLength: 1, maxLength: 300 })),
     acceptedAlternatives: Type.Optional(acceptedAlternativesSchema),
     width: Type.Optional(Type.Integer({ minimum: 16, maximum: 256 })),
     height: Type.Optional(Type.Integer({ minimum: 16, maximum: 256 }))
@@ -38,8 +35,6 @@ export const createColorChannelPuzzleTool: AgentTool<typeof parameters, PrivateP
             intendedSolution: params.intendedSolution,
             coverTheme: params.coverTheme,
             channel: params.channel,
-            recognitionLevel: params.recognitionLevel,
-            channelInspectionHint: params.channelInspectionHint,
             acceptedAlternatives: params.acceptedAlternatives,
             width: params.width,
             height: params.height

@@ -11,8 +11,14 @@ import {
     toPublicPuzzle,
     validateNormalizedTextAnswer
 } from "../src/core/types.js";
+import { createCaesarPuzzleTool } from "../src/agents/caesar/tool.js";
 
 describe("Caesar cipher engine", () => {
+    it("declares an object-rooted tool schema for strict model providers", () => {
+        expect(createCaesarPuzzleTool.parameters.type).toBe("object");
+        expect(createCaesarPuzzleTool.parameters.anyOf).toHaveLength(2);
+    });
+
     it("encodes a known phrase", () => {
         expect(encodeCaesar("HELLO WORLD", 3)).toBe("KHOOR ZRUOG");
     });
@@ -48,10 +54,10 @@ describe("Caesar cipher engine", () => {
         })).toThrow("between 1 and 25");
     });
 
-    it("rejects punctuation initially", () => {
+    it("rejects punctuation and digits", () => {
         expect(() => createCaesarPuzzle({
             id: "caesar-bad-text",
-            intendedSolution: "hello, world!",
+            intendedSolution: "NV-219",
             shift: 3
         })).toThrow("only English letters and spaces");
     });

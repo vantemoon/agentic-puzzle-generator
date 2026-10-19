@@ -1,16 +1,11 @@
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import Type from "typebox";
 
+import { objectUnion } from "../../core/tool-schema.js";
+
 import { writeHtmlArtifactPreview as writeSharedHtmlArtifactPreview } from "../../core/html-preview.js";
 import type { PrivatePuzzleInstance } from "../../core/types.js";
 import { createDomElementPuzzle } from "./engine.js";
-
-const recognitionLevelSchema = Type.Union([
-    Type.Literal("explicit"),
-    Type.Literal("indirect"),
-    Type.Literal("contextual"),
-    Type.Literal("hidden")
-], { description: "How directly the visible page should point solvers toward DOM inspection." });
 
 const hideStrategySchema = Type.Union([
     Type.Literal("hidden-attribute"),
@@ -38,9 +33,7 @@ const baseFields = {
     intendedSolution: Type.String({ minLength: 1, maxLength: 300 }),
     visibleTitle: Type.String({ minLength: 1, maxLength: 120 }),
     visibleBody: Type.String({ minLength: 1, maxLength: 1000 }),
-    recognitionLevel: recognitionLevelSchema,
     hideStrategy: hideStrategySchema,
-    domInspectionHint: Type.Optional(Type.String({ minLength: 1, maxLength: 300 })),
     elementTag: Type.Optional(elementTagSchema),
     acceptedAlternatives: Type.Optional(acceptedAlternativesSchema)
 } as const;
@@ -57,7 +50,7 @@ const demoSchema = Type.Object({
     ...baseFields
 }, { additionalProperties: false });
 
-const parameters = Type.Union([productionSchema, demoSchema]);
+const parameters = objectUnion([productionSchema, demoSchema]);
 
 export async function writeDomElementArtifactPreview(puzzle: PrivatePuzzleInstance) {
     return writeSharedHtmlArtifactPreview({
@@ -72,7 +65,7 @@ AgentTool<typeof parameters, PrivatePuzzleInstance> = {
     name: "create_dom_element_puzzle",
     label: "Create a hidden DOM element puzzle",
     description: [
-        "Validate an upstream puzzle ID, hidden payload, visible webpage text, recognition level, and hiding strategy;",
+        "Validate an upstream puzzle ID, hidden payload, visible webpage text, and hiding strategy;",
         "construct a safe static HTML artifact with the payload hidden in one DOM element;",
         "and return the finished private puzzle instance."
     ].join(" "),
@@ -84,9 +77,7 @@ AgentTool<typeof parameters, PrivatePuzzleInstance> = {
             intendedSolution: params.intendedSolution,
             visibleTitle: params.visibleTitle,
             visibleBody: params.visibleBody,
-            recognitionLevel: params.recognitionLevel,
             hideStrategy: params.hideStrategy,
-            domInspectionHint: params.domInspectionHint,
             elementTag: params.elementTag,
             acceptedAlternatives: params.acceptedAlternatives
         });

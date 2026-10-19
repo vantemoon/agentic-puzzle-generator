@@ -9,18 +9,11 @@ import {
 import { assertSafeStaticHtml, escapeHtmlText } from "../html-comment/engine.js";
 export { assertSafeStaticHtml, escapeHtmlText } from "../html-comment/engine.js";
 
-export type AltTextRecognitionLevel =
-    | "explicit"
-    | "indirect"
-    | "contextual"
-    | "hidden";
 
 export interface AltTextPuzzleSpec extends PuzzleGenerationSpec {
     visibleTitle: string;
     visibleBody: string;
     imageLabel: string;
-    recognitionLevel: AltTextRecognitionLevel;
-    altInspectionHint?: string;
     imageCaption?: string;
     acceptedAlternatives?: string[];
 }
@@ -29,16 +22,9 @@ const MAX_SOLUTION_LENGTH = 300;
 const MAX_TITLE_LENGTH = 120;
 const MAX_BODY_LENGTH = 1_000;
 const MAX_IMAGE_LABEL_LENGTH = 120;
-const MAX_HINT_LENGTH = 300;
 const MAX_CAPTION_LENGTH = 300;
 const TEMPLATE_VERSION = "safe-static-alt-text-v1";
 const PAYLOAD_ROLE = "alt-text-payload";
-const RECOGNITION_LEVELS: readonly AltTextRecognitionLevel[] = [
-    "explicit",
-    "indirect",
-    "contextual",
-    "hidden"
-];
 
 function normalizeInlineText(input: string, fieldName: string, maximumLength: number): string {
     const normalized = input.trim().replace(/\s+/g, " ");
@@ -74,24 +60,12 @@ export function normalizeImageLabel(input: string): string {
     return normalizeInlineText(input, "image label", MAX_IMAGE_LABEL_LENGTH);
 }
 
-export function normalizeAltInspectionHint(input: string | undefined): string | undefined {
-    if (input === undefined) return undefined;
-    return normalizeInlineText(input, "alt-text inspection hint", MAX_HINT_LENGTH);
-}
 
 export function normalizeImageCaption(input: string | undefined): string | undefined {
     if (input === undefined) return undefined;
     return normalizeInlineText(input, "image caption", MAX_CAPTION_LENGTH);
 }
 
-export function normalizeRecognitionLevel(input: string): AltTextRecognitionLevel {
-    if (!RECOGNITION_LEVELS.includes(input as AltTextRecognitionLevel)) {
-        throw new Error(
-            `The recognition level must be one of: ${RECOGNITION_LEVELS.join(", ")}.`
-        );
-    }
-    return input as AltTextRecognitionLevel;
-}
 
 function normalizeAcceptedAlternatives(alternatives: string[] | undefined): string[] | undefined {
     if (alternatives === undefined) return undefined;
@@ -126,13 +100,8 @@ export function buildAltTextHtmlArtifact(options: {
     visibleBody: string;
     imageLabel: string;
     hiddenPayload: string;
-    recognitionLevel: AltTextRecognitionLevel;
-    altInspectionHint?: string;
     imageCaption?: string;
 }): string {
-    const hintParagraph = options.altInspectionHint === undefined
-        ? ""
-        : `\n      <p class=\"hint\">${escapeHtmlText(options.altInspectionHint)}</p>`;
     const caption = options.imageCaption === undefined
         ? ""
         : `\n        <figcaption>${escapeHtmlText(options.imageCaption)}</figcaption>`;
@@ -148,7 +117,7 @@ export function buildAltTextHtmlArtifact(options: {
         "  <body>",
         "    <main>",
         `      <h1>${escapeHtmlText(options.visibleTitle)}</h1>`,
-        `      <p>${escapeHtmlText(options.visibleBody)}</p>${hintParagraph}`,
+        `      <p>${escapeHtmlText(options.visibleBody)}</p>`,
         "      <figure>",
         `        <img data-puzzle-role=\"${PAYLOAD_ROLE}\" src=\"${imageSource}\" alt=\"${escapeHtmlText(options.hiddenPayload)}\">${caption}`,
         "      </figure>",
@@ -167,31 +136,19 @@ export function extractAltTextPayloads(source: string): string[] {
     return [...source.matchAll(pattern)].map((match) => decodeHtmlAttribute(match[1]));
 }
 
-function assertRecognitionHintPolicy(
-    recognitionLevel: AltTextRecognitionLevel,
-    altInspectionHint: string | undefined
-): void {
-    if (recognitionLevel === "explicit" && altInspectionHint === undefined) {
-        throw new Error("Explicit alt-text puzzles require an alt-text inspection hint.");
-    }
-    if (recognitionLevel === "hidden" && altInspectionHint !== undefined) {
-        throw new Error("Hidden alt-text puzzles must not include an alt-text inspection hint.");
-    }
-}
 
 function assertSolutionNotVisible(options: {
     solution: string;
     visibleTitle: string;
     visibleBody: string;
     imageLabel: string;
-    altInspectionHint?: string;
     imageCaption?: string;
 }): void {
     const visibleText = [
         options.visibleTitle,
         options.visibleBody,
         options.imageLabel,
-        options.altInspectionHint ?? "",
+
         options.imageCaption ?? ""
     ].join("\n");
     if (visibleText.includes(options.solution)) {
@@ -240,18 +197,13 @@ export function createAltTextPuzzle(spec: AltTextPuzzleSpec): PrivatePuzzleInsta
     const visibleTitle = normalizeVisibleTitle(spec.visibleTitle);
     const visibleBody = normalizeVisibleBody(spec.visibleBody);
     const imageLabel = normalizeImageLabel(spec.imageLabel);
-    const recognitionLevel = normalizeRecognitionLevel(spec.recognitionLevel);
-    const altInspectionHint = normalizeAltInspectionHint(spec.altInspectionHint);
     const imageCaption = normalizeImageCaption(spec.imageCaption);
     const acceptedAlternatives = normalizeAcceptedAlternatives(spec.acceptedAlternatives);
-
-    assertRecognitionHintPolicy(recognitionLevel, altInspectionHint);
     assertSolutionNotVisible({
         solution,
         visibleTitle,
         visibleBody,
         imageLabel,
-        altInspectionHint,
         imageCaption
     });
     assertImageContextConsistency({ visibleTitle, visibleBody, imageLabel, imageCaption });
@@ -261,8 +213,6 @@ export function createAltTextPuzzle(spec: AltTextPuzzleSpec): PrivatePuzzleInsta
         visibleBody,
         imageLabel,
         hiddenPayload: solution,
-        recognitionLevel,
-        altInspectionHint,
         imageCaption
     });
 
@@ -314,17 +264,6 @@ export function createAltTextPuzzle(spec: AltTextPuzzleSpec): PrivatePuzzleInsta
         }
     ];
 
-    if (altInspectionHint !== undefined) {
-        inputs.push({
-            key: "alt_inspection_hint",
-            valueType: "alt-text-inspection-hint",
-            description: "A visible hint suggesting image metadata, accessibility text, or alt-text inspection.",
-            required: false,
-            constraints: { maximumCharacters: MAX_HINT_LENGTH },
-            value: altInspectionHint
-        });
-    }
-
     const puzzle: PrivatePuzzleInstance = {
         id: spec.id,
         puzzleType: "hidden-information",
@@ -349,8 +288,6 @@ export function createAltTextPuzzle(spec: AltTextPuzzleSpec): PrivatePuzzleInsta
             altText: {
                 templateVersion: TEMPLATE_VERSION,
                 payloadRole: PAYLOAD_ROLE,
-                recognitionLevel,
-                hasAltInspectionHint: altInspectionHint !== undefined,
                 hasImageCaption: imageCaption !== undefined,
                 imageSourceKind: "inline-svg-data-url",
                 artifactSha256: createHash("sha256").update(artifactSource, "utf8").digest("hex")

@@ -10,13 +10,10 @@ import {
 import { decodeMorse, encodeMorse, normalizePhrase } from "../morse/engine.js";
 import { decodePcm16Wav, encodePcm16Wav } from "../reverse-audio/engine.js";
 
-export type MorseAudioRecognitionLevel = "explicit" | "indirect" | "contextual" | "hidden";
 export type MorseAudioToneStyle = "radio-beep" | "soft-pulse" | "musical-note";
 
 export interface MorseAudioPuzzleSpec extends PuzzleGenerationSpec {
     audioDescription: string;
-    recognitionLevel: MorseAudioRecognitionLevel;
-    morseAudioHint?: string;
     toneStyle?: MorseAudioToneStyle;
     sampleRate?: number;
     unitDurationMs?: number;
@@ -25,7 +22,6 @@ export interface MorseAudioPuzzleSpec extends PuzzleGenerationSpec {
 }
 
 const TEMPLATE_VERSION = "morse-audio-wav-v1";
-const RECOGNITION_LEVELS: readonly MorseAudioRecognitionLevel[] = ["explicit", "indirect", "contextual", "hidden"];
 const TONE_STYLES: readonly MorseAudioToneStyle[] = ["radio-beep", "soft-pulse", "musical-note"];
 const DEFAULT_SAMPLE_RATE = 8_000;
 const DEFAULT_UNIT_MS = 90;
@@ -55,14 +51,7 @@ export function normalizeMorseAudioDescription(input: string): string {
     return normalizeInlineText(input, "audio description", 500);
 }
 
-export function normalizeMorseAudioHint(input: string | undefined): string | undefined {
-    return input === undefined ? undefined : normalizeInlineText(input, "Morse-audio hint", 300);
-}
 
-export function normalizeMorseAudioRecognitionLevel(input: string): MorseAudioRecognitionLevel {
-    if (!RECOGNITION_LEVELS.includes(input as MorseAudioRecognitionLevel)) throw new Error(`The recognition level must be one of: ${RECOGNITION_LEVELS.join(", ")}.`);
-    return input as MorseAudioRecognitionLevel;
-}
 
 export function normalizeMorseAudioToneStyle(input: string | undefined): MorseAudioToneStyle {
     const value = input ?? "radio-beep";
@@ -82,13 +71,9 @@ function normalizeAcceptedAlternatives(alternatives: string[] | undefined): stri
     return normalized.length > 0 ? normalized : undefined;
 }
 
-function assertHintPolicy(recognitionLevel: MorseAudioRecognitionLevel, hint: string | undefined): void {
-    if (recognitionLevel === "explicit" && hint === undefined) throw new Error("Explicit Morse-audio puzzles require a Morse-audio hint.");
-    if (recognitionLevel === "hidden" && hint !== undefined) throw new Error("Hidden Morse-audio puzzles must not include a Morse-audio hint.");
-}
 
-function assertMessageNotLeaked(options: { message: string; audioDescription: string; hint?: string }): void {
-    if ([options.audioDescription.toUpperCase(), options.hint?.toUpperCase() ?? ""].join("\n").includes(options.message)) {
+function assertMessageNotLeaked(options: { message: string; audioDescription: string }): void {
+    if (options.audioDescription.toUpperCase().includes(options.message)) {
         throw new Error("The Morse-audio message must not appear in visible public text.");
     }
 }
@@ -178,15 +163,12 @@ export function createMorseAudioPuzzle(spec: MorseAudioPuzzleSpec): PrivatePuzzl
     if (spec.id.trim().length === 0) throw new Error("The puzzle ID must not be empty.");
     const message = normalizeMorseAudioMessage(spec.intendedSolution);
     const audioDescription = normalizeMorseAudioDescription(spec.audioDescription);
-    const recognitionLevel = normalizeMorseAudioRecognitionLevel(spec.recognitionLevel);
-    const morseAudioHint = normalizeMorseAudioHint(spec.morseAudioHint);
     const toneStyle = normalizeMorseAudioToneStyle(spec.toneStyle);
     const sampleRate = integerInRange(spec.sampleRate, DEFAULT_SAMPLE_RATE, MIN_SAMPLE_RATE, MAX_SAMPLE_RATE, "sample rate");
     const unitDurationMs = integerInRange(spec.unitDurationMs, DEFAULT_UNIT_MS, MIN_UNIT_MS, MAX_UNIT_MS, "unit duration");
     const toneFrequencyHz = integerInRange(spec.toneFrequencyHz, DEFAULT_FREQUENCY, MIN_FREQUENCY, MAX_FREQUENCY, "tone frequency");
     const acceptedAlternatives = normalizeAcceptedAlternatives(spec.acceptedAlternatives);
-    assertHintPolicy(recognitionLevel, morseAudioHint);
-    assertMessageNotLeaked({ message, audioDescription, hint: morseAudioHint });
+    assertMessageNotLeaked({ message, audioDescription });
 
     const morse = encodeMorse(message);
     const audio = buildMorseAudio({ morse, sampleRate, unitDurationMs, toneFrequencyHz, toneStyle });
@@ -202,8 +184,6 @@ export function createMorseAudioPuzzle(spec: MorseAudioPuzzleSpec): PrivatePuzzl
         { key: "morse_audio", valueType: "wav-audio", description: "A WAV audio artifact whose tones encode Morse-code dots and dashes.", required: true, constraints: { mediaType: "audio/wav", encoding: "base64", sampleRate, unitDurationMs, toneFrequencyHz, toneStyle }, value: { audioDescription, morse } },
         { key: "hidden_message", valueType: "morse-audio-message", description: "The message encoded in the audio Morse tones.", required: true, value: message }
     ];
-    if (morseAudioHint !== undefined) inputs.push({ key: "morse_audio_hint", valueType: "visible-text-hint", description: "Visible hint suggesting Morse-code audio interpretation.", required: false, value: morseAudioHint });
-
     const puzzle: PrivatePuzzleInstance = {
         id: spec.id,
         puzzleType: "hidden-information",
@@ -211,11 +191,11 @@ export function createMorseAudioPuzzle(spec: MorseAudioPuzzleSpec): PrivatePuzzl
         inputs,
         outputs: [{ key: "decoded_message", valueType: "plain-text", description: "The message recovered by interpreting the tones as Morse code.", value: message }],
         artifact: createWavAudioArtifact(audio),
-        prompt: morseAudioHint === undefined ? `Listen to the WAV audio artifact (${audioDescription}) and recover the hidden message.` : `Listen to the WAV audio artifact (${audioDescription}). ${morseAudioHint}`,
+        prompt: `Listen to the WAV audio artifact (${audioDescription}) and recover the hidden message.`,
         solution,
         validator: { kind: "normalized-text", mode: "deterministic", options: { trim: true, caseInsensitive: true, collapseWhitespace: true } },
         externalKnowledge: { required: false },
-        extensions: { morseAudio: { templateVersion: TEMPLATE_VERSION, encoding: "morse-tones", recognitionLevel, mediaType: "audio/wav", audioEncoding: "base64", toneStyle, sampleRate, unitDurationMs, toneFrequencyHz, artifactSha256: createHash("sha256").update(Buffer.from(audio, "base64")).digest("hex") } }
+        extensions: { morseAudio: { templateVersion: TEMPLATE_VERSION, encoding: "morse-tones", mediaType: "audio/wav", audioEncoding: "base64", toneStyle, sampleRate, unitDurationMs, toneFrequencyHz, artifactSha256: createHash("sha256").update(Buffer.from(audio, "base64")).digest("hex") } }
     };
 
     assertPrivatePuzzleInstance(puzzle);

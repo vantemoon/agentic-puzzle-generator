@@ -9,13 +9,10 @@ import {
     type PuzzleGenerationSpec
 } from "../../core/types.js";
 
-export type SteganographyRecognitionLevel = "explicit" | "indirect" | "contextual" | "hidden";
 export type SteganographyEmbeddingMethod = "png-lsb-rgb";
 
 export interface SteganographyPuzzleSpec extends PuzzleGenerationSpec {
     coverTheme: string;
-    recognitionLevel: SteganographyRecognitionLevel;
-    extractionHint?: string;
     acceptedAlternatives?: string[];
     width?: number;
     height?: number;
@@ -23,10 +20,8 @@ export interface SteganographyPuzzleSpec extends PuzzleGenerationSpec {
 
 const TEMPLATE_VERSION = "png-lsb-rgb-v1";
 const MAGIC = Buffer.from("STEGv1\0", "ascii");
-const RECOGNITION_LEVELS: readonly SteganographyRecognitionLevel[] = ["explicit", "indirect", "contextual", "hidden"];
 const MAX_SOLUTION_LENGTH = 300;
 const MAX_THEME_LENGTH = 120;
-const MAX_HINT_LENGTH = 300;
 const DEFAULT_WIDTH = 96;
 const DEFAULT_HEIGHT = 64;
 const MIN_DIMENSION = 16;
@@ -50,17 +45,7 @@ export function normalizeCoverTheme(input: string): string {
     return normalizeInlineText(input, "cover theme", MAX_THEME_LENGTH);
 }
 
-export function normalizeSteganographyHint(input: string | undefined): string | undefined {
-    if (input === undefined) return undefined;
-    return normalizeInlineText(input, "extraction hint", MAX_HINT_LENGTH);
-}
 
-export function normalizeSteganographyRecognitionLevel(input: string): SteganographyRecognitionLevel {
-    if (!RECOGNITION_LEVELS.includes(input as SteganographyRecognitionLevel)) {
-        throw new Error(`The recognition level must be one of: ${RECOGNITION_LEVELS.join(", ")}.`);
-    }
-    return input as SteganographyRecognitionLevel;
-}
 
 function normalizeDimension(input: number | undefined, fallback: number, fieldName: string): number {
     const value = input ?? fallback;
@@ -76,17 +61,9 @@ function normalizeAcceptedAlternatives(alternatives: string[] | undefined): stri
     return normalized.length > 0 ? normalized : undefined;
 }
 
-function assertRecognitionHintPolicy(recognitionLevel: SteganographyRecognitionLevel, extractionHint: string | undefined): void {
-    if (recognitionLevel === "explicit" && extractionHint === undefined) {
-        throw new Error("Explicit steganography puzzles require an extraction hint.");
-    }
-    if (recognitionLevel === "hidden" && extractionHint !== undefined) {
-        throw new Error("Hidden steganography puzzles must not include an extraction hint.");
-    }
-}
 
-function assertPayloadNotLeaked(options: { payload: string; coverTheme: string; extractionHint?: string }): void {
-    const publicText = [options.coverTheme, options.extractionHint ?? ""].join("\n");
+function assertPayloadNotLeaked(options: { payload: string; coverTheme: string }): void {
+    const publicText = options.coverTheme;
     if (publicText.includes(options.payload)) {
         throw new Error("The steganography payload must not appear in visible public text.");
     }
@@ -266,14 +243,10 @@ export function createSteganographyPuzzle(spec: SteganographyPuzzleSpec): Privat
 
     const payload = normalizeSteganographyPayload(spec.intendedSolution);
     const coverTheme = normalizeCoverTheme(spec.coverTheme);
-    const recognitionLevel = normalizeSteganographyRecognitionLevel(spec.recognitionLevel);
-    const extractionHint = normalizeSteganographyHint(spec.extractionHint);
     const acceptedAlternatives = normalizeAcceptedAlternatives(spec.acceptedAlternatives);
     const width = normalizeDimension(spec.width, DEFAULT_WIDTH, "width");
     const height = normalizeDimension(spec.height, DEFAULT_HEIGHT, "height");
-
-    assertRecognitionHintPolicy(recognitionLevel, extractionHint);
-    assertPayloadNotLeaked({ payload, coverTheme, extractionHint });
+    assertPayloadNotLeaked({ payload, coverTheme });
 
     const pngData = embedPngLsbRgb({ width, height, coverTheme, payload });
     const extractedPayload = extractPngLsbRgbPayload(pngData);
@@ -303,16 +276,6 @@ export function createSteganographyPuzzle(spec: SteganographyPuzzleSpec): Privat
             value: payload
         }
     ];
-    if (extractionHint !== undefined) {
-        inputs.push({
-            key: "extraction_hint",
-            valueType: "visible-text-hint",
-            description: "Visible hint that steers the solver toward image steganography extraction.",
-            required: false,
-            constraints: { maximumCharacters: MAX_HINT_LENGTH },
-            value: extractionHint
-        });
-    }
 
     const puzzle: PrivatePuzzleInstance = {
         id: spec.id,
@@ -326,9 +289,7 @@ export function createSteganographyPuzzle(spec: SteganographyPuzzleSpec): Privat
             value: payload
         }],
         artifact: createPngImageArtifact(pngData),
-        prompt: extractionHint === undefined
-            ? `Inspect the generated PNG cover image (${coverTheme}) and recover the hidden payload.`
-            : `Inspect the generated PNG cover image (${coverTheme}). ${extractionHint}`,
+        prompt: `Inspect the generated PNG cover image (${coverTheme}) and recover the hidden payload.`,
         solution,
         validator: {
             kind: "normalized-text",
@@ -340,12 +301,10 @@ export function createSteganographyPuzzle(spec: SteganographyPuzzleSpec): Privat
             steganography: {
                 templateVersion: TEMPLATE_VERSION,
                 embeddingMethod: "png-lsb-rgb" satisfies SteganographyEmbeddingMethod,
-                recognitionLevel,
                 imageFormat: "png",
                 encoding: "base64",
                 width,
                 height,
-                hasExtractionHint: extractionHint !== undefined,
                 artifactSha256: createHash("sha256").update(Buffer.from(pngData, "base64")).digest("hex")
             }
         }

@@ -8,7 +8,6 @@ import {
     createMorseAudioPuzzle,
     extractMorsePatternFromAudio,
     normalizeMorseAudioMessage,
-    normalizeMorseAudioRecognitionLevel,
     normalizeMorseAudioToneStyle
 } from "../src/agents/morse-audio/engine.js";
 import { createMorseAudioPuzzleTool, writeMorseAudioArtifactPreview } from "../src/agents/morse-audio/tool.js";
@@ -19,7 +18,6 @@ const spec = (id: string) => ({
     id,
     intendedSolution: "SOS 42",
     audioDescription: "shortwave beeps under static",
-    recognitionLevel: "contextual" as const,
     sampleRate: 8000,
     unitDurationMs: 80,
     toneFrequencyHz: 700
@@ -28,7 +26,7 @@ const spec = (id: string) => ({
 describe("morse-audio engine", () => {
     it("normalizes fields", () => {
         expect(normalizeMorseAudioMessage(" sos   42 ")).toBe("SOS 42");
-        expect(normalizeMorseAudioRecognitionLevel("hidden")).toBe("hidden");
+
         expect(normalizeMorseAudioToneStyle(undefined)).toBe("radio-beep");
         expect(normalizeMorseAudioToneStyle("musical-note")).toBe("musical-note");
     });
@@ -48,7 +46,6 @@ describe("morse-audio engine", () => {
         const metadata = first.extensions.morseAudio as {
             templateVersion: string;
             encoding: string;
-            recognitionLevel: string;
             mediaType: string;
             audioEncoding: string;
             toneStyle: string;
@@ -66,7 +63,6 @@ describe("morse-audio engine", () => {
         expect(extractMorsePatternFromAudio(getWavAudioData(first.artifact), 80)).toBe(encodeMorse("SOS 42"));
         expect(metadata.templateVersion).toBe("morse-audio-wav-v1");
         expect(metadata.encoding).toBe("morse-tones");
-        expect(metadata.recognitionLevel).toBe("contextual");
         expect(metadata.mediaType).toBe("audio/wav");
         expect(metadata.audioEncoding).toBe("base64");
         expect(metadata.toneStyle).toBe("radio-beep");
@@ -97,9 +93,9 @@ describe("morse-audio engine", () => {
         expect(serialized).not.toContain("SOS 42");
     });
 
-    it("enforces hint policy, leak checks, and numeric ranges", () => {
-        expect(() => createMorseAudioPuzzle({ ...spec("explicit-missing"), recognitionLevel: "explicit" })).toThrow("require a Morse-audio hint");
-        expect(() => createMorseAudioPuzzle({ ...spec("hidden-with-hint"), recognitionLevel: "hidden", morseAudioHint: "Listen for Morse." })).toThrow("must not include");
+    it("enforces leak checks, and numeric ranges", () => {
+
+
         expect(() => createMorseAudioPuzzle({ ...spec("leak"), audioDescription: "SOS 42 beeps" })).toThrow("must not appear");
         expect(() => createMorseAudioPuzzle({ ...spec("bad-rate"), sampleRate: 7999 })).toThrow("sample rate");
         expect(() => createMorseAudioPuzzle({ ...spec("bad-unit"), unitDurationMs: 39 })).toThrow("unit duration");
@@ -119,7 +115,7 @@ describe("morse-audio engine", () => {
             await rm(preview.path, { force: true });
         }
 
-        const result = await createMorseAudioPuzzleTool.execute("tool", { mode: "demo", id: "morse-audio-tool", intendedSolution: "SOS 42", audioDescription: "shortwave beeps under static", recognitionLevel: "explicit", morseAudioHint: "Listen for Morse-code dots and dashes.", sampleRate: 8000, unitDurationMs: 80, toneFrequencyHz: 700 });
+        const result = await createMorseAudioPuzzleTool.execute("tool", { mode: "demo", id: "morse-audio-tool", intendedSolution: "SOS 42", audioDescription: "shortwave beeps under static", sampleRate: 8000, unitDurationMs: 80, toneFrequencyHz: 700 });
         const text = result.content[0];
         if (text.type !== "text") throw new Error("Expected text content.");
         const payload = JSON.parse(text.text) as { artifactPreviewPath: string; answer: string };

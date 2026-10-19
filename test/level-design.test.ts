@@ -6,8 +6,14 @@ import os from "node:os";
 import Value from "typebox/value";
 
 import { createSubmitLevelBlueprintTool } from "../src/agents/level-design/tool.js";
+import {
+    buildLevelDesignPrompt,
+    LEVEL_DESIGN_DEPLOYMENT_PROMPT,
+    LEVEL_DESIGN_SYSTEM_PROMPT
+} from "../src/agents/level-design/prompt.js";
+import { LEVEL_REVIEW_SYSTEM_PROMPT } from "../src/agents/level-review/prompt.js";
 import { repositoryPuzzleCatalog } from "../src/levels/catalog.js";
-import { laptopInvestigationLevel, laptopInvestigationRequest } from "../src/levels/examples/laptop-investigation.js";
+import { openWebExampleLevel, openWebExampleRequest } from "../src/levels/examples/open-web-example.js";
 import { generateReviewedLevel } from "../src/levels/orchestration.js";
 import { validateLevelPatch } from "../src/levels/patch.js";
 import { availablePuzzleIds, toPublicLevelView } from "../src/levels/projection.js";
@@ -15,7 +21,7 @@ import type { LevelBlueprint } from "../src/levels/types.js";
 import { validateGameLevelManifest, validateLevelAgainstRequest, validateLevelBlueprint } from "../src/levels/validator.js";
 
 function copyLevel(): LevelBlueprint {
-    return structuredClone(laptopInvestigationLevel);
+    return structuredClone(openWebExampleLevel);
 }
 
 function copyLevelSubmission(): Omit<LevelBlueprint, "schemaVersion"> {
@@ -24,6 +30,35 @@ function copyLevelSubmission(): Omit<LevelBlueprint, "schemaVersion"> {
 }
 
 describe("level metadata v3", () => {
+    it("requires readable causal transitions without forcing nonlinear structure", () => {
+        expect(LEVEL_DESIGN_SYSTEM_PROMPT).toContain("A completely linear trail, a partly connected graph");
+        expect(LEVEL_DESIGN_SYSTEM_PROMPT).toContain("There is no preferred graph shape");
+        expect(LEVEL_DESIGN_SYSTEM_PROMPT).toContain("highly connected acyclic graph");
+        expect(LEVEL_DESIGN_SYSTEM_PROMPT).toContain("must not appear to lead to another resource by magic");
+        expect(LEVEL_DESIGN_SYSTEM_PROMPT).toContain("Avoid repetitive interaction rhythms");
+        expect(LEVEL_REVIEW_SYSTEM_PROMPT).toContain("Do not require branching or a synthesis puzzle");
+        expect(LEVEL_REVIEW_SYSTEM_PROMPT).toContain("do not prefer linear, branching, or highly connected layouts by default");
+        expect(LEVEL_REVIEW_SYSTEM_PROMPT).toContain("technically valid graph that a human reader cannot follow");
+    });
+
+    it("designs an open-web resource trail instead of a central game application", () => {
+        const prompt = buildLevelDesignPrompt(repositoryPuzzleCatalog);
+
+        expect(LEVEL_DESIGN_SYSTEM_PROMPT).toContain("trail across independently accessible online resources");
+        expect(LEVEL_DESIGN_SYSTEM_PROMPT).toContain("concrete entry point");
+        expect(LEVEL_DESIGN_DEPLOYMENT_PROMPT).toContain("Do not assume a central application");
+        expect(LEVEL_DESIGN_DEPLOYMENT_PROMPT).toContain("Do not make public search-engine indexing the only route");
+        expect(prompt).toContain(LEVEL_DESIGN_DEPLOYMENT_PROMPT);
+    });
+
+    it("keeps investigation prose clear for human readers", () => {
+        expect(LEVEL_DESIGN_SYSTEM_PROMPT).toContain("Write for human readers even though AI agents are the intended solvers");
+        expect(LEVEL_DESIGN_SYSTEM_PROMPT).toContain("Avoid archaic words, poetic compound names, noir phrasing");
+        expect(LEVEL_DESIGN_SYSTEM_PROMPT).toContain("Create atmosphere through events, evidence, and consequences");
+        expect(LEVEL_REVIEW_SYSTEM_PROMPT).toContain("titles are literal and descriptive");
+        expect(LEVEL_REVIEW_SYSTEM_PROMPT).toContain("needlessly uncommon wording");
+    });
+
     it("returns the generated JSON file path in demo mode", async () => {
         const outputDirectory = await mkdtemp(path.join(os.tmpdir(), "level-demo-"));
         const tool = createSubmitLevelBlueprintTool(repositoryPuzzleCatalog, undefined, outputDirectory);
@@ -31,12 +66,12 @@ describe("level metadata v3", () => {
             mode: "demo",
             result: { status: "success", blueprint: copyLevelSubmission() }
         });
-        const outputPath = path.join(outputDirectory, "investigate-alex-laptop.level.json");
+        const outputPath = path.join(outputDirectory, "community-cleanup-records.level.json");
 
         expect(result.content).toEqual([{ type: "text", text: `Level JSON: ${outputPath}` }]);
         expect(result.details.outputPath).toBe(outputPath);
         const savedLevel = JSON.parse(await readFile(outputPath, "utf8"));
-        expect(savedLevel.id).toBe("investigate-alex-laptop");
+        expect(savedLevel.id).toBe("community-cleanup-records");
         expect(savedLevel.schemaVersion).toBe("3.0.0");
         expect(result.details.result.status === "success" && result.details.result.blueprint.schemaVersion).toBe("3.0.0");
     });
@@ -58,8 +93,8 @@ describe("level metadata v3", () => {
     });
 
     it("validates a complete metadata-only level", () => {
-        expect(validateLevelBlueprint(laptopInvestigationLevel, repositoryPuzzleCatalog)).toEqual([]);
-        expect(validateLevelAgainstRequest(laptopInvestigationLevel, laptopInvestigationRequest, repositoryPuzzleCatalog)).toEqual([]);
+        expect(validateLevelBlueprint(openWebExampleLevel, repositoryPuzzleCatalog)).toEqual([]);
+        expect(validateLevelAgainstRequest(openWebExampleLevel, openWebExampleRequest, repositoryPuzzleCatalog)).toEqual([]);
     });
 
     it("keeps every checked-in generated level on the current schema", () => {
@@ -69,11 +104,20 @@ describe("level metadata v3", () => {
         }
     });
 
+    it("rejects invalid puzzle generation specs before generation", () => {
+        const level = copyLevel();
+        delete level.puzzles[0].design.generationSpec.visibleTitle;
+
+        expect(validateLevelBlueprint(level, repositoryPuzzleCatalog)).toContain(
+            "Puzzle find-project-name has an invalid generationSpec for html-comment."
+        );
+    });
+
     it("rejects cycles", () => {
         const level = copyLevel();
         level.puzzles[0].design.inputs.push({
-            id: "password-cycle",
-            source: { kind: "puzzle-output", puzzleId: "recover-password", outputId: "password" },
+            id: "coordinator-cycle",
+            source: { kind: "puzzle-output", puzzleId: "identify-coordinator", outputId: "coordinator-name" },
             use: "Create an invalid circular dependency"
         });
         expect(validateLevelBlueprint(level, repositoryPuzzleCatalog)).toContain(
@@ -94,48 +138,48 @@ describe("level metadata v3", () => {
         });
         first.design.revealContext = "The matching facilities record displays a room number.";
         expect(validateLevelBlueprint(level, repositoryPuzzleCatalog)).toContain(
-            "Puzzle output identify-employee.unused-room is not consumed downstream or by the terminal action."
+            "Puzzle output find-project-name.unused-room is not consumed downstream or by the terminal action."
         );
     });
 
     it("rejects identity transformations", () => {
         const level = copyLevel();
-        level.puzzles[1].design.inputs[0].transform = { type: "uppercase" };
+        level.puzzles[2].design.inputs[0].transform = { type: "uppercase" };
         expect(validateLevelBlueprint(level, repositoryPuzzleCatalog)).toContain(
-            "Transformation uppercase on find-account-name.employee-name does not change the source value; omit it."
+            "Transformation uppercase on find-meeting-place.project-search does not change the source value; omit it."
         );
     });
 
     it("reveals initial puzzles and derives later availability from input sources", () => {
-        expect(availablePuzzleIds(laptopInvestigationLevel, [])).toEqual(["identify-employee"]);
-        const initial = toPublicLevelView(laptopInvestigationLevel);
-        expect(initial.puzzles.map((puzzle) => puzzle.id)).toEqual(["identify-employee"]);
-        expect(JSON.stringify(initial)).not.toContain("MORGAN REED");
+        expect(availablePuzzleIds(openWebExampleLevel, [])).toEqual(["find-project-name", "find-event-date"]);
+        const initial = toPublicLevelView(openWebExampleLevel);
+        expect(initial.puzzles.map((puzzle) => puzzle.id)).toEqual(["find-project-name", "find-event-date"]);
+        expect(JSON.stringify(initial)).not.toContain("MAYA CHEN");
 
-        expect(availablePuzzleIds(laptopInvestigationLevel, ["identify-employee"])).toEqual(["find-account-name"]);
-        expect(availablePuzzleIds(laptopInvestigationLevel, ["identify-employee", "find-account-name"])).toEqual(["recover-password"]);
-        expect(toPublicLevelView(laptopInvestigationLevel, laptopInvestigationLevel.puzzles.map((puzzle) => puzzle.id)).terminalAction.available).toBe(true);
+        expect(availablePuzzleIds(openWebExampleLevel, ["find-project-name"])).toEqual(["find-event-date", "find-meeting-place"]);
+        expect(availablePuzzleIds(openWebExampleLevel, ["find-project-name", "find-event-date", "find-meeting-place"])).toEqual(["identify-coordinator"]);
+        expect(toPublicLevelView(openWebExampleLevel, openWebExampleLevel.puzzles.map((puzzle) => puzzle.id)).terminalAction.available).toBe(true);
     });
 
     it("protects completed puzzle IDs in progress-preserving patches", () => {
         const errors = validateLevelPatch({
-            levelId: laptopInvestigationLevel.id,
-            baseSchemaVersion: laptopInvestigationLevel.schemaVersion,
+            levelId: openWebExampleLevel.id,
+            baseSchemaVersion: openWebExampleLevel.schemaVersion,
             mode: "progress-preserving",
-            completedPuzzleIds: ["identify-employee"],
+            completedPuzzleIds: ["find-project-name"],
             operations: [{
                 op: "remove",
-                path: "/puzzles/identify-employee",
+                path: "/puzzles/find-project-name",
                 reason: "Invalid attempt to remove completed work."
             }]
-        }, laptopInvestigationLevel);
-        expect(errors).toContain("Progress-preserving patch cannot modify completed puzzle identify-employee.");
+        }, openWebExampleLevel);
+        expect(errors).toContain("Progress-preserving patch cannot modify completed puzzle find-project-name.");
     });
 
     it("retries rejected design reviews", async () => {
         let designCalls = 0;
         const result = await generateReviewedLevel({
-            request: laptopInvestigationRequest,
+            request: openWebExampleRequest,
             catalog: repositoryPuzzleCatalog,
             design: async () => {
                 designCalls += 1;
@@ -164,8 +208,8 @@ describe("level metadata v3", () => {
             schemaVersion: "1.0.0",
             gameId: "demo-game",
             levels: [
-                { id: "laptop", prerequisiteLevelIds: [], levelFile: "laptop.level.json" },
-                { id: "inbox", parentLevelId: "laptop", prerequisiteLevelIds: ["laptop"], levelFile: "inbox.level.json" }
+                { id: "notice", prerequisiteLevelIds: [], levelFile: "notice.level.json" },
+                { id: "recap", parentLevelId: "notice", prerequisiteLevelIds: ["notice"], levelFile: "recap.level.json" }
             ]
         })).toEqual([]);
     });

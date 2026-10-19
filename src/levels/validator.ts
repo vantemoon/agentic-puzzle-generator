@@ -150,7 +150,6 @@ export function validateLevelBlueprint(value: unknown, catalog: PuzzleCatalog): 
             errors.push(`Puzzle ${puzzle.id} uses unknown subtype ${design.subtype}.`);
         } else {
             if (entry.puzzleType !== design.puzzleType) errors.push(`Puzzle ${puzzle.id} uses type ${design.puzzleType}, but subtype ${design.subtype} belongs to ${entry.puzzleType}.`);
-            if (!entry.supportedHintPolicies.includes(design.hintPolicy)) errors.push(`Puzzle ${puzzle.id} uses unsupported hint policy ${design.hintPolicy}.`);
             if (!Value.Check(entry.generationSpecSchema, design.generationSpec)) errors.push(`Puzzle ${puzzle.id} has an invalid generationSpec for ${design.subtype}.`);
         }
         if (design.generationSpec.id !== puzzle.id) errors.push(`Puzzle ${puzzle.id} generationSpec must preserve the same ID.`);

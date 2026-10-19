@@ -8,7 +8,6 @@ export interface PublicPuzzleMetadata {
     puzzleType: string;
     subtype: string;
     difficulty: PuzzleNode["design"]["difficulty"];
-    hintPolicy: PuzzleNode["design"]["hintPolicy"];
     inputs: PuzzleInput[];
     outputs: Array<{ id: string; semanticRole: string; description: string }>;
     verificationPrompt: string;
@@ -75,7 +74,6 @@ export function toPublicLevelView(
             puzzleType: puzzle.design.puzzleType,
             subtype: puzzle.design.subtype,
             difficulty: puzzle.design.difficulty,
-            hintPolicy: puzzle.design.hintPolicy,
             inputs: puzzle.design.inputs,
             outputs: puzzle.design.outputs.map((output) => ({
                 id: output.id,

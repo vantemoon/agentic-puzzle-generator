@@ -9,8 +9,6 @@ import {
     decodePcm16Wav,
     normalizeAudioDescription,
     normalizeReverseAudioMessage,
-    normalizeReverseAudioRecognitionLevel,
-    normalizeReversalHint,
     reversePcm16Wav
 } from "../src/agents/reverse-audio/engine.js";
 import {
@@ -29,7 +27,6 @@ const knownSpec = (id: string) => ({
     id,
     intendedSolution: "OPEN LOCKER 7",
     audioDescription: "distorted voicemail recording",
-    recognitionLevel: "contextual" as const,
     sampleRate: 8000
 });
 
@@ -41,9 +38,9 @@ describe("reverse-audio engine", () => {
     it("normalizes documented fields", () => {
         expect(normalizeReverseAudioMessage("  OPEN   LOCKER 7  ")).toBe("OPEN LOCKER 7");
         expect(normalizeAudioDescription("  distorted   voicemail  ")).toBe("distorted voicemail");
-        expect(normalizeReversalHint("  Try   reversing  ")).toBe("Try reversing");
-        expect(normalizeReversalHint(undefined)).toBeUndefined();
-        expect(normalizeReverseAudioRecognitionLevel("hidden")).toBe("hidden");
+
+
+
     });
 
     it("reverses PCM16 WAV audio deterministically and round trips", () => {
@@ -62,11 +59,9 @@ describe("reverse-audio engine", () => {
         const metadata = first.extensions.reverseAudio as {
             templateVersion: string;
             transform: string;
-            recognitionLevel: string;
             mediaType: string;
             encoding: string;
             sourceKind: string;
-            hasReversalHint: boolean;
             artifactSha256: string;
         };
 
@@ -81,11 +76,9 @@ describe("reverse-audio engine", () => {
         expect(reversePcm16Wav(getWavData(first))).toBe(buildSyntheticForwardAudio("OPEN LOCKER 7", 8000));
         expect(metadata.templateVersion).toBe("reverse-audio-wav-v1");
         expect(metadata.transform).toBe("waveform-reversal");
-        expect(metadata.recognitionLevel).toBe("contextual");
         expect(metadata.mediaType).toBe("audio/wav");
         expect(metadata.encoding).toBe("base64");
         expect(metadata.sourceKind).toBe("synthetic-voice-cue");
-        expect(metadata.hasReversalHint).toBe(false);
         expect(metadata.artifactSha256).toMatch(/^[0-9a-f]{64}$/);
         expect(first.externalKnowledge).toEqual({ required: false });
         expect(() => assertPrivatePuzzleInstance(first)).not.toThrow();
@@ -124,25 +117,7 @@ describe("reverse-audio engine", () => {
         expect(serialized).not.toContain("OPEN LOCKER 7");
     });
 
-    it("enforces recognition hint policy and leak checks", () => {
-        expect(() => createReverseAudioPuzzle({
-            ...knownSpec("explicit-missing-hint"),
-            recognitionLevel: "explicit"
-        })).toThrow("require a reversal hint");
-
-        expect(() => createReverseAudioPuzzle({
-            ...knownSpec("hidden-with-hint"),
-            recognitionLevel: "hidden",
-            reversalHint: "Reverse the waveform."
-        })).toThrow("must not include a reversal hint");
-
-        const explicit = createReverseAudioPuzzle({
-            ...knownSpec("explicit-with-hint"),
-            recognitionLevel: "explicit",
-            reversalHint: "Reverse the waveform."
-        });
-        expect(explicit.inputs.map((port) => port.key)).toContain("reversal_hint");
-        expect(explicit.prompt).toContain("Reverse the waveform");
+    it("rejects visible solution leaks", () => {
 
         expect(() => createReverseAudioPuzzle({
             ...knownSpec("visible-leak"),
@@ -166,8 +141,6 @@ describe("reverse-audio engine", () => {
     it("rejects invalid values and unsupported WAV data", () => {
         expect(() => normalizeReverseAudioMessage("bad\u0000payload")).toThrow("printable ASCII");
         expect(() => normalizeAudioDescription("   ")).toThrow("must not be empty");
-        expect(() => normalizeReversalHint("H".repeat(301))).toThrow("must not exceed 300");
-        expect(() => normalizeReverseAudioRecognitionLevel("obvious")).toThrow("recognition level");
         expect(() => createReverseAudioPuzzle({ ...knownSpec("   ") })).toThrow("ID must not be empty");
         expect(() => createReverseAudioPuzzle({ ...knownSpec("bad-rate"), sampleRate: 7999 })).toThrow("sample rate");
         expect(() => reversePcm16Wav(Buffer.from("not wav").toString("base64"))).toThrow("RIFF/WAVE");
@@ -195,8 +168,6 @@ describe("reverse-audio engine", () => {
             id: "reverse-audio-tool-preview",
             intendedSolution: "OPEN LOCKER 7",
             audioDescription: "distorted voicemail recording",
-            recognitionLevel: "explicit",
-            reversalHint: "Try reversing the waveform.",
             sampleRate: 8000
         });
         const textContent = result.content[0];

@@ -8,16 +8,13 @@ import {
     type PuzzleGenerationSpec
 } from "../../core/types.js";
 
-export type PageVersionRecognitionLevel = "explicit" | "indirect" | "contextual" | "hidden";
 export type PageVersionChangeKind = "added-section" | "changed-field" | "removed-redaction";
 
 export interface PageVersionPuzzleSpec extends PuzzleGenerationSpec {
     pageTitle: string;
     baselineBody: string;
     currentBody: string;
-    recognitionLevel: PageVersionRecognitionLevel;
     changeKind: PageVersionChangeKind;
-    comparisonHint?: string;
     baselineLabel?: string;
     currentLabel?: string;
     acceptedAlternatives?: string[];
@@ -26,10 +23,8 @@ export interface PageVersionPuzzleSpec extends PuzzleGenerationSpec {
 const MAX_SOLUTION_LENGTH = 300;
 const MAX_TITLE_LENGTH = 120;
 const MAX_BODY_LENGTH = 1_000;
-const MAX_HINT_LENGTH = 300;
 const MAX_LABEL_LENGTH = 60;
 const TEMPLATE_VERSION = "safe-static-page-version-v1";
-const RECOGNITION_LEVELS: readonly PageVersionRecognitionLevel[] = ["explicit", "indirect", "contextual", "hidden"];
 const CHANGE_KINDS: readonly PageVersionChangeKind[] = ["added-section", "changed-field", "removed-redaction"];
 
 function normalizeInlineText(input: string, fieldName: string, maximumLength: number): string {
@@ -54,21 +49,11 @@ export function normalizePageVersionBody(input: string, fieldName: string): stri
     return normalizeInlineText(input, fieldName, MAX_BODY_LENGTH);
 }
 
-export function normalizeComparisonHint(input: string | undefined): string | undefined {
-    if (input === undefined) return undefined;
-    return normalizeInlineText(input, "comparison hint", MAX_HINT_LENGTH);
-}
 
 export function normalizeVersionLabel(input: string | undefined, fallback: string): string {
     return normalizeInlineText(input ?? fallback, "version label", MAX_LABEL_LENGTH);
 }
 
-export function normalizePageVersionRecognitionLevel(input: string): PageVersionRecognitionLevel {
-    if (!RECOGNITION_LEVELS.includes(input as PageVersionRecognitionLevel)) {
-        throw new Error(`The recognition level must be one of: ${RECOGNITION_LEVELS.join(", ")}.`);
-    }
-    return input as PageVersionRecognitionLevel;
-}
 
 export function normalizePageVersionChangeKind(input: string): PageVersionChangeKind {
     if (!CHANGE_KINDS.includes(input as PageVersionChangeKind)) {
@@ -111,14 +96,6 @@ export function assertSafeStaticHtml(source: string): void {
     if (/<[^>]+\s(?:src|href)\s*=\s*[\"']?https?:\/\//i.test(source)) throw new Error("HTML artifacts must not load remote resources.");
 }
 
-function assertRecognitionHintPolicy(recognitionLevel: PageVersionRecognitionLevel, comparisonHint: string | undefined): void {
-    if (recognitionLevel === "explicit" && comparisonHint === undefined) {
-        throw new Error("Explicit page-version puzzles require a comparison hint.");
-    }
-    if (recognitionLevel === "hidden" && comparisonHint !== undefined) {
-        throw new Error("Hidden page-version puzzles must not include a comparison hint.");
-    }
-}
 
 function assertSolutionNotInStableText(solution: string, values: string[]): void {
     const stableText = values.join("\n");
@@ -187,9 +164,7 @@ export function buildIndexPage(options: {
     currentPath: string;
     baselineLabel: string;
     currentLabel: string;
-    comparisonHint?: string;
 }): string {
-    const hint = options.comparisonHint === undefined ? "" : `\n      <p class=\"hint\">${escapeHtmlText(options.comparisonHint)}</p>`;
     return [
         "<!doctype html>",
         "<html lang=\"en\">",
@@ -202,7 +177,7 @@ export function buildIndexPage(options: {
         `      <h1>${escapeHtmlText(options.title)}</h1>`,
         "      <p>This artifact contains two static HTML page versions.</p>",
         `      <p>Baseline (${escapeHtmlText(options.baselineLabel)}): <code>${escapeHtmlText(options.baselinePath)}</code></p>`,
-        `      <p>Current (${escapeHtmlText(options.currentLabel)}): <code>${escapeHtmlText(options.currentPath)}</code></p>${hint}`,
+        `      <p>Current (${escapeHtmlText(options.currentLabel)}): <code>${escapeHtmlText(options.currentPath)}</code></p>`,
         "    </main>",
         "  </body>",
         "</html>"
@@ -222,19 +197,15 @@ export function createPageVersionPuzzle(spec: PageVersionPuzzleSpec): PrivatePuz
     const title = normalizePageVersionTitle(spec.pageTitle);
     const baselineBody = normalizePageVersionBody(spec.baselineBody, "baseline body");
     const currentBody = normalizePageVersionBody(spec.currentBody, "current body");
-    const recognitionLevel = normalizePageVersionRecognitionLevel(spec.recognitionLevel);
     const changeKind = normalizePageVersionChangeKind(spec.changeKind);
-    const comparisonHint = normalizeComparisonHint(spec.comparisonHint);
     const baselineLabel = normalizeVersionLabel(spec.baselineLabel, "baseline");
     const currentLabel = normalizeVersionLabel(spec.currentLabel, "current");
     const acceptedAlternatives = normalizeAcceptedAlternatives(spec.acceptedAlternatives);
-
-    assertRecognitionHintPolicy(recognitionLevel, comparisonHint);
-    assertSolutionNotInStableText(solution, [title, baselineBody, currentBody, comparisonHint ?? "", baselineLabel, currentLabel]);
+    assertSolutionNotInStableText(solution, [title, baselineBody, currentBody, baselineLabel, currentLabel]);
 
     const baselinePath = "/versions/baseline.html";
     const currentPath = "/versions/current.html";
-    const indexSource = buildIndexPage({ title, baselinePath, currentPath, baselineLabel, currentLabel, comparisonHint });
+    const indexSource = buildIndexPage({ title, baselinePath, currentPath, baselineLabel, currentLabel });
     const baselineSource = buildVersionPage({ title, label: baselineLabel, body: baselineBody, changeKind, isCurrent: false });
     const currentSource = buildVersionPage({ title, label: currentLabel, body: currentBody, payload: solution, changeKind, isCurrent: true });
 
@@ -273,15 +244,6 @@ export function createPageVersionPuzzle(spec: PageVersionPuzzleSpec): PrivatePuz
             value: solution
         }
     ];
-    if (comparisonHint !== undefined) {
-        inputs.push({
-            key: "comparison_hint",
-            valueType: "html-visible-text",
-            description: "Visible hint directing the solver toward comparing page versions.",
-            required: false,
-            value: comparisonHint
-        });
-    }
 
     const puzzle: PrivatePuzzleInstance = {
         id: spec.id,
@@ -306,7 +268,6 @@ export function createPageVersionPuzzle(spec: PageVersionPuzzleSpec): PrivatePuz
         extensions: {
             pageVersion: {
                 templateVersion: TEMPLATE_VERSION,
-                recognitionLevel,
                 changeKind,
                 baselinePath,
                 currentPath,

@@ -1,6 +1,8 @@
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import Type from "typebox";
 
+import { objectUnion } from "../../core/tool-schema.js";
+
 import { getPuzzleArtifactSource, type PrivatePuzzleInstance } from "../../core/types.js";
 import { createStaticUrlPuzzle } from "./engine.js";
 
@@ -10,13 +12,6 @@ const manipulationKindSchema = Type.Union([
     Type.Literal("path-segment"),
     Type.Literal("percent-decoding"),
     Type.Literal("base64-param")
-]);
-
-const recognitionLevelSchema = Type.Union([
-    Type.Literal("explicit"),
-    Type.Literal("indirect"),
-    Type.Literal("contextual"),
-    Type.Literal("hidden")
 ]);
 
 const acceptedAlternativesSchema = Type.Array(
@@ -31,8 +26,6 @@ const baseFields = {
     baseUrl: Type.Optional(Type.String({ minLength: 1, maxLength: 300 })),
     parameterName: Type.Optional(Type.String({ minLength: 1, maxLength: 40 })),
     pathSegmentIndex: Type.Optional(Type.Integer({ minimum: 0, maximum: 20 })),
-    recognitionLevel: recognitionLevelSchema,
-    urlInspectionHint: Type.Optional(Type.String({ minLength: 1, maxLength: 300 })),
     acceptedAlternatives: Type.Optional(acceptedAlternativesSchema)
 } as const;
 
@@ -48,7 +41,7 @@ const demoSchema = Type.Object({
     ...baseFields
 }, { additionalProperties: false });
 
-const parameters = Type.Union([productionSchema, demoSchema]);
+const parameters = objectUnion([productionSchema, demoSchema]);
 
 export const createStaticUrlPuzzleTool:
 AgentTool<typeof parameters, PrivatePuzzleInstance> = {
@@ -70,8 +63,6 @@ AgentTool<typeof parameters, PrivatePuzzleInstance> = {
             baseUrl: params.baseUrl,
             parameterName: params.parameterName,
             pathSegmentIndex: params.pathSegmentIndex,
-            recognitionLevel: params.recognitionLevel,
-            urlInspectionHint: params.urlInspectionHint,
             acceptedAlternatives: params.acceptedAlternatives
         });
 

@@ -15,14 +15,11 @@ export type SourceCodeCarrier =
     | "asset-reference"
     | "encoded-source-value";
 
-export type SourceCodeRecognitionLevel = "explicit" | "indirect" | "contextual" | "hidden";
 
 export interface SourceCodePuzzleSpec extends PuzzleGenerationSpec {
     visibleTitle: string;
     visibleBody: string;
     carrier: SourceCodeCarrier;
-    recognitionLevel: SourceCodeRecognitionLevel;
-    sourceInspectionHint?: string;
     codeLabel?: string;
     acceptedAlternatives?: string[];
 }
@@ -30,7 +27,6 @@ export interface SourceCodePuzzleSpec extends PuzzleGenerationSpec {
 const MAX_SOLUTION_LENGTH = 300;
 const MAX_TITLE_LENGTH = 120;
 const MAX_BODY_LENGTH = 1_000;
-const MAX_HINT_LENGTH = 300;
 const MAX_LABEL_LENGTH = 80;
 const TEMPLATE_VERSION = "safe-static-source-code-v1";
 const CARRIERS: readonly SourceCodeCarrier[] = [
@@ -39,12 +35,6 @@ const CARRIERS: readonly SourceCodeCarrier[] = [
     "javascript-source",
     "asset-reference",
     "encoded-source-value"
-];
-const RECOGNITION_LEVELS: readonly SourceCodeRecognitionLevel[] = [
-    "explicit",
-    "indirect",
-    "contextual",
-    "hidden"
 ];
 
 function normalizeInlineText(input: string, fieldName: string, maximumLength: number): string {
@@ -71,10 +61,6 @@ export function normalizeVisibleBody(input: string): string {
     return normalizeInlineText(input, "visible body", MAX_BODY_LENGTH);
 }
 
-export function normalizeSourceInspectionHint(input: string | undefined): string | undefined {
-    if (input === undefined) return undefined;
-    return normalizeInlineText(input, "source-inspection hint", MAX_HINT_LENGTH);
-}
 
 export function normalizeCodeLabel(input: string | undefined): string {
     return normalizeInlineText(input ?? "implementation-note", "code label", MAX_LABEL_LENGTH)
@@ -90,12 +76,6 @@ export function normalizeCarrier(input: string): SourceCodeCarrier {
     return input as SourceCodeCarrier;
 }
 
-export function normalizeRecognitionLevel(input: string): SourceCodeRecognitionLevel {
-    if (!RECOGNITION_LEVELS.includes(input as SourceCodeRecognitionLevel)) {
-        throw new Error(`The recognition level must be one of: ${RECOGNITION_LEVELS.join(", ")}.`);
-    }
-    return input as SourceCodeRecognitionLevel;
-}
 
 function normalizeAcceptedAlternatives(alternatives: string[] | undefined): string[] | undefined {
     if (alternatives === undefined) return undefined;
@@ -148,13 +128,8 @@ export function buildSourceCodeHtmlArtifact(options: {
     visibleBody: string;
     payload: string;
     carrier: SourceCodeCarrier;
-    recognitionLevel: SourceCodeRecognitionLevel;
-    sourceInspectionHint?: string;
     codeLabel: string;
 }): string {
-    const hintParagraph = options.sourceInspectionHint === undefined
-        ? ""
-        : `\n      <p class=\"hint\">${escapeHtmlText(options.sourceInspectionHint)}</p>`;
     const carrierSource = buildCarrierSource(options.carrier, options.payload, options.codeLabel);
 
     return [
@@ -168,7 +143,7 @@ export function buildSourceCodeHtmlArtifact(options: {
         "  <body>",
         "    <main>",
         `      <h1>${escapeHtmlText(options.visibleTitle)}</h1>`,
-        `      <p>${escapeHtmlText(options.visibleBody)}</p>${hintParagraph}`,
+        `      <p>${escapeHtmlText(options.visibleBody)}</p>`,
         "    </main>",
         "  </body>",
         "</html>"
@@ -195,25 +170,13 @@ export function extractSourceCodePayloads(source: string, carrier: SourceCodeCar
     }
 }
 
-function assertRecognitionHintPolicy(
-    recognitionLevel: SourceCodeRecognitionLevel,
-    sourceInspectionHint: string | undefined
-): void {
-    if (recognitionLevel === "explicit" && sourceInspectionHint === undefined) {
-        throw new Error("Explicit source-code puzzles require a source-inspection hint.");
-    }
-    if (recognitionLevel === "hidden" && sourceInspectionHint !== undefined) {
-        throw new Error("Hidden source-code puzzles must not include a source-inspection hint.");
-    }
-}
 
 function assertSolutionNotVisible(
     solution: string,
     visibleTitle: string,
     visibleBody: string,
-    sourceInspectionHint: string | undefined
 ): void {
-    if ([visibleTitle, visibleBody, sourceInspectionHint ?? ""].join("\n").includes(solution)) {
+    if ([visibleTitle, visibleBody].join("\n").includes(solution)) {
         throw new Error("The source-code payload must not appear in visible page text.");
     }
 }
@@ -225,21 +188,15 @@ export function createSourceCodePuzzle(spec: SourceCodePuzzleSpec): PrivatePuzzl
     const visibleTitle = normalizeVisibleTitle(spec.visibleTitle);
     const visibleBody = normalizeVisibleBody(spec.visibleBody);
     const carrier = normalizeCarrier(spec.carrier);
-    const recognitionLevel = normalizeRecognitionLevel(spec.recognitionLevel);
-    const sourceInspectionHint = normalizeSourceInspectionHint(spec.sourceInspectionHint);
     const codeLabel = normalizeCodeLabel(spec.codeLabel);
     const acceptedAlternatives = normalizeAcceptedAlternatives(spec.acceptedAlternatives);
-
-    assertRecognitionHintPolicy(recognitionLevel, sourceInspectionHint);
-    assertSolutionNotVisible(solution, visibleTitle, visibleBody, sourceInspectionHint);
+    assertSolutionNotVisible(solution, visibleTitle, visibleBody);
 
     const artifactSource = buildSourceCodeHtmlArtifact({
         visibleTitle,
         visibleBody,
         payload: solution,
         carrier,
-        recognitionLevel,
-        sourceInspectionHint,
         codeLabel
     });
     assertSafeStaticHtml(artifactSource);
@@ -278,16 +235,6 @@ export function createSourceCodePuzzle(spec: SourceCodePuzzleSpec): PrivatePuzzl
         }
     ];
 
-    if (sourceInspectionHint !== undefined) {
-        inputs.push({
-            key: "source_inspection_hint",
-            valueType: "source-inspection-hint",
-            description: "A visible hint suggesting source-code inspection.",
-            required: false,
-            value: sourceInspectionHint
-        });
-    }
-
     const puzzle: PrivatePuzzleInstance = {
         id: spec.id,
         puzzleType: "hidden-information",
@@ -312,7 +259,6 @@ export function createSourceCodePuzzle(spec: SourceCodePuzzleSpec): PrivatePuzzl
             sourceCode: {
                 templateVersion: TEMPLATE_VERSION,
                 carrier,
-                recognitionLevel,
                 codeLabel,
                 requiresJavaScriptExecution: false,
                 liveNavigationSupported: false,

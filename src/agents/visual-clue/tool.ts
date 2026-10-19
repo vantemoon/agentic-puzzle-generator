@@ -5,13 +5,6 @@ import { writeSvgImageArtifactPreview } from "../../core/image-preview.js";
 import type { PrivatePuzzleInstance } from "../../core/types.js";
 import { createVisualCluePuzzle } from "./engine.js";
 
-const recognitionLevelSchema = Type.Union([
-    Type.Literal("explicit"),
-    Type.Literal("indirect"),
-    Type.Literal("contextual"),
-    Type.Literal("hidden")
-], { description: "How directly the visible page should point solvers toward careful visual inspection." });
-
 const clueKindSchema = Type.Union([
     Type.Literal("object"),
     Type.Literal("symbol"),
@@ -32,8 +25,6 @@ const baseFields = {
     sceneDescription: Type.String({ minLength: 1, maxLength: 1000 }),
     clueKind: clueKindSchema,
     clueLabel: Type.String({ minLength: 1, maxLength: 80 }),
-    recognitionLevel: recognitionLevelSchema,
-    observationHint: Type.Optional(Type.String({ minLength: 1, maxLength: 300 })),
     imageCaption: Type.Optional(Type.String({ minLength: 1, maxLength: 300 })),
     acceptedAlternatives: Type.Optional(acceptedAlternativesSchema)
 } as const;
@@ -57,7 +48,7 @@ AgentTool<typeof parameters, PrivatePuzzleInstance> = {
     name: "create_visual_clue_puzzle",
     label: "Create a visual clue puzzle",
     description: [
-        "Validate an upstream puzzle ID, visual clue answer, SVG scene context, recognition level, and clue kind;",
+        "Validate an upstream puzzle ID, visual clue answer, SVG scene context, and clue kind;",
         "construct a safe static SVG image artifact with the answer represented as a subtle visual clue;",
         "and return the finished private puzzle instance."
     ].join(" "),
@@ -76,8 +67,6 @@ AgentTool<typeof parameters, PrivatePuzzleInstance> = {
             sceneDescription: params.sceneDescription,
             clueKind: params.clueKind,
             clueLabel: params.clueLabel,
-            recognitionLevel: params.recognitionLevel,
-            observationHint: params.observationHint,
             imageCaption: params.imageCaption,
             acceptedAlternatives: params.acceptedAlternatives
         });

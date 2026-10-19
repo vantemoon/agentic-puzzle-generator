@@ -8,23 +8,18 @@ import {
     type PuzzleGenerationSpec
 } from "../../core/types.js";
 
-export type ReverseAudioRecognitionLevel = "explicit" | "indirect" | "contextual" | "hidden";
 export type ReverseAudioSourceKind = "provided-wav" | "synthetic-voice-cue";
 
 export interface ReverseAudioPuzzleSpec extends PuzzleGenerationSpec {
     audioDescription: string;
-    recognitionLevel: ReverseAudioRecognitionLevel;
-    reversalHint?: string;
     forwardAudioBase64?: string;
     acceptedAlternatives?: string[];
     sampleRate?: number;
 }
 
 const TEMPLATE_VERSION = "reverse-audio-wav-v1";
-const RECOGNITION_LEVELS: readonly ReverseAudioRecognitionLevel[] = ["explicit", "indirect", "contextual", "hidden"];
 const MAX_SOLUTION_LENGTH = 300;
 const MAX_DESCRIPTION_LENGTH = 500;
-const MAX_HINT_LENGTH = 300;
 const DEFAULT_SAMPLE_RATE = 8_000;
 const MIN_SAMPLE_RATE = 8_000;
 const MAX_SAMPLE_RATE = 48_000;
@@ -48,17 +43,7 @@ export function normalizeAudioDescription(input: string): string {
     return normalizeInlineText(input, "audio description", MAX_DESCRIPTION_LENGTH);
 }
 
-export function normalizeReversalHint(input: string | undefined): string | undefined {
-    if (input === undefined) return undefined;
-    return normalizeInlineText(input, "reversal hint", MAX_HINT_LENGTH);
-}
 
-export function normalizeReverseAudioRecognitionLevel(input: string): ReverseAudioRecognitionLevel {
-    if (!RECOGNITION_LEVELS.includes(input as ReverseAudioRecognitionLevel)) {
-        throw new Error(`The recognition level must be one of: ${RECOGNITION_LEVELS.join(", ")}.`);
-    }
-    return input as ReverseAudioRecognitionLevel;
-}
 
 function normalizeSampleRate(input: number | undefined): number {
     const value = input ?? DEFAULT_SAMPLE_RATE;
@@ -74,17 +59,9 @@ function normalizeAcceptedAlternatives(alternatives: string[] | undefined): stri
     return normalized.length > 0 ? normalized : undefined;
 }
 
-function assertRecognitionHintPolicy(recognitionLevel: ReverseAudioRecognitionLevel, reversalHint: string | undefined): void {
-    if (recognitionLevel === "explicit" && reversalHint === undefined) {
-        throw new Error("Explicit reverse-audio puzzles require a reversal hint.");
-    }
-    if (recognitionLevel === "hidden" && reversalHint !== undefined) {
-        throw new Error("Hidden reverse-audio puzzles must not include a reversal hint.");
-    }
-}
 
-function assertMessageNotLeaked(options: { message: string; audioDescription: string; reversalHint?: string }): void {
-    const publicText = [options.audioDescription, options.reversalHint ?? ""].join("\n");
+function assertMessageNotLeaked(options: { message: string; audioDescription: string }): void {
+    const publicText = options.audioDescription;
     if (publicText.includes(options.message)) {
         throw new Error("The reverse-audio message must not appear in visible public text.");
     }
@@ -215,13 +192,9 @@ export function createReverseAudioPuzzle(spec: ReverseAudioPuzzleSpec): PrivateP
 
     const message = normalizeReverseAudioMessage(spec.intendedSolution);
     const audioDescription = normalizeAudioDescription(spec.audioDescription);
-    const recognitionLevel = normalizeReverseAudioRecognitionLevel(spec.recognitionLevel);
-    const reversalHint = normalizeReversalHint(spec.reversalHint);
     const acceptedAlternatives = normalizeAcceptedAlternatives(spec.acceptedAlternatives);
     const sampleRate = normalizeSampleRate(spec.sampleRate);
-
-    assertRecognitionHintPolicy(recognitionLevel, reversalHint);
-    assertMessageNotLeaked({ message, audioDescription, reversalHint });
+    assertMessageNotLeaked({ message, audioDescription });
 
     const sourceKind: ReverseAudioSourceKind = spec.forwardAudioBase64 === undefined ? "synthetic-voice-cue" : "provided-wav";
     const suppliedForwardAudio = spec.forwardAudioBase64 === undefined
@@ -255,16 +228,6 @@ export function createReverseAudioPuzzle(spec: ReverseAudioPuzzleSpec): PrivateP
             value: message
         }
     ];
-    if (reversalHint !== undefined) {
-        inputs.push({
-            key: "reversal_hint",
-            valueType: "visible-text-hint",
-            description: "Visible hint that suggests reversing the waveform.",
-            required: false,
-            constraints: { maximumCharacters: MAX_HINT_LENGTH },
-            value: reversalHint
-        });
-    }
 
     const puzzle: PrivatePuzzleInstance = {
         id: spec.id,
@@ -278,9 +241,7 @@ export function createReverseAudioPuzzle(spec: ReverseAudioPuzzleSpec): PrivateP
             value: message
         }],
         artifact: createWavAudioArtifact(reversedAudio),
-        prompt: reversalHint === undefined
-            ? `Listen to the WAV audio artifact (${audioDescription}) and recover the hidden message.`
-            : `Listen to the WAV audio artifact (${audioDescription}). ${reversalHint}`,
+        prompt: `Listen to the WAV audio artifact (${audioDescription}) and recover the hidden message.`,
         solution,
         validator: {
             kind: "normalized-text",
@@ -292,11 +253,9 @@ export function createReverseAudioPuzzle(spec: ReverseAudioPuzzleSpec): PrivateP
             reverseAudio: {
                 templateVersion: TEMPLATE_VERSION,
                 transform: "waveform-reversal",
-                recognitionLevel,
                 mediaType: "audio/wav",
                 encoding: "base64",
                 sourceKind,
-                hasReversalHint: reversalHint !== undefined,
                 artifactSha256: createHash("sha256").update(Buffer.from(reversedAudio, "base64")).digest("hex")
             }
         }

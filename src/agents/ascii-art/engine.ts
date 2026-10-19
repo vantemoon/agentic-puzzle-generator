@@ -5,23 +5,19 @@ import {
     type PuzzleGenerationSpec
 } from "../../core/types.js";
 
-export type AsciiArtRecognitionLevel = "explicit" | "indirect" | "contextual" | "hidden";
 export type AsciiArtStyle = "block" | "outline" | "shadow" | "texture";
 export type AsciiArtSubjectKind = "text" | "object";
 export type AsciiArtObject = "ARROW" | "CAT" | "FISH" | "HEART" | "HOUSE" | "KEY" | "LOCK" | "STAR" | "TREE";
 
 export interface AsciiArtPuzzleSpec extends PuzzleGenerationSpec {
-    recognitionLevel: AsciiArtRecognitionLevel;
     artStyle?: AsciiArtStyle;
     subjectKind?: AsciiArtSubjectKind;
     artCharacters?: string;
-    readingHint?: string;
     acceptedAlternatives?: string[];
 }
 
 const TEMPLATE_VERSION = "ascii-art-v2";
 const MAX_MESSAGE_LENGTH = 32;
-const LEVELS: readonly AsciiArtRecognitionLevel[] = ["explicit", "indirect", "contextual", "hidden"];
 const STYLES: readonly AsciiArtStyle[] = ["block", "outline", "shadow", "texture"];
 const SUBJECT_KINDS: readonly AsciiArtSubjectKind[] = ["text", "object"];
 const OBJECTS: readonly AsciiArtObject[] = ["ARROW", "CAT", "FISH", "HEART", "HOUSE", "KEY", "LOCK", "STAR", "TREE"];
@@ -124,10 +120,6 @@ export function normalizeAsciiArtCharacters(input: string | undefined, style: As
     return unique;
 }
 
-export function normalizeAsciiArtRecognitionLevel(input: string): AsciiArtRecognitionLevel {
-    if (!LEVELS.includes(input as AsciiArtRecognitionLevel)) throw new Error(`The recognition level must be one of: ${LEVELS.join(", ")}.`);
-    return input as AsciiArtRecognitionLevel;
-}
 
 export function normalizeAsciiArtStyle(input: string | undefined): AsciiArtStyle {
     const style = input ?? "block";
@@ -135,14 +127,6 @@ export function normalizeAsciiArtStyle(input: string | undefined): AsciiArtStyle
     return style as AsciiArtStyle;
 }
 
-export function normalizeAsciiArtReadingHint(input: string | undefined): string | undefined {
-    if (input === undefined) return undefined;
-    const normalized = input.trim().replace(/\s+/g, " ");
-    if (normalized.length === 0) throw new Error("The reading hint must not be empty.");
-    if (normalized.length > 300) throw new Error("The reading hint must not exceed 300 characters.");
-    if (/[^\x20-\x7E]/.test(normalized)) throw new Error("The reading hint may contain printable ASCII only.");
-    return normalized;
-}
 
 function fillRows(rows: readonly string[], style: AsciiArtStyle, artCharacters: string): string[] {
     const palette = [...artCharacters];
@@ -213,26 +197,15 @@ function normalizeAcceptedAlternatives(values: string[] | undefined, subjectKind
     return normalized.length === 0 ? undefined : normalized;
 }
 
-function assertHintPolicy(level: AsciiArtRecognitionLevel, hint: string | undefined): void {
-    if (level === "explicit" && hint === undefined) throw new Error("Explicit ASCII-art puzzles require a reading hint.");
-    if (level === "hidden" && hint !== undefined) throw new Error("Hidden ASCII-art puzzles must not include a reading hint.");
-}
 
-function assertMessageNotLeaked(message: string, hint: string | undefined): void {
-    if ((hint ?? "").toUpperCase().includes(message)) throw new Error("The ASCII-art message must not appear in visible public text.");
-}
 
 export function createAsciiArtPuzzle(spec: AsciiArtPuzzleSpec): PrivatePuzzleInstance {
     if (spec.id.trim().length === 0) throw new Error("The puzzle ID must not be empty.");
     const subjectKind = normalizeAsciiArtSubjectKind(spec.subjectKind);
     const message = normalizeAsciiArtSolution(spec.intendedSolution, subjectKind);
-    const recognitionLevel = normalizeAsciiArtRecognitionLevel(spec.recognitionLevel);
     const artStyle = normalizeAsciiArtStyle(spec.artStyle);
     const artCharacters = normalizeAsciiArtCharacters(spec.artCharacters, artStyle);
-    const readingHint = normalizeAsciiArtReadingHint(spec.readingHint);
     const acceptedAlternatives = normalizeAcceptedAlternatives(spec.acceptedAlternatives, subjectKind);
-    assertHintPolicy(recognitionLevel, readingHint);
-    assertMessageNotLeaked(message, readingHint);
 
     const art = subjectKind === "object" ? renderAsciiObject(message, artStyle, artCharacters) : renderAsciiArt(message, artStyle, artCharacters);
     const extracted = subjectKind === "object" ? extractAsciiObject(art) : extractAsciiArtMessage(art);
@@ -249,15 +222,14 @@ export function createAsciiArtPuzzle(spec: AsciiArtPuzzleSpec): PrivatePuzzleIns
         inputs: [
             { key: "ascii_art", valueType: "monospace-text-art", description: "A five-row monospace ASCII-art subject visible to the solver.", required: true, constraints: { rows: 5, subjectKind, glyphWidth: subjectKind === "text" ? 5 : undefined, glyphSpacing: subjectKind === "text" ? 2 : undefined, style: artStyle, artCharacters }, value: art },
             { key: "hidden_subject", valueType: subjectKind === "object" ? "ascii-art-object" : "ascii-art-message", description: subjectKind === "object" ? "The object represented by the ASCII-art silhouette." : "The text represented by the ASCII-art glyphs.", required: true, value: message },
-            ...(readingHint === undefined ? [] : [{ key: "reading_hint", valueType: "visible-text-hint", description: "Visible hint for reading the ASCII art.", required: false, value: readingHint }])
         ],
         outputs: [{ key: "decoded_subject", valueType: "plain-text", description: "The text or object recognized from the ASCII-art subject.", value: message }],
         artifact: { kind: "text", mediaType: "text/plain", source: art },
-        prompt: readingHint === undefined ? "Inspect the monospace ASCII art and identify the hidden subject." : `Inspect the monospace ASCII art. ${readingHint}`,
+        prompt: "Inspect the monospace ASCII art and identify the hidden subject.",
         solution,
         validator: { kind: "normalized-text", mode: "deterministic", options: { trim: true, caseInsensitive: true, collapseWhitespace: true } },
         externalKnowledge: { required: false },
-        extensions: { asciiArt: { templateVersion: TEMPLATE_VERSION, recognitionLevel, artStyle, subjectKind, artCharacters, rows: 5, glyphWidth: subjectKind === "text" ? 5 : undefined, glyphSpacing: subjectKind === "text" ? 2 : undefined } }
+        extensions: { asciiArt: { templateVersion: TEMPLATE_VERSION, artStyle, subjectKind, artCharacters, rows: 5, glyphWidth: subjectKind === "text" ? 5 : undefined, glyphSpacing: subjectKind === "text" ? 2 : undefined } }
     };
 
     assertPrivatePuzzleInstance(puzzle);

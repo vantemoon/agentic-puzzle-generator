@@ -1,16 +1,11 @@
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import Type from "typebox";
 
+import { objectUnion } from "../../core/tool-schema.js";
+
 import { writeHtmlArtifactPreview as writeSharedHtmlArtifactPreview } from "../../core/html-preview.js";
 import type { PrivatePuzzleInstance } from "../../core/types.js";
 import { createPageVersionPuzzle } from "./engine.js";
-
-const recognitionLevelSchema = Type.Union([
-    Type.Literal("explicit"),
-    Type.Literal("indirect"),
-    Type.Literal("contextual"),
-    Type.Literal("hidden")
-], { description: "How directly the visible index should point solvers toward comparing page versions." });
 
 const changeKindSchema = Type.Union([
     Type.Literal("added-section"),
@@ -32,9 +27,7 @@ const baseFields = {
     pageTitle: Type.String({ minLength: 1, maxLength: 120 }),
     baselineBody: Type.String({ minLength: 1, maxLength: 1000 }),
     currentBody: Type.String({ minLength: 1, maxLength: 1000 }),
-    recognitionLevel: recognitionLevelSchema,
     changeKind: changeKindSchema,
-    comparisonHint: Type.Optional(Type.String({ minLength: 1, maxLength: 300 })),
     baselineLabel: Type.Optional(Type.String({ minLength: 1, maxLength: 60 })),
     currentLabel: Type.Optional(Type.String({ minLength: 1, maxLength: 60 })),
     acceptedAlternatives: Type.Optional(acceptedAlternativesSchema)
@@ -52,7 +45,7 @@ const demoSchema = Type.Object({
     ...baseFields
 }, { additionalProperties: false });
 
-const parameters = Type.Union([productionSchema, demoSchema]);
+const parameters = objectUnion([productionSchema, demoSchema]);
 
 export async function writePageVersionArtifactPreview(puzzle: PrivatePuzzleInstance) {
     return writeSharedHtmlArtifactPreview({
@@ -67,7 +60,7 @@ AgentTool<typeof parameters, PrivatePuzzleInstance> = {
     name: "create_page_version_puzzle",
     label: "Create a page version puzzle",
     description: [
-        "Validate an upstream puzzle ID, hidden payload, page-version text, recognition level, and change kind;",
+        "Validate an upstream puzzle ID, hidden payload, page-version text, and change kind;",
         "construct a safe static multi-file HTML artifact with baseline and current page versions;",
         "and return the finished private puzzle instance."
     ].join(" "),
@@ -80,9 +73,7 @@ AgentTool<typeof parameters, PrivatePuzzleInstance> = {
             pageTitle: params.pageTitle,
             baselineBody: params.baselineBody,
             currentBody: params.currentBody,
-            recognitionLevel: params.recognitionLevel,
             changeKind: params.changeKind,
-            comparisonHint: params.comparisonHint,
             baselineLabel: params.baselineLabel,
             currentLabel: params.currentLabel,
             acceptedAlternatives: params.acceptedAlternatives

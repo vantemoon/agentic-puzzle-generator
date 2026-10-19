@@ -8,8 +8,6 @@ import {
     normalizeManipulationKind,
     normalizeParameterName,
     normalizePathSegmentIndex,
-    normalizeRecognitionLevel,
-    normalizeUrlInspectionHint,
     normalizeUrlPayload,
     normalizeVisibleInstruction
 } from "../src/agents/static-url/engine.js";
@@ -27,18 +25,16 @@ const knownSpec = (id: string) => ({
     intendedSolution: "OPEN-VAULT",
     visibleInstruction: "Inspect the archive URL and recover the hidden token.",
     manipulationKind: "query-param" as const,
-    parameterName: "token",
-    recognitionLevel: "contextual" as const
-});
+    parameterName: "token",});
 
 describe("static-url engine", () => {
     it("normalizes fields", () => {
         expect(normalizeUrlPayload("  OPEN   VAULT  ")).toBe("OPEN VAULT");
         expect(normalizeVisibleInstruction("  Inspect   the URL.  ")).toBe("Inspect the URL.");
-        expect(normalizeUrlInspectionHint("  Check   the query string.  ")).toBe("Check the query string.");
-        expect(normalizeUrlInspectionHint(undefined)).toBeUndefined();
+
+
         expect(normalizeManipulationKind("base64-param")).toBe("base64-param");
-        expect(normalizeRecognitionLevel("hidden")).toBe("hidden");
+
         expect(normalizeParameterName(undefined, "query-param")).toBe("token");
         expect(normalizeParameterName(undefined, "base64-param")).toBe("payload");
         expect(normalizeParameterName(undefined, "percent-decoding")).toBe("note");
@@ -146,9 +142,7 @@ describe("static-url engine", () => {
             intendedSolution: "OPEN VAULT",
             visibleInstruction: "The note parameter keeps a URL-encoded message.",
             manipulationKind: "percent-decoding",
-            parameterName: "note",
-            recognitionLevel: "contextual"
-        });
+            parameterName: "note",});
         expect(getPuzzleArtifactSource(percent.artifact)).toContain("note=OPEN+VAULT");
         expect(validateNormalizedTextAnswer(percent, "OPEN   VAULT")).toBe(true);
 
@@ -157,9 +151,7 @@ describe("static-url engine", () => {
             intendedSolution: "OPEN-VAULT",
             visibleInstruction: "The payload parameter uses a familiar compact encoding.",
             manipulationKind: "base64-param",
-            parameterName: "payload",
-            recognitionLevel: "contextual"
-        });
+            parameterName: "payload",});
         expect(getPuzzleArtifactSource(base64.artifact)).toContain("payload=T1BFTi1WQVVMVA%3D%3D");
         expect(validateNormalizedTextAnswer(base64, "OPEN-VAULT")).toBe(true);
         expect(validateNormalizedTextAnswer(base64, "open-vault")).toBe(false);
@@ -172,35 +164,12 @@ describe("static-url engine", () => {
             visibleInstruction: "One path segment in the archive address is not a folder name.",
             manipulationKind: "path-segment",
             baseUrl: "https://example.test/archive/details",
-            pathSegmentIndex: 1,
-            recognitionLevel: "contextual"
-        });
+            pathSegmentIndex: 1,});
         const metadata = puzzle.extensions.staticUrl as { pathSegmentIndex: number };
 
         expect(getPuzzleArtifactSource(puzzle.artifact)).toContain("https://example.test/archive/OPEN-VAULT/details");
         expect(puzzle.inputs.map((port) => port.key)).toContain("path_segment_index");
         expect(metadata.pathSegmentIndex).toBe(1);
-    });
-
-    it("enforces recognition hint policy", () => {
-        expect(() => createStaticUrlPuzzle({
-            ...knownSpec("explicit-missing-hint"),
-            recognitionLevel: "explicit"
-        })).toThrow("require a URL inspection hint");
-
-        expect(() => createStaticUrlPuzzle({
-            ...knownSpec("hidden-with-hint"),
-            recognitionLevel: "hidden",
-            urlInspectionHint: "Check the URL query."
-        })).toThrow("must not include a URL inspection hint");
-
-        const explicit = createStaticUrlPuzzle({
-            ...knownSpec("explicit-with-hint"),
-            recognitionLevel: "explicit",
-            urlInspectionHint: "Check the URL query."
-        });
-        expect(getPuzzleArtifactSource(explicit.artifact)).toContain("Check the URL query.");
-        expect(explicit.inputs.map((port) => port.key)).toContain("url_inspection_hint");
     });
 
     it("rejects unsafe or invalid URL inputs", () => {
@@ -224,9 +193,7 @@ describe("static-url engine", () => {
         expect(() => normalizeUrlPayload("bad\u0000payload")).toThrow("printable ASCII");
         expect(() => normalizeVisibleInstruction("   ")).toThrow("must not be empty");
         expect(() => normalizeVisibleInstruction("I".repeat(1_001))).toThrow("must not exceed 1000");
-        expect(() => normalizeUrlInspectionHint("H".repeat(301))).toThrow("must not exceed 300");
         expect(() => normalizeManipulationKind("route-toggle")).toThrow("manipulation kind");
-        expect(() => normalizeRecognitionLevel("obvious")).toThrow("recognition level");
         expect(() => createStaticUrlPuzzle({ ...knownSpec("   ") })).toThrow("ID must not be empty");
         expect(() => createStaticUrlPuzzle({
             ...knownSpec("visible-leak"),
@@ -267,9 +234,7 @@ describe("static-url engine", () => {
             intendedSolution: "OPEN-VAULT",
             visibleInstruction: "Inspect the archive URL and recover the hidden token.",
             manipulationKind: "query-param",
-            parameterName: "token",
-            recognitionLevel: "contextual"
-        });
+            parameterName: "token",});
         const textContent = result.content[0];
         if (textContent.type !== "text") {
             throw new Error("Expected text tool content.");

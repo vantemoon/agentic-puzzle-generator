@@ -6,7 +6,6 @@ import {
     extractAsciiObject,
     normalizeAsciiArtMessage,
     normalizeAsciiArtSubjectKind,
-    normalizeAsciiArtRecognitionLevel,
     normalizeAsciiArtStyle,
     renderAsciiArt,
     renderAsciiObject
@@ -17,14 +16,13 @@ import { assertPrivatePuzzleInstance, assertPublicPuzzleInstance, getPuzzleArtif
 const spec = (id: string) => ({
     id,
     intendedSolution: "OPEN 7",
-    recognitionLevel: "contextual" as const,
     artStyle: "block" as const
 });
 
 describe("ascii-art engine", () => {
     it("normalizes fields", () => {
         expect(normalizeAsciiArtMessage(" open   7 ")).toBe("OPEN 7");
-        expect(normalizeAsciiArtRecognitionLevel("hidden")).toBe("hidden");
+
         expect(normalizeAsciiArtStyle(undefined)).toBe("block");
         expect(normalizeAsciiArtStyle("outline")).toBe("outline");
         expect(normalizeAsciiArtSubjectKind(undefined)).toBe("text");
@@ -71,7 +69,7 @@ describe("ascii-art engine", () => {
     });
 
     it("creates object-subject private puzzles", () => {
-        const puzzle = createAsciiArtPuzzle({ id: "ascii-art-object", intendedSolution: "star", subjectKind: "object", recognitionLevel: "contextual", artStyle: "texture", artCharacters: "+=%" });
+        const puzzle = createAsciiArtPuzzle({ id: "ascii-art-object", intendedSolution: "star", subjectKind: "object", artStyle: "texture", artCharacters: "+=%" });
 
         expect(puzzle.solution.canonical).toBe("STAR");
         expect(extractAsciiObject(getPuzzleArtifactSource(puzzle.artifact))).toBe("STAR");
@@ -91,10 +89,9 @@ describe("ascii-art engine", () => {
         expect(serialized).not.toContain("extensions");
     });
 
-    it("enforces hint policy, leak checks, supported characters, and length", () => {
-        expect(() => createAsciiArtPuzzle({ ...spec("explicit"), recognitionLevel: "explicit" })).toThrow("require a reading hint");
-        expect(() => createAsciiArtPuzzle({ ...spec("hidden"), recognitionLevel: "hidden", readingHint: "Read the letters." })).toThrow("must not include");
-        expect(() => createAsciiArtPuzzle({ ...spec("leak"), readingHint: "The answer is OPEN 7." })).toThrow("must not appear");
+    it("enforces supported characters and length", () => {
+
+
         expect(() => normalizeAsciiArtMessage("café")).toThrow("may contain only");
         expect(() => normalizeAsciiArtMessage("A".repeat(33))).toThrow("must not exceed");
         expect(() => normalizeAsciiArtStyle("neon")).toThrow("style");
@@ -103,7 +100,7 @@ describe("ascii-art engine", () => {
     });
 
     it("tool creates validated artifacts", async () => {
-        const result = await createAsciiArtPuzzleTool.execute("tool", { mode: "demo", id: "ascii-art-tool", intendedSolution: "OPEN 7", recognitionLevel: "explicit", artStyle: "outline", subjectKind: "text", artCharacters: "@&", readingHint: "Read the large monospace letters." });
+        const result = await createAsciiArtPuzzleTool.execute("tool", { mode: "demo", id: "ascii-art-tool", intendedSolution: "OPEN 7", artStyle: "outline", subjectKind: "text", artCharacters: "@&",});
         const text = result.content[0];
         if (text.type !== "text") throw new Error("Expected text content.");
         const payload = JSON.parse(text.text) as { artifact: string; answer: string };

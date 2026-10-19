@@ -13,7 +13,6 @@ export type StaticUrlManipulationKind =
     | "percent-decoding"
     | "base64-param";
 
-export type StaticUrlRecognitionLevel = "explicit" | "indirect" | "contextual" | "hidden";
 
 export interface StaticUrlPuzzleSpec extends PuzzleGenerationSpec {
     visibleInstruction: string;
@@ -21,8 +20,6 @@ export interface StaticUrlPuzzleSpec extends PuzzleGenerationSpec {
     baseUrl?: string;
     parameterName?: string;
     pathSegmentIndex?: number;
-    recognitionLevel: StaticUrlRecognitionLevel;
-    urlInspectionHint?: string;
     acceptedAlternatives?: string[];
 }
 
@@ -30,19 +27,12 @@ const DEFAULT_BASE_URL = "https://example.test/archive";
 const TEMPLATE_VERSION = "static-url-v1";
 const MAX_SOLUTION_LENGTH = 300;
 const MAX_INSTRUCTION_LENGTH = 1_000;
-const MAX_HINT_LENGTH = 300;
 const MANIPULATION_KINDS: readonly StaticUrlManipulationKind[] = [
     "query-param",
     "fragment-param",
     "path-segment",
     "percent-decoding",
     "base64-param"
-];
-const RECOGNITION_LEVELS: readonly StaticUrlRecognitionLevel[] = [
-    "explicit",
-    "indirect",
-    "contextual",
-    "hidden"
 ];
 
 function normalizeInlineText(input: string, fieldName: string, maximumLength: number): string {
@@ -69,10 +59,6 @@ export function normalizeVisibleInstruction(input: string): string {
     return normalizeInlineText(input, "visible instruction", MAX_INSTRUCTION_LENGTH);
 }
 
-export function normalizeUrlInspectionHint(input: string | undefined): string | undefined {
-    if (input === undefined) return undefined;
-    return normalizeInlineText(input, "URL inspection hint", MAX_HINT_LENGTH);
-}
 
 export function normalizeManipulationKind(input: string): StaticUrlManipulationKind {
     if (!MANIPULATION_KINDS.includes(input as StaticUrlManipulationKind)) {
@@ -81,12 +67,6 @@ export function normalizeManipulationKind(input: string): StaticUrlManipulationK
     return input as StaticUrlManipulationKind;
 }
 
-export function normalizeRecognitionLevel(input: string): StaticUrlRecognitionLevel {
-    if (!RECOGNITION_LEVELS.includes(input as StaticUrlRecognitionLevel)) {
-        throw new Error(`The recognition level must be one of: ${RECOGNITION_LEVELS.join(", ")}.`);
-    }
-    return input as StaticUrlRecognitionLevel;
-}
 
 export function normalizeParameterName(input: string | undefined, kind: StaticUrlManipulationKind): string | undefined {
     if (kind === "path-segment") {
@@ -224,21 +204,10 @@ export function extractStaticUrlPayload(options: {
     }
 }
 
-function assertRecognitionHintPolicy(
-    recognitionLevel: StaticUrlRecognitionLevel,
-    urlInspectionHint: string | undefined
-): void {
-    if (recognitionLevel === "explicit" && urlInspectionHint === undefined) {
-        throw new Error("Explicit static URL puzzles require a URL inspection hint.");
-    }
-    if (recognitionLevel === "hidden" && urlInspectionHint !== undefined) {
-        throw new Error("Hidden static URL puzzles must not include a URL inspection hint.");
-    }
-}
 
-function assertSolutionNotInInstruction(solution: string, visibleInstruction: string, urlInspectionHint: string | undefined): void {
-    if ([visibleInstruction, urlInspectionHint ?? ""].join("\n").includes(solution)) {
-        throw new Error("The URL payload must not appear directly in the visible instruction or hint.");
+function assertSolutionNotInInstruction(solution: string, visibleInstruction: string): void {
+    if (visibleInstruction.includes(solution)) {
+        throw new Error("The URL payload must not appear directly in the visible instruction.");
     }
 }
 
@@ -250,15 +219,11 @@ export function createStaticUrlPuzzle(spec: StaticUrlPuzzleSpec): PrivatePuzzleI
     const solution = normalizeUrlPayload(spec.intendedSolution);
     const visibleInstruction = normalizeVisibleInstruction(spec.visibleInstruction);
     const manipulationKind = normalizeManipulationKind(spec.manipulationKind);
-    const recognitionLevel = normalizeRecognitionLevel(spec.recognitionLevel);
     const baseUrl = normalizeBaseUrl(spec.baseUrl);
     const parameterName = normalizeParameterName(spec.parameterName, manipulationKind);
     const pathSegmentIndex = normalizePathSegmentIndex(spec.pathSegmentIndex);
-    const urlInspectionHint = normalizeUrlInspectionHint(spec.urlInspectionHint);
     const acceptedAlternatives = normalizeAcceptedAlternatives(spec.acceptedAlternatives);
-
-    assertRecognitionHintPolicy(recognitionLevel, urlInspectionHint);
-    assertSolutionNotInInstruction(solution, visibleInstruction, urlInspectionHint);
+    assertSolutionNotInInstruction(solution, visibleInstruction);
 
     const built = buildStaticUrl({
         baseUrl,
@@ -280,7 +245,6 @@ export function createStaticUrlPuzzle(spec: StaticUrlPuzzleSpec): PrivatePuzzleI
 
     const artifactSource = [
         visibleInstruction,
-        urlInspectionHint,
         `URL: ${built.url}`
     ].filter((part): part is string => part !== undefined).join("\n\n");
 
@@ -323,15 +287,6 @@ export function createStaticUrlPuzzle(spec: StaticUrlPuzzleSpec): PrivatePuzzleI
             description: "The zero-based path segment index carrying the payload.",
             required: true,
             value: effectivePathSegmentIndex
-        });
-    }
-    if (urlInspectionHint !== undefined) {
-        inputs.push({
-            key: "url_inspection_hint",
-            valueType: "url-inspection-hint",
-            description: "A visible hint suggesting URL inspection or decoding.",
-            required: false,
-            value: urlInspectionHint
         });
     }
 

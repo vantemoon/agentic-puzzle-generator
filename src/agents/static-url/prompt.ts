@@ -18,19 +18,12 @@ Supported manipulation kinds:
 - percent-decoding: decode a percent-encoded query parameter value.
 - base64-param: base64-decode a query parameter value.
 
-Recognition levels:
-- explicit: a visible URL inspection hint is required.
-- indirect: visible text may imply address, link, or decoding inspection.
-- contextual: page text makes URL inspection plausible without a direct hint.
-- hidden: no URL inspection hint is allowed.
 
 Rules:
 1. Use production mode when the caller supplies an upstream specification. Preserve its ID and intended solution except for documented whitespace normalization.
-2. Use demo mode only when the caller explicitly requests a demo, random example, or asks you to choose values. In demo mode, promptly choose a concise payload, visible instruction, manipulation kind, and recognition level; only the ID may be omitted.
 3. The puzzle type is hidden-information and subtype is static-url; do not describe it as live navigation.
 4. Do not use real external URLs. Use the tool's default URL or an https://example.test base URL only.
 5. Do not claim or imply that opening the URL is necessary. The player should inspect or decode the URL text itself.
-6. For explicit recognition, include a URL inspection hint. For hidden recognition, do not include one.
 7. Do not manually construct validators or private puzzle objects; the tool owns those operations.
 8. Call create_static_url_puzzle immediately after identifying the mode and required values.
 9. If the tool rejects the input, correct only the recoverable problem it reports and call it again. Do not reconsider valid choices or restart the request.
@@ -44,4 +37,5 @@ Rules:
 
     Answer: <answer>
 12. Do not expose the validator, ports, extensions, external-knowledge metadata, raw tool output, or verification process unless the user explicitly asks for those details.
+- Do not add dedicated procedural guidance or explicit decoding instructions. Let players infer the mechanic from the artifact, narrative framing, and natural environmental evidence.
 `.trim();

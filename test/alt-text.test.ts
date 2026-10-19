@@ -8,11 +8,9 @@ import {
     assertSafeStaticHtml,
     createAltTextPuzzle,
     extractAltTextPayloads,
-    normalizeAltInspectionHint,
     normalizeAltTextPayload,
     normalizeImageCaption,
     normalizeImageLabel,
-    normalizeRecognitionLevel,
     normalizeVisibleBody,
     normalizeVisibleTitle
 } from "../src/agents/alt-text/engine.js";
@@ -33,9 +31,7 @@ const knownSpec = (id: string) => ({
     intendedSolution: "DEPLOY-742",
     visibleTitle: "Gallery Review",
     visibleBody: "One diagram looks ordinary in the release gallery.",
-    imageLabel: "System Diagram",
-    recognitionLevel: "contextual" as const
-});
+    imageLabel: "System Diagram",});
 
 function removeMarkedAltImage(source: string): string {
     return source.replace(
@@ -45,17 +41,16 @@ function removeMarkedAltImage(source: string): string {
 }
 
 describe("alt-text engine", () => {
-    it("normalizes documented fields and recognition levels", () => {
+    it("normalizes documented fields", () => {
         expect(normalizeAltTextPayload("  DEPLOY   742  ")).toBe("DEPLOY 742");
         expect(normalizeVisibleTitle("  Gallery   Review  ")).toBe("Gallery Review");
         expect(normalizeVisibleBody("  Ordinary   diagram  ")).toBe("Ordinary diagram");
         expect(normalizeImageLabel("  System   Diagram  ")).toBe("System Diagram");
-        expect(normalizeAltInspectionHint("  Read   the image description  "))
-            .toBe("Read the image description");
-        expect(normalizeAltInspectionHint(undefined)).toBeUndefined();
+
+
         expect(normalizeImageCaption("  Figure   one  ")).toBe("Figure one");
         expect(normalizeImageCaption(undefined)).toBeUndefined();
-        expect(normalizeRecognitionLevel("hidden")).toBe("hidden");
+
     });
 
     it("creates a deterministic private instance with a safe self-contained HTML image artifact", () => {
@@ -64,8 +59,6 @@ describe("alt-text engine", () => {
         const metadata = first.extensions.altText as {
             templateVersion: string;
             payloadRole: string;
-            recognitionLevel: string;
-            hasAltInspectionHint: boolean;
             hasImageCaption: boolean;
             imageSourceKind: string;
             artifactSha256: string;
@@ -89,8 +82,6 @@ describe("alt-text engine", () => {
         expect(first.prompt).toBe("Open the webpage artifact and recover the image alt-text message.");
         expect(metadata.templateVersion).toBe("safe-static-alt-text-v1");
         expect(metadata.payloadRole).toBe("alt-text-payload");
-        expect(metadata.recognitionLevel).toBe("contextual");
-        expect(metadata.hasAltInspectionHint).toBe(false);
         expect(metadata.hasImageCaption).toBe(false);
         expect(metadata.imageSourceKind).toBe("inline-svg-data-url");
         expect(metadata.artifactSha256).toMatch(/^[0-9a-f]{64}$/);
@@ -99,21 +90,18 @@ describe("alt-text engine", () => {
         expect(() => assertPrivatePuzzleInstance(first)).not.toThrow();
     });
 
-    it("HTML-escapes visible text, SVG label text, captions, hints, and alt payloads", () => {
+    it("HTML-escapes visible text, SVG label text, captions and alt payloads", () => {
         const puzzle = createAltTextPuzzle({
             id: "alt-text-escape",
             intendedSolution: "KEEP <CASE> & go",
             visibleTitle: "Gallery <Review>",
             visibleBody: "Check the system diagram & B before 'launch' and \"handoff\".",
             imageLabel: "System <Diagram>",
-            recognitionLevel: "explicit",
-            altInspectionHint: "Read the image's \"description\" & metadata.",
             imageCaption: "Figure <one> & notes"
         });
 
         expect(getHtmlEntrySource(puzzle.artifact)).toContain("<title>Gallery &lt;Review&gt;</title>");
         expect(getHtmlEntrySource(puzzle.artifact)).toContain('Check the system diagram &amp; B before &#39;launch&#39; and &quot;handoff&quot;.');
-        expect(getHtmlEntrySource(puzzle.artifact)).toContain("Read the image&#39;s &quot;description&quot; &amp; metadata.");
         expect(getHtmlEntrySource(puzzle.artifact)).toContain("Figure &lt;one&gt; &amp; notes");
         expect(getHtmlEntrySource(puzzle.artifact)).toContain('alt="KEEP &lt;CASE&gt; &amp; go"');
         expect(decodeURIComponent(getHtmlEntrySource(puzzle.artifact))).toContain("System &lt;Diagram&gt;");
@@ -157,41 +145,12 @@ describe("alt-text engine", () => {
         expect(removeMarkedAltImage(getHtmlEntrySource(publicPuzzle.artifact))).not.toContain("DEPLOY-742");
     });
 
-    it("enforces recognition-level hint policy", () => {
-        expect(() => createAltTextPuzzle({
-            ...knownSpec("explicit-missing-hint"),
-            recognitionLevel: "explicit"
-        })).toThrow("require an alt-text inspection hint");
-
-        expect(() => createAltTextPuzzle({
-            ...knownSpec("hidden-with-hint"),
-            recognitionLevel: "hidden",
-            altInspectionHint: "Read the image description."
-        })).toThrow("must not include an alt-text inspection hint");
-
-        const explicit = createAltTextPuzzle({
-            ...knownSpec("explicit-with-hint"),
-            recognitionLevel: "explicit",
-            altInspectionHint: "Read the image description."
-        });
-        expect(explicit.inputs.map((port) => port.key)).toContain("alt_inspection_hint");
-        expect(getHtmlEntrySource(explicit.artifact)).toContain("Read the image description");
-
-        const hidden = createAltTextPuzzle({
-            ...knownSpec("hidden-no-hint"),
-            recognitionLevel: "hidden"
-        });
-        expect(hidden.inputs.map((port) => port.key)).not.toContain("alt_inspection_hint");
-    });
-
     it("rejects invalid values", () => {
         expect(() => normalizeAltTextPayload("bad\u0000payload")).toThrow("printable ASCII");
         expect(() => normalizeVisibleTitle("   ")).toThrow("must not be empty");
         expect(() => normalizeVisibleBody("B".repeat(1_001))).toThrow("must not exceed 1000");
         expect(() => normalizeImageLabel("L".repeat(121))).toThrow("must not exceed 120");
-        expect(() => normalizeAltInspectionHint("H".repeat(301))).toThrow("must not exceed 300");
         expect(() => normalizeImageCaption("C".repeat(301))).toThrow("must not exceed 300");
-        expect(() => normalizeRecognitionLevel("obvious")).toThrow("recognition level");
         expect(() => assertImageContextConsistency({
             visibleTitle: "Release Notes",
             visibleBody: "The page discusses deployment status.",
@@ -243,9 +202,7 @@ describe("alt-text engine", () => {
             intendedSolution: "DEPLOY-742",
             visibleTitle: "Gallery Review",
             visibleBody: "One diagram looks ordinary in the release gallery.",
-            imageLabel: "System Diagram",
-            recognitionLevel: "contextual"
-        });
+            imageLabel: "System Diagram",});
         const textContent = result.content[0];
         if (textContent.type !== "text") {
             throw new Error("Expected text tool content.");

@@ -9,11 +9,6 @@ import {
 import { assertSafeStaticHtml, escapeHtmlText } from "../html-comment/engine.js";
 export { assertSafeStaticHtml, escapeHtmlText } from "../html-comment/engine.js";
 
-export type DomElementRecognitionLevel =
-    | "explicit"
-    | "indirect"
-    | "contextual"
-    | "hidden";
 
 export type DomElementHideStrategy =
     | "hidden-attribute"
@@ -26,9 +21,7 @@ export type DomElementTag = "p" | "span" | "div";
 export interface DomElementPuzzleSpec extends PuzzleGenerationSpec {
     visibleTitle: string;
     visibleBody: string;
-    recognitionLevel: DomElementRecognitionLevel;
     hideStrategy: DomElementHideStrategy;
-    domInspectionHint?: string;
     elementTag?: DomElementTag;
     acceptedAlternatives?: string[];
 }
@@ -36,15 +29,8 @@ export interface DomElementPuzzleSpec extends PuzzleGenerationSpec {
 const MAX_SOLUTION_LENGTH = 300;
 const MAX_TITLE_LENGTH = 120;
 const MAX_BODY_LENGTH = 1_000;
-const MAX_HINT_LENGTH = 300;
 const TEMPLATE_VERSION = "safe-static-hidden-dom-element-v1";
 const PAYLOAD_ROLE = "hidden-payload";
-const RECOGNITION_LEVELS: readonly DomElementRecognitionLevel[] = [
-    "explicit",
-    "indirect",
-    "contextual",
-    "hidden"
-];
 const HIDE_STRATEGIES: readonly DomElementHideStrategy[] = [
     "hidden-attribute",
     "display-none",
@@ -83,19 +69,7 @@ export function normalizeVisibleBody(input: string): string {
     return normalizeInlineText(input, "visible body", MAX_BODY_LENGTH);
 }
 
-export function normalizeDomInspectionHint(input: string | undefined): string | undefined {
-    if (input === undefined) return undefined;
-    return normalizeInlineText(input, "DOM-inspection hint", MAX_HINT_LENGTH);
-}
 
-export function normalizeRecognitionLevel(input: string): DomElementRecognitionLevel {
-    if (!RECOGNITION_LEVELS.includes(input as DomElementRecognitionLevel)) {
-        throw new Error(
-            `The recognition level must be one of: ${RECOGNITION_LEVELS.join(", ")}.`
-        );
-    }
-    return input as DomElementRecognitionLevel;
-}
 
 export function normalizeHideStrategy(input: string): DomElementHideStrategy {
     if (!HIDE_STRATEGIES.includes(input as DomElementHideStrategy)) {
@@ -175,16 +149,11 @@ export function buildDomElementHtmlArtifact(options: {
     visibleTitle: string;
     visibleBody: string;
     hiddenPayload: string;
-    recognitionLevel: DomElementRecognitionLevel;
     hideStrategy: DomElementHideStrategy;
-    domInspectionHint?: string;
     elementTag: DomElementTag;
 }): string {
     const styleBlock = cssForStrategy(options.hideStrategy);
     const styleLines = styleBlock.length === 0 ? [] : [styleBlock];
-    const hintParagraph = options.domInspectionHint === undefined
-        ? ""
-        : `\n      <p class=\"hint\">${escapeHtmlText(options.domInspectionHint)}</p>`;
     const attributes = hiddenElementAttributes(options.hideStrategy);
     const hiddenElement = `    <${options.elementTag} ${attributes}>${escapeHtmlText(options.hiddenPayload)}</${options.elementTag}>`;
 
@@ -199,7 +168,7 @@ export function buildDomElementHtmlArtifact(options: {
         "  <body>",
         "    <main>",
         `      <h1>${escapeHtmlText(options.visibleTitle)}</h1>`,
-        `      <p>${escapeHtmlText(options.visibleBody)}</p>${hintParagraph}`,
+        `      <p>${escapeHtmlText(options.visibleBody)}</p>`,
         "    </main>",
         hiddenElement,
         "  </body>",
@@ -216,25 +185,13 @@ export function extractHiddenDomPayloads(source: string): string[] {
     return [...source.matchAll(pattern)].map((match) => decodeHtmlText(match[1].trim()));
 }
 
-function assertRecognitionHintPolicy(
-    recognitionLevel: DomElementRecognitionLevel,
-    domInspectionHint: string | undefined
-): void {
-    if (recognitionLevel === "explicit" && domInspectionHint === undefined) {
-        throw new Error("Explicit DOM-element puzzles require a DOM-inspection hint.");
-    }
-    if (recognitionLevel === "hidden" && domInspectionHint !== undefined) {
-        throw new Error("Hidden DOM-element puzzles must not include a DOM-inspection hint.");
-    }
-}
 
 function assertSolutionNotVisible(
     solution: string,
     visibleTitle: string,
     visibleBody: string,
-    domInspectionHint: string | undefined
 ): void {
-    const visibleText = [visibleTitle, visibleBody, domInspectionHint ?? ""].join("\n");
+    const visibleText = [visibleTitle, visibleBody].join("\n");
     if (visibleText.includes(solution)) {
         throw new Error("The hidden DOM payload must not appear in visible page text.");
     }
@@ -248,22 +205,16 @@ export function createDomElementPuzzle(spec: DomElementPuzzleSpec): PrivatePuzzl
     const solution = normalizeDomElementPayload(spec.intendedSolution);
     const visibleTitle = normalizeVisibleTitle(spec.visibleTitle);
     const visibleBody = normalizeVisibleBody(spec.visibleBody);
-    const recognitionLevel = normalizeRecognitionLevel(spec.recognitionLevel);
     const hideStrategy = normalizeHideStrategy(spec.hideStrategy);
-    const domInspectionHint = normalizeDomInspectionHint(spec.domInspectionHint);
     const elementTag = normalizeElementTag(spec.elementTag);
     const acceptedAlternatives = normalizeAcceptedAlternatives(spec.acceptedAlternatives);
-
-    assertRecognitionHintPolicy(recognitionLevel, domInspectionHint);
-    assertSolutionNotVisible(solution, visibleTitle, visibleBody, domInspectionHint);
+    assertSolutionNotVisible(solution, visibleTitle, visibleBody);
 
     const artifactSource = buildDomElementHtmlArtifact({
         visibleTitle,
         visibleBody,
         hiddenPayload: solution,
-        recognitionLevel,
         hideStrategy,
-        domInspectionHint,
         elementTag
     });
 
@@ -322,17 +273,6 @@ export function createDomElementPuzzle(spec: DomElementPuzzleSpec): PrivatePuzzl
         }
     ];
 
-    if (domInspectionHint !== undefined) {
-        inputs.push({
-            key: "dom_inspection_hint",
-            valueType: "dom-inspection-hint",
-            description: "A visible hint suggesting that the solver should inspect the DOM or page structure.",
-            required: false,
-            constraints: { maximumCharacters: MAX_HINT_LENGTH },
-            value: domInspectionHint
-        });
-    }
-
     const puzzle: PrivatePuzzleInstance = {
         id: spec.id,
         puzzleType: "hidden-information",
@@ -357,10 +297,8 @@ export function createDomElementPuzzle(spec: DomElementPuzzleSpec): PrivatePuzzl
             domElement: {
                 templateVersion: TEMPLATE_VERSION,
                 payloadRole: PAYLOAD_ROLE,
-                recognitionLevel,
                 hideStrategy,
                 elementTag,
-                hasDomInspectionHint: domInspectionHint !== undefined,
                 artifactSha256: createHash("sha256").update(artifactSource, "utf8").digest("hex")
             }
         }

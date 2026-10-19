@@ -10,8 +10,6 @@ import {
     extractHtmlComments,
     normalizeCommentPrefix,
     normalizeHtmlCommentSolution,
-    normalizeRecognitionLevel,
-    normalizeSourceInspectionHint,
     normalizeVisibleBody,
     normalizeVisibleTitle
 } from "../src/agents/html-comment/engine.js";
@@ -32,7 +30,6 @@ const knownSpec = (id: string) => ({
     intendedSolution: "OPEN-VAULT",
     visibleTitle: "Release Notes",
     visibleBody: "The staging page looks normal, but the deployment checklist mentions a leftover developer note.",
-    recognitionLevel: "contextual" as const,
     commentPrefix: "DEV NOTE"
 });
 
@@ -41,15 +38,14 @@ function stripComments(source: string): string {
 }
 
 describe("HTML comment engine", () => {
-    it("normalizes documented text fields and recognition levels", () => {
+    it("normalizes documented text fields", () => {
         expect(normalizeHtmlCommentSolution("  OPEN   VAULT  ")).toBe("OPEN VAULT");
         expect(normalizeVisibleTitle("  Release   Notes  ")).toBe("Release Notes");
         expect(normalizeVisibleBody("  Staging   page  ")).toBe("Staging page");
-        expect(normalizeSourceInspectionHint("  Check   what was left behind  "))
-            .toBe("Check what was left behind");
-        expect(normalizeSourceInspectionHint(undefined)).toBeUndefined();
+
+
         expect(normalizeCommentPrefix("  todo  ")).toBe("TODO");
-        expect(normalizeRecognitionLevel("hidden")).toBe("hidden");
+
     });
 
     it("creates a deterministic private instance with a safe HTML artifact", () => {
@@ -57,9 +53,7 @@ describe("HTML comment engine", () => {
         const second = createHtmlCommentPuzzle(knownSpec("html-comment-1"));
         const metadata = first.extensions.htmlComment as {
             templateVersion: string;
-            recognitionLevel: string;
             commentPrefix: string;
-            hasSourceInspectionHint: boolean;
             artifactSha256: string;
         };
 
@@ -77,9 +71,7 @@ describe("HTML comment engine", () => {
         expect(extractHtmlComments(getHtmlEntrySource(first.artifact))).toEqual(["DEV NOTE: OPEN-VAULT"]);
         expect(first.prompt).toBe("Open the webpage artifact and recover the hidden message.");
         expect(metadata.templateVersion).toBe("safe-static-html-comment-v1");
-        expect(metadata.recognitionLevel).toBe("contextual");
         expect(metadata.commentPrefix).toBe("DEV NOTE");
-        expect(metadata.hasSourceInspectionHint).toBe(false);
         expect(metadata.artifactSha256).toMatch(/^[0-9a-f]{64}$/);
         expect(first.externalKnowledge).toEqual({ required: false });
         expect(() => assertSafeStaticHtml(getHtmlEntrySource(first.artifact))).not.toThrow();
@@ -91,9 +83,7 @@ describe("HTML comment engine", () => {
             id: "html-comment-escape",
             intendedSolution: "KEEP&CASE",
             visibleTitle: "Build <Status>",
-            visibleBody: "Check A & B before 'launch' and \"handoff\".",
-            recognitionLevel: "contextual"
-        });
+            visibleBody: "Check A & B before 'launch' and \"handoff\".",});
 
         expect(escapeHtmlText("<A&B>")).toBe("&lt;A&amp;B&gt;");
         expect(getHtmlEntrySource(puzzle.artifact)).toContain("<title>Build &lt;Status&gt;</title>");
@@ -137,33 +127,6 @@ describe("HTML comment engine", () => {
         expect(stripComments(getHtmlEntrySource(publicPuzzle.artifact))).not.toContain("OPEN-VAULT");
     });
 
-    it("enforces recognition-level hint policy", () => {
-        expect(() => createHtmlCommentPuzzle({
-            ...knownSpec("explicit-missing-hint"),
-            recognitionLevel: "explicit"
-        })).toThrow("require a source-inspection hint");
-
-        expect(() => createHtmlCommentPuzzle({
-            ...knownSpec("hidden-with-hint"),
-            recognitionLevel: "hidden",
-            sourceInspectionHint: "View the source."
-        })).toThrow("must not include a source-inspection hint");
-
-        const explicit = createHtmlCommentPuzzle({
-            ...knownSpec("explicit-with-hint"),
-            recognitionLevel: "explicit",
-            sourceInspectionHint: "Inspect the page source for a developer note."
-        });
-        expect(explicit.inputs.map((port) => port.key)).toContain("source_inspection_hint");
-        expect(getHtmlEntrySource(explicit.artifact)).toContain("Inspect the page source");
-
-        const hidden = createHtmlCommentPuzzle({
-            ...knownSpec("hidden-no-hint"),
-            recognitionLevel: "hidden"
-        });
-        expect(hidden.inputs.map((port) => port.key)).not.toContain("source_inspection_hint");
-    });
-
     it("rejects invalid values and unsafe comments", () => {
         expect(() => normalizeHtmlCommentSolution("bad -- close"))
             .toThrow("must not contain '--' or '>'");
@@ -172,9 +135,7 @@ describe("HTML comment engine", () => {
         expect(() => normalizeHtmlCommentSolution("bad\u0000payload")).toThrow("printable ASCII");
         expect(() => normalizeVisibleTitle("   ")).toThrow("must not be empty");
         expect(() => normalizeVisibleBody("B".repeat(1_001))).toThrow("must not exceed 1000");
-        expect(() => normalizeSourceInspectionHint("H".repeat(301))).toThrow("must not exceed 300");
         expect(() => normalizeCommentPrefix("bad -- prefix")).toThrow("must not contain");
-        expect(() => normalizeRecognitionLevel("obvious")).toThrow("recognition level");
         expect(() => createHtmlCommentPuzzle({
             ...knownSpec("   ")
         })).toThrow("ID must not be empty");
@@ -217,7 +178,6 @@ describe("HTML comment engine", () => {
             intendedSolution: "OPEN-VAULT",
             visibleTitle: "Release Notes",
             visibleBody: "The staging page looks normal, but the deployment checklist mentions a leftover developer note.",
-            recognitionLevel: "contextual",
             commentPrefix: "DEV NOTE"
         });
         const textContent = result.content[0];

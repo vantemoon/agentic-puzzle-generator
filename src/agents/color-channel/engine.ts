@@ -4,21 +4,17 @@ import { createHash } from "node:crypto";
 import { assertPrivatePuzzleInstance, createPngImageArtifact, type PrivatePuzzleInstance, type PuzzleGenerationSpec } from "../../core/types.js";
 import { embedColorPayload, extractColorPayload, type ColorChannel } from "../channel-clue/png.js";
 
-export type ColorChannelRecognitionLevel = "explicit" | "indirect" | "contextual" | "hidden";
 export type { ColorChannel };
 
 export interface ColorChannelPuzzleSpec extends PuzzleGenerationSpec {
     coverTheme: string;
     channel: ColorChannel;
-    recognitionLevel: ColorChannelRecognitionLevel;
-    channelInspectionHint?: string;
     acceptedAlternatives?: string[];
     width?: number;
     height?: number;
 }
 
 const TEMPLATE_VERSION = "color-channel-png-v1";
-const LEVELS: readonly ColorChannelRecognitionLevel[] = ["explicit", "indirect", "contextual", "hidden"];
 const CHANNELS: readonly ColorChannel[] = ["red", "green", "blue"];
 const DEFAULT_WIDTH = 96;
 const DEFAULT_HEIGHT = 64;
@@ -36,11 +32,6 @@ function normalizeText(input: string, name: string, max: number): string {
 
 export function normalizeColorChannelPayload(input: string): string { return normalizeText(input, "color-channel payload", MAX_PAYLOAD); }
 export function normalizeColorCoverTheme(input: string): string { return normalizeText(input, "cover theme", 120); }
-export function normalizeChannelInspectionHint(input: string | undefined): string | undefined { return input === undefined ? undefined : normalizeText(input, "channel inspection hint", 300); }
-export function normalizeColorChannelRecognitionLevel(input: string): ColorChannelRecognitionLevel {
-    if (!LEVELS.includes(input as ColorChannelRecognitionLevel)) throw new Error(`The recognition level must be one of: ${LEVELS.join(", ")}.`);
-    return input as ColorChannelRecognitionLevel;
-}
 export function normalizeColorChannel(input: string): ColorChannel {
     if (!CHANNELS.includes(input as ColorChannel)) throw new Error(`The color channel must be one of: ${CHANNELS.join(", ")}.`);
     return input as ColorChannel;
@@ -58,13 +49,9 @@ function alternatives(values: string[] | undefined): string[] | undefined {
     return normalized.length === 0 ? undefined : normalized;
 }
 
-function assertHintPolicy(level: ColorChannelRecognitionLevel, hint: string | undefined): void {
-    if (level === "explicit" && hint === undefined) throw new Error("Explicit color-channel puzzles require a channel inspection hint.");
-    if (level === "hidden" && hint !== undefined) throw new Error("Hidden color-channel puzzles must not include a channel inspection hint.");
-}
 
-function assertNoLeak(payload: string, coverTheme: string, hint: string | undefined): void {
-    if ([coverTheme, hint ?? ""].join("\n").includes(payload)) throw new Error("The color-channel payload must not appear in visible public text.");
+function assertNoLeak(payload: string, coverTheme: string): void {
+    if (coverTheme.includes(payload)) throw new Error("The color-channel payload must not appear in visible public text.");
 }
 
 export function createColorChannelPuzzle(spec: ColorChannelPuzzleSpec): PrivatePuzzleInstance {
@@ -72,13 +59,10 @@ export function createColorChannelPuzzle(spec: ColorChannelPuzzleSpec): PrivateP
     const payload = normalizeColorChannelPayload(spec.intendedSolution);
     const coverTheme = normalizeColorCoverTheme(spec.coverTheme);
     const channel = normalizeColorChannel(spec.channel);
-    const recognitionLevel = normalizeColorChannelRecognitionLevel(spec.recognitionLevel);
-    const channelInspectionHint = normalizeChannelInspectionHint(spec.channelInspectionHint);
     const acceptedAlternatives = alternatives(spec.acceptedAlternatives);
     const width = dimension(spec.width, DEFAULT_WIDTH, "width");
     const height = dimension(spec.height, DEFAULT_HEIGHT, "height");
-    assertHintPolicy(recognitionLevel, channelInspectionHint);
-    assertNoLeak(payload, coverTheme, channelInspectionHint);
+    assertNoLeak(payload, coverTheme);
 
     const pngData = embedColorPayload({ width, height, coverSeed: coverTheme, payload, channel });
     if (extractColorPayload(pngData, channel) !== payload) throw new Error("Internal validation failed: color-channel payload did not round trip.");
@@ -94,15 +78,14 @@ export function createColorChannelPuzzle(spec: ColorChannelPuzzleSpec): PrivateP
         inputs: [
             { key: "cover_image", valueType: "png-image", description: "A PNG image with a hidden payload encoded in one RGB channel.", required: true, constraints: { mediaType: "image/png", channel, width, height }, value: { coverTheme, width, height, channel } },
             { key: "channel_payload", valueType: "hidden-text-payload", description: "The text payload encoded in the selected RGB channel.", required: true, value: payload },
-            ...(channelInspectionHint === undefined ? [] : [{ key: "channel_inspection_hint", valueType: "visible-text-hint", description: "Visible hint suggesting RGB channel inspection.", required: false, value: channelInspectionHint }])
         ],
         outputs: [{ key: "extracted_payload", valueType: "plain-text", description: "The text recovered from the selected color channel.", value: payload }],
         artifact: createPngImageArtifact(pngData),
-        prompt: channelInspectionHint === undefined ? `Inspect the PNG image (${coverTheme}) and recover the hidden color-channel payload.` : `Inspect the PNG image (${coverTheme}). ${channelInspectionHint}`,
+        prompt: `Inspect the PNG image (${coverTheme}) and recover the hidden color-channel payload.`,
         solution,
         validator: { kind: "normalized-text", mode: "deterministic", options: { trim: true, caseInsensitive: false, collapseWhitespace: true } },
         externalKnowledge: { required: false },
-        extensions: { colorChannel: { templateVersion: TEMPLATE_VERSION, encodingChannel: channel, recognitionLevel, imageFormat: "png", encoding: "base64", width, height, hasChannelInspectionHint: channelInspectionHint !== undefined, artifactSha256: createHash("sha256").update(Buffer.from(pngData, "base64")).digest("hex") } }
+        extensions: { colorChannel: { templateVersion: TEMPLATE_VERSION, encodingChannel: channel, imageFormat: "png", encoding: "base64", width, height, artifactSha256: createHash("sha256").update(Buffer.from(pngData, "base64")).digest("hex") } }
     };
     assertPrivatePuzzleInstance(puzzle);
     return puzzle;

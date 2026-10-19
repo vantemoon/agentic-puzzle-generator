@@ -1,6 +1,8 @@
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import Type from "typebox";
 
+import { objectUnion } from "../../core/tool-schema.js";
+
 import { writeHtmlArtifactPreview as writeSharedHtmlArtifactPreview } from "../../core/html-preview.js";
 import { getHtmlEntrySource, type PrivatePuzzleInstance } from "../../core/types.js";
 import { createSourceCodePuzzle } from "./engine.js";
@@ -13,13 +15,6 @@ const carrierSchema = Type.Union([
     Type.Literal("encoded-source-value")
 ]);
 
-const recognitionLevelSchema = Type.Union([
-    Type.Literal("explicit"),
-    Type.Literal("indirect"),
-    Type.Literal("contextual"),
-    Type.Literal("hidden")
-]);
-
 const acceptedAlternativesSchema = Type.Array(
     Type.String({ minLength: 1, maxLength: 300 }),
     { minItems: 1, maxItems: 10 }
@@ -30,8 +25,6 @@ const baseFields = {
     visibleTitle: Type.String({ minLength: 1, maxLength: 120 }),
     visibleBody: Type.String({ minLength: 1, maxLength: 1000 }),
     carrier: carrierSchema,
-    recognitionLevel: recognitionLevelSchema,
-    sourceInspectionHint: Type.Optional(Type.String({ minLength: 1, maxLength: 300 })),
     codeLabel: Type.Optional(Type.String({ minLength: 1, maxLength: 80 })),
     acceptedAlternatives: Type.Optional(acceptedAlternativesSchema)
 } as const;
@@ -48,7 +41,7 @@ const demoSchema = Type.Object({
     ...baseFields
 }, { additionalProperties: false });
 
-const parameters = Type.Union([productionSchema, demoSchema]);
+const parameters = objectUnion([productionSchema, demoSchema]);
 
 export async function writeSourceCodeArtifactPreview(puzzle: PrivatePuzzleInstance) {
     return writeSharedHtmlArtifactPreview({
@@ -76,8 +69,6 @@ AgentTool<typeof parameters, PrivatePuzzleInstance> = {
             visibleTitle: params.visibleTitle,
             visibleBody: params.visibleBody,
             carrier: params.carrier,
-            recognitionLevel: params.recognitionLevel,
-            sourceInspectionHint: params.sourceInspectionHint,
             codeLabel: params.codeLabel,
             acceptedAlternatives: params.acceptedAlternatives
         });

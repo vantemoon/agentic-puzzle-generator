@@ -5,7 +5,6 @@ import { writeSvgImageArtifactPreview } from "../../core/image-preview.js";
 import type { PrivatePuzzleInstance } from "../../core/types.js";
 import { createQrCodePuzzle } from "./engine.js";
 
-const recognitionLevelSchema = Type.Union([Type.Literal("explicit"), Type.Literal("indirect"), Type.Literal("contextual"), Type.Literal("hidden")]);
 const payloadKindSchema = Type.Union([Type.Literal("message"), Type.Literal("identifier"), Type.Literal("url")]);
 const acceptedAlternativesSchema = Type.Array(Type.String({ minLength: 1, maxLength: 300 }), { minItems: 1, maxItems: 10 });
 
@@ -15,8 +14,6 @@ const parameters = Type.Object({
     intendedSolution: Type.String({ minLength: 1, maxLength: 300 }),
     payloadKind: payloadKindSchema,
     documentTheme: Type.String({ minLength: 1, maxLength: 160 }),
-    recognitionLevel: recognitionLevelSchema,
-    scanHint: Type.Optional(Type.String({ minLength: 1, maxLength: 300 })),
     acceptedAlternatives: Type.Optional(acceptedAlternativesSchema),
     moduleSize: Type.Optional(Type.Integer({ minimum: 4, maximum: 24 }))
 }, { additionalProperties: false });
@@ -37,8 +34,6 @@ export const createQrCodePuzzleTool: AgentTool<typeof parameters, PrivatePuzzleI
             intendedSolution: params.intendedSolution,
             payloadKind: params.payloadKind,
             documentTheme: params.documentTheme,
-            recognitionLevel: params.recognitionLevel,
-            scanHint: params.scanHint,
             acceptedAlternatives: params.acceptedAlternatives,
             moduleSize: params.moduleSize
         });
