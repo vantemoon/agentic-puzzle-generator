@@ -25,9 +25,12 @@ const shared = {
     documentTemplate: Type.String({ minLength: 1, maxLength: 12_000 }),
     anomalousPhrase: Type.String({ minLength: 1, maxLength: 240 }),
     normalityContext: Type.String({ minLength: 1, maxLength: 2_000 }),
+    normalPatternEvidence: Type.Array(
+        Type.String({ minLength: 1, maxLength: 240 }),
+        { minItems: 2, maxItems: 8 }
+    ),
     genre: Type.String({ minLength: 1, maxLength: 80 }),
     anomalyKind,
-    solverInstruction: Type.Optional(Type.String({ minLength: 1, maxLength: 400 })),
     placeholder: Type.Optional(Type.String({ minLength: 1, maxLength: 80 })),
     acceptedAlternatives: Type.Optional(Type.Array(Type.String({ minLength: 1, maxLength: 160 }))),
     externalKnowledgeRequired: Type.Optional(Type.Boolean()),
@@ -52,7 +55,7 @@ AgentTool<typeof parameters, PrivatePuzzleInstance> = {
     name: "create_anomalous_phrase_puzzle",
     label: "Create an anomalous phrase puzzle",
     description: [
-        "Validate a document template, anomaly, context, intended solution, and provenance;",
+        "Validate a document template, anomaly, artifact-grounded normal-pattern evidence, intended solution, and provenance;",
         "insert the semantic anomaly and return the verified puzzle."
     ].join(" "),
     parameters,
@@ -64,9 +67,9 @@ AgentTool<typeof parameters, PrivatePuzzleInstance> = {
             documentTemplate: params.documentTemplate,
             anomalousPhrase: params.anomalousPhrase,
             normalityContext: params.normalityContext,
+            normalPatternEvidence: params.normalPatternEvidence,
             genre: params.genre,
             anomalyKind: params.anomalyKind,
-            solverInstruction: params.solverInstruction,
             placeholder: params.placeholder,
             acceptedAlternatives: params.acceptedAlternatives,
             externalKnowledgeRequired: params.externalKnowledgeRequired,

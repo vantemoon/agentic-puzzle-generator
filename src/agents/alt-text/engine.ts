@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 
+import { buildContextualSvg, contextualImageKind } from "../../core/contextual-image.js";
 import {
     assertPrivatePuzzleInstance,
     createSingleHtmlArtifact,
@@ -14,16 +15,18 @@ export interface AltTextPuzzleSpec extends PuzzleGenerationSpec {
     visibleTitle: string;
     visibleBody: string;
     imageLabel: string;
+    altText: string;
     imageCaption?: string;
     acceptedAlternatives?: string[];
 }
 
 const MAX_SOLUTION_LENGTH = 300;
+const MAX_ALT_TEXT_LENGTH = 500;
 const MAX_TITLE_LENGTH = 120;
 const MAX_BODY_LENGTH = 1_000;
 const MAX_IMAGE_LABEL_LENGTH = 120;
 const MAX_CAPTION_LENGTH = 300;
-const TEMPLATE_VERSION = "safe-static-alt-text-v1";
+const TEMPLATE_VERSION = "contextual-alt-text-v2";
 const PAYLOAD_ROLE = "alt-text-payload";
 
 function normalizeInlineText(input: string, fieldName: string, maximumLength: number): string {
@@ -45,7 +48,11 @@ function normalizeInlineText(input: string, fieldName: string, maximumLength: nu
 }
 
 export function normalizeAltTextPayload(input: string): string {
-    return normalizeInlineText(input, "image alt-text payload", MAX_SOLUTION_LENGTH);
+    return normalizeInlineText(input, "intended solution", MAX_SOLUTION_LENGTH);
+}
+
+export function normalizeAltTextDescription(input: string): string {
+    return normalizeInlineText(input, "image alt text", MAX_ALT_TEXT_LENGTH);
 }
 
 export function normalizeVisibleTitle(input: string): string {
@@ -84,22 +91,14 @@ function decodeHtmlAttribute(input: string): string {
 }
 
 function buildSvgDataUrl(imageLabel: string): string {
-    const svg = [
-        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"420\" height=\"180\" role=\"img\">",
-        "  <rect width=\"100%\" height=\"100%\" rx=\"18\" fill=\"#f5f5f5\"/>",
-        "  <rect x=\"18\" y=\"18\" width=\"384\" height=\"144\" rx=\"12\" fill=\"#ffffff\" stroke=\"#999999\"/>",
-        `  <text x=\"210\" y=\"96\" text-anchor=\"middle\" font-family=\"Arial, sans-serif\" font-size=\"24\" fill=\"#333333\">${escapeHtmlText(imageLabel)}</text>`,
-        "</svg>"
-    ].join("");
-
-    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+    return `data:image/svg+xml;utf8,${encodeURIComponent(buildContextualSvg(imageLabel))}`;
 }
 
 export function buildAltTextHtmlArtifact(options: {
     visibleTitle: string;
     visibleBody: string;
     imageLabel: string;
-    hiddenPayload: string;
+    altText: string;
     imageCaption?: string;
 }): string {
     const caption = options.imageCaption === undefined
@@ -119,7 +118,7 @@ export function buildAltTextHtmlArtifact(options: {
         `      <h1>${escapeHtmlText(options.visibleTitle)}</h1>`,
         `      <p>${escapeHtmlText(options.visibleBody)}</p>`,
         "      <figure>",
-        `        <img data-puzzle-role=\"${PAYLOAD_ROLE}\" src=\"${imageSource}\" alt=\"${escapeHtmlText(options.hiddenPayload)}\">${caption}`,
+        `        <img data-puzzle-role=\"${PAYLOAD_ROLE}\" src=\"${imageSource}\" alt=\"${escapeHtmlText(options.altText)}\">${caption}`,
         "      </figure>",
         "    </main>",
         "  </body>",
@@ -148,11 +147,10 @@ function assertSolutionNotVisible(options: {
         options.visibleTitle,
         options.visibleBody,
         options.imageLabel,
-
         options.imageCaption ?? ""
-    ].join("\n");
+    ].join(" ");
     if (visibleText.includes(options.solution)) {
-        throw new Error("The alt-text payload must not appear in visible page or image text.");
+        throw new Error("The intended solution must not appear in visible page, image label, or caption.");
     }
 }
 
@@ -197,6 +195,7 @@ export function createAltTextPuzzle(spec: AltTextPuzzleSpec): PrivatePuzzleInsta
     const visibleTitle = normalizeVisibleTitle(spec.visibleTitle);
     const visibleBody = normalizeVisibleBody(spec.visibleBody);
     const imageLabel = normalizeImageLabel(spec.imageLabel);
+    const altText = normalizeAltTextDescription(spec.altText);
     const imageCaption = normalizeImageCaption(spec.imageCaption);
     const acceptedAlternatives = normalizeAcceptedAlternatives(spec.acceptedAlternatives);
     assertSolutionNotVisible({
@@ -207,25 +206,28 @@ export function createAltTextPuzzle(spec: AltTextPuzzleSpec): PrivatePuzzleInsta
         imageCaption
     });
     assertImageContextConsistency({ visibleTitle, visibleBody, imageLabel, imageCaption });
+    if (!altText.includes(solution)) {
+        throw new Error("The natural image alt text must contain the intended solution.");
+    }
 
     const artifactSource = buildAltTextHtmlArtifact({
         visibleTitle,
         visibleBody,
         imageLabel,
-        hiddenPayload: solution,
+        altText,
         imageCaption
     });
 
     assertSafeStaticHtml(artifactSource);
 
     const payloads = extractAltTextPayloads(artifactSource);
-    if (payloads.length !== 1 || payloads[0] !== solution) {
+    if (payloads.length !== 1 || payloads[0] !== altText) {
         throw new Error(
-            "Internal validation failed: HTML artifact must contain exactly one intended alt-text payload."
+            "Internal validation failed: HTML artifact must contain exactly one intended alt-text description."
         );
     }
 
-    const prompt = "Open the webpage artifact and recover the image alt-text message.";
+    const prompt = "Review the contextual webpage image and report the requested detail.";
     const normalization: Array<"trim" | "collapse-whitespace"> = ["trim", "collapse-whitespace"];
     const solutionRecord = acceptedAlternatives === undefined
         ? {
@@ -256,11 +258,11 @@ export function createAltTextPuzzle(spec: AltTextPuzzleSpec): PrivatePuzzleInsta
         },
         {
             key: "image_alt_payload",
-            valueType: "image-alt-text",
-            description: "The message stored in the image alt attribute.",
+            valueType: "image-alt-text-description",
+            description: "The natural description stored in the image alt attribute.",
             required: true,
-            constraints: { maximumCharacters: MAX_SOLUTION_LENGTH, htmlAttributeEscaped: true },
-            value: solution
+            constraints: { maximumCharacters: MAX_ALT_TEXT_LENGTH, containsIntendedSolution: true, htmlAttributeEscaped: true },
+            value: altText
         }
     ];
 
@@ -289,7 +291,8 @@ export function createAltTextPuzzle(spec: AltTextPuzzleSpec): PrivatePuzzleInsta
                 templateVersion: TEMPLATE_VERSION,
                 payloadRole: PAYLOAD_ROLE,
                 hasImageCaption: imageCaption !== undefined,
-                imageSourceKind: "inline-svg-data-url",
+                imageSourceKind: "contextual-inline-svg-data-url",
+                contextualImageKind: contextualImageKind(imageLabel),
                 artifactSha256: createHash("sha256").update(artifactSource, "utf8").digest("hex")
             }
         }

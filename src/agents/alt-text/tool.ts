@@ -21,6 +21,7 @@ const baseFields = {
     visibleTitle: Type.String({ minLength: 1, maxLength: 120 }),
     visibleBody: Type.String({ minLength: 1, maxLength: 1000 }),
     imageLabel: Type.String({ minLength: 1, maxLength: 120 }),
+    altText: Type.String({ minLength: 1, maxLength: 500 }),
     imageCaption: Type.Optional(Type.String({ minLength: 1, maxLength: 300 })),
     acceptedAlternatives: Type.Optional(acceptedAlternativesSchema)
 } as const;
@@ -65,6 +66,7 @@ AgentTool<typeof parameters, PrivatePuzzleInstance> = {
             visibleTitle: params.visibleTitle,
             visibleBody: params.visibleBody,
             imageLabel: params.imageLabel,
+            altText: params.altText,
             imageCaption: params.imageCaption,
             acceptedAlternatives: params.acceptedAlternatives
         });

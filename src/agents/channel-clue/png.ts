@@ -1,6 +1,7 @@
 import { Buffer } from "node:buffer";
-import { createHash } from "node:crypto";
 import { deflateSync, inflateSync } from "node:zlib";
+
+import { createContextualCoverRgba } from "../../core/contextual-image.js";
 
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const MAGIC = Buffer.from("CHANv1\0", "ascii");
@@ -95,27 +96,8 @@ export function decodeRgbaPng(base64Png: string): RgbaPngData {
     return { width, height, rgba };
 }
 
-function seededByte(seed: Buffer, index: number): number {
-    const block = Math.floor(index / 32);
-    const offset = index % 32;
-    return createHash("sha256").update(seed).update(String(block)).digest()[offset];
-}
-
-export function createCoverRgba(width: number, height: number, seedText: string): Buffer {
-    const seed = createHash("sha256").update(seedText, "utf8").digest();
-    const rgba = Buffer.alloc(width * height * 4);
-    for (let y = 0; y < height; y += 1) {
-        for (let x = 0; x < width; x += 1) {
-            const pixel = y * width + x;
-            const base = pixel * 4;
-            const noise = seededByte(seed, pixel);
-            rgba[base] = 70 + ((x * 3 + noise) % 110);
-            rgba[base + 1] = 86 + ((y * 4 + (noise >> 1)) % 105);
-            rgba[base + 2] = 105 + (((x + y) * 2 + (noise >> 2)) % 95);
-            rgba[base + 3] = 255;
-        }
-    }
-    return rgba;
+export function createCoverRgba(width: number, height: number, description: string): Buffer {
+    return createContextualCoverRgba(width, height, description);
 }
 
 function packet(payload: string): Buffer {

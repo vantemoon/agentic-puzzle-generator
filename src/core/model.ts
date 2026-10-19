@@ -1,7 +1,7 @@
 import type { ModelRuntime as ModelRuntimeType } from "@earendil-works/pi-coding-agent";
 
-const DEFAULT_PROVIDER_ID = "kadi-openai";
-const DEFAULT_MODEL_ID = "openai/gpt-5.6-sol";
+const DEFAULT_PROVIDER_ID = "kadi";
+const DEFAULT_MODEL_ID = "moonshot/kimi-k3";
 const KADI_PROVIDER_IDS = [DEFAULT_PROVIDER_ID, "kadi"] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {

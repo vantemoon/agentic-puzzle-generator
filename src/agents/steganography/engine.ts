@@ -2,6 +2,7 @@ import { Buffer } from "node:buffer";
 import { createHash } from "node:crypto";
 import { deflateSync, inflateSync } from "node:zlib";
 
+import { createContextualCoverRgba } from "../../core/contextual-image.js";
 import {
     assertPrivatePuzzleInstance,
     createPngImageArtifact,
@@ -92,25 +93,13 @@ function bitsToBytes(bits: number[]): Buffer {
     return bytes;
 }
 
-function seededByte(seed: Buffer, index: number): number {
-    const block = Math.floor(index / 32);
-    const offset = index % 32;
-    const digest = createHash("sha256").update(seed).update(String(block)).digest();
-    return digest[offset];
-}
-
-function createDeterministicCoverRgb(options: { width: number; height: number; seedText: string }): Buffer {
-    const seed = createHash("sha256").update(options.seedText, "utf8").digest();
+function createDeterministicCoverRgb(options: { width: number; height: number; description: string }): Buffer {
+    const rgba = createContextualCoverRgba(options.width, options.height, options.description);
     const rgb = Buffer.alloc(options.width * options.height * 3);
-    for (let y = 0; y < options.height; y += 1) {
-        for (let x = 0; x < options.width; x += 1) {
-            const pixel = y * options.width + x;
-            const base = pixel * 3;
-            const noise = seededByte(seed, pixel);
-            rgb[base] = (70 + Math.floor((x / Math.max(1, options.width - 1)) * 90) + (noise & 0x0f)) & 0xfe;
-            rgb[base + 1] = (92 + Math.floor((y / Math.max(1, options.height - 1)) * 80) + ((noise >> 2) & 0x0f)) & 0xfe;
-            rgb[base + 2] = (118 + ((x + y) % 42) + ((noise >> 4) & 0x0f)) & 0xfe;
-        }
+    for (let pixel = 0; pixel < options.width * options.height; pixel += 1) {
+        rgb[pixel * 3] = rgba[pixel * 4];
+        rgb[pixel * 3 + 1] = rgba[pixel * 4 + 1];
+        rgb[pixel * 3 + 2] = rgba[pixel * 4 + 2];
     }
     return rgb;
 }
@@ -123,7 +112,7 @@ export function embedPngLsbRgb(options: { width: number; height: number; coverTh
         throw new Error(`The payload is too large for the configured PNG cover capacity (${capacityBits} bits).`);
     }
 
-    const rgb = createDeterministicCoverRgb({ width: options.width, height: options.height, seedText: options.coverTheme });
+    const rgb = createDeterministicCoverRgb({ width: options.width, height: options.height, description: options.coverTheme });
     for (let index = 0; index < bits.length; index += 1) {
         rgb[index] = (rgb[index] & 0xfe) | bits[index];
     }

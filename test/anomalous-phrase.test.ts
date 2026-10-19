@@ -8,8 +8,8 @@ import {
     normalizeAnomalousPhraseSolution,
     normalizeDocumentTemplate,
     normalizeNormalityContext,
-    normalizePlaceholder,
-    normalizeSolverInstruction
+    normalizeNormalPatternEvidence,
+    normalizePlaceholder
 } from "../src/agents/anomalous-phrase/engine.js";
 import {
     assertPrivatePuzzleInstance,
@@ -21,9 +21,11 @@ import {
 
 const template = [
     "Subject: Final lobby checklist",
-    "The reception desk has fresh badges, the west doors are locked, and the evening guard will arrive at 18:00.",
-    "Please leave the courier log beside {{ANOMALY}} before closing.",
-    "Nothing else should be moved from the supply cabinet today."
+    "Routine placements:",
+    "Visitor badges: reception desk",
+    "Courier log: west door shelf",
+    "Spare key: security cabinet",
+    "Tonight's exception: place the courier log beside {{ANOMALY}} before closing."
 ].join("\n");
 
 const knownSpec = (id: string) => ({
@@ -31,10 +33,14 @@ const knownSpec = (id: string) => ({
     intendedSolution: "THE BLUE LANTERN",
     documentTemplate: template,
     anomalousPhrase: "the blue lantern",
-    normalityContext: "This office memo is about ordinary lobby closing tasks; no lanterns are part of the building equipment.",
+    normalityContext: "The checklist establishes ordinary named storage locations; the exception introduces an object absent from that pattern.",
+    normalPatternEvidence: [
+        "Visitor badges: reception desk",
+        "Courier log: west door shelf",
+        "Spare key: security cabinet"
+    ],
     genre: "office memo",
     anomalyKind: "out-of-context-entity" as const,
-    solverInstruction: "Identify the object that does not belong in the memo.",
     acceptedAlternatives: ["blue lantern"]
 });
 
@@ -45,8 +51,9 @@ describe("anomalous phrase engine", () => {
             .toBe("first line\nsecond line");
         expect(normalizeAnomalousPhrase("  blue   lantern ")).toBe("blue lantern");
         expect(normalizeNormalityContext("  office   memo ")).toBe("office memo");
+        expect(normalizeNormalPatternEvidence(["  first normal row  ", "second normal row"]))
+            .toEqual(["first normal row", "second normal row"]);
         expect(normalizeAnomalousPhraseGenre("  incident   report ")).toBe("incident report");
-        expect(normalizeSolverInstruction(undefined)).toContain("Read the document closely");
         expect(normalizePlaceholder(undefined)).toBe("{{ANOMALY}}");
     });
 
@@ -75,22 +82,23 @@ describe("anomalous phrase engine", () => {
         expect(first.puzzleType).toBe("hidden-information");
         expect(first.subtype).toBe("anomalous-phrase");
         expect(first.inputs.map((port) => port.key))
-            .toEqual(["document_template", "anomalous_phrase", "normality_context"]);
+            .toEqual(["document_template", "anomalous_phrase", "normality_context", "normal_pattern_evidence"]);
         expect(first.inputs.map((port) => port.valueType))
             .toEqual([
                 "natural-language-document-template",
                 "semantic-anomaly",
-                "document-context"
+                "document-context",
+                "document-excerpts"
             ]);
         expect(first.outputs[0].valueType).toBe("plain-text");
-        expect(first.prompt).toContain("Identify the object");
-        expect(first.prompt).toContain("Context:");
+        expect(first.prompt).toContain("supported by evidence in the document");
+        expect(first.prompt).not.toContain(knownSpec("unused").normalityContext);
         expect(first.prompt).toContain("the blue lantern");
         expect(getPuzzleArtifactSource(first.artifact)).toContain("the blue lantern");
         expect(metadata.genre).toBe("office memo");
         expect(metadata.anomalyKind).toBe("out-of-context-entity");
         expect(metadata.placeholder).toBe("{{ANOMALY}}");
-        expect(metadata.ruleVersion).toBe("single-semantic-anomaly-v1");
+        expect(metadata.ruleVersion).toBe("artifact-grounded-semantic-anomaly-v2");
         expect(metadata.anomalousPhrase).toBe("the blue lantern");
         expect(metadata.documentSha256).toMatch(/^[0-9a-f]{64}$/);
         expect(first.solution.canonical).toBe("THE BLUE LANTERN");
@@ -144,6 +152,31 @@ describe("anomalous phrase engine", () => {
                 retrievedAt: "2024-01-01T00:00:00Z"
             }]
         });
+    });
+
+    it("requires the answer and normal-pattern evidence to be grounded in the artifact", () => {
+        expect(() => createAnomalousPhrasePuzzle({
+            ...knownSpec("unrelated-answer"),
+            intendedSolution: "RED UMBRELLA"
+        })).toThrow("intended solution must appear in the anomalous phrase");
+        expect(() => createAnomalousPhrasePuzzle({
+            ...knownSpec("missing-evidence"),
+            normalPatternEvidence: [
+                "Visitor badges: reception desk",
+                "This excerpt is not in the document"
+            ]
+        })).toThrow("must appear in the document outside the anomaly");
+        expect(() => createAnomalousPhrasePuzzle({
+            ...knownSpec("insufficient-evidence"),
+            normalPatternEvidence: ["Visitor badges: reception desk"]
+        })).toThrow("must contain from 2 to 8 distinct examples");
+        expect(() => createAnomalousPhrasePuzzle({
+            ...knownSpec("duplicate-evidence"),
+            normalPatternEvidence: [
+                "Visitor badges: reception desk",
+                "Visitor badges: reception desk"
+            ]
+        })).toThrow("must contain from 2 to 8 distinct examples");
     });
 
     it("rejects invalid placeholders and accidental duplicate anomalies", () => {

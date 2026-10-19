@@ -23,9 +23,9 @@ export interface AnomalousPhrasePuzzleSpec extends PuzzleGenerationSpec {
     documentTemplate: string;
     anomalousPhrase: string;
     normalityContext: string;
+    normalPatternEvidence: string[];
     genre: string;
     anomalyKind: AnomalyKind;
-    solverInstruction?: string;
     placeholder?: string;
     acceptedAlternatives?: string[];
     externalKnowledgeRequired?: boolean;
@@ -36,10 +36,11 @@ const MAX_SOLUTION_LENGTH = 160;
 const MAX_DOCUMENT_TEMPLATE_LENGTH = 12_000;
 const MAX_ANOMALOUS_PHRASE_LENGTH = 240;
 const MAX_CONTEXT_LENGTH = 2_000;
+const MAX_EVIDENCE_LENGTH = 240;
+const MAX_EVIDENCE_ITEMS = 8;
 const MAX_GENRE_LENGTH = 80;
-const MAX_INSTRUCTION_LENGTH = 400;
 const DEFAULT_PLACEHOLDER = "{{ANOMALY}}";
-const RULE_VERSION = "single-semantic-anomaly-v1";
+const RULE_VERSION = "artifact-grounded-semantic-anomaly-v2";
 const ALLOWED_ANOMALY_KINDS: readonly AnomalyKind[] = [
     "unusual-phrase",
     "factual-inconsistency",
@@ -98,11 +99,16 @@ export function normalizeAnomalousPhraseGenre(input: string): string {
     return normalizeHumanText(input, "genre", MAX_GENRE_LENGTH);
 }
 
-export function normalizeSolverInstruction(input: string | undefined): string {
-    if (input === undefined) {
-        return "Read the document closely and submit the anomalous phrase or fact that does not fit its context.";
+export function normalizeNormalPatternEvidence(input: string[]): string[] {
+    const normalized = [...new Set(input.map((excerpt) =>
+        normalizeHumanText(excerpt, "normal-pattern evidence excerpt", MAX_EVIDENCE_LENGTH, {
+            allowLineBreaks: true
+        })
+    ))];
+    if (normalized.length < 2 || normalized.length > MAX_EVIDENCE_ITEMS) {
+        throw new Error(`Normal-pattern evidence must contain from 2 to ${MAX_EVIDENCE_ITEMS} distinct examples.`);
     }
-    return normalizeHumanText(input, "solver instruction", MAX_INSTRUCTION_LENGTH);
+    return normalized;
 }
 
 export function normalizePlaceholder(input: string | undefined): string {
@@ -139,6 +145,29 @@ function countOccurrences(input: string, search: string): number {
         index += search.length;
     }
     return count;
+}
+
+function assertArtifactGrounding(options: {
+    solution: string;
+    anomalousPhrase: string;
+    template: string;
+    placeholder: string;
+    normalPatternEvidence: string[];
+}): void {
+    const normalizedAnomaly = normalizeAnomalousPhraseSolution(options.anomalousPhrase);
+    if (!normalizedAnomaly.includes(options.solution)) {
+        throw new Error("The intended solution must appear in the anomalous phrase.");
+    }
+
+    const stableDocumentText = options.template.replace(options.placeholder, "");
+    for (const excerpt of options.normalPatternEvidence) {
+        if (!stableDocumentText.includes(excerpt)) {
+            throw new Error(`Normal-pattern evidence must appear in the document outside the anomaly: ${JSON.stringify(excerpt)}.`);
+        }
+        if (normalizeAnomalousPhraseSolution(excerpt).includes(options.solution)) {
+            throw new Error("Normal-pattern evidence must not contain the intended solution.");
+        }
+    }
 }
 
 function assertExternalKnowledge(
@@ -188,12 +217,20 @@ export function createAnomalousPhrasePuzzle(
     const solution = normalizeAnomalousPhraseSolution(spec.intendedSolution);
     const genre = normalizeAnomalousPhraseGenre(spec.genre);
     const normalityContext = normalizeNormalityContext(spec.normalityContext);
+    const normalPatternEvidence = normalizeNormalPatternEvidence(spec.normalPatternEvidence);
     const anomalousPhrase = normalizeAnomalousPhrase(spec.anomalousPhrase);
     const anomalyKind = normalizeAnomalyKind(spec.anomalyKind);
-    const solverInstruction = normalizeSolverInstruction(spec.solverInstruction);
     const placeholder = normalizePlaceholder(spec.placeholder);
+    const documentTemplate = normalizeDocumentTemplate(spec.documentTemplate);
+    assertArtifactGrounding({
+        solution,
+        anomalousPhrase,
+        template: documentTemplate,
+        placeholder,
+        normalPatternEvidence
+    });
     const documentText = buildAnomalousDocument(
-        spec.documentTemplate,
+        documentTemplate,
         anomalousPhrase,
         placeholder
     );
@@ -203,8 +240,7 @@ export function createAnomalousPhrasePuzzle(
 
     const documentHash = createHash("sha256").update(documentText, "utf8").digest("hex");
     const prompt = [
-        solverInstruction,
-        `Context: ${normalityContext}`,
+        `Review the ${genre} and report the semantic anomaly supported by evidence in the document.`,
         "Document:",
         documentText
     ].join("\n\n");
@@ -241,10 +277,22 @@ export function createAnomalousPhrasePuzzle(
             {
                 key: "normality_context",
                 valueType: "document-context",
-                description: "Context needed to judge why the inserted phrase is anomalous.",
+                description: "Private design justification for why the inserted phrase is anomalous.",
                 required: true,
                 constraints: { maximumCharacters: MAX_CONTEXT_LENGTH },
                 value: normalityContext
+            },
+            {
+                key: "normal_pattern_evidence",
+                valueType: "document-excerpts",
+                description: "Excerpts present in the artifact that establish the normal pattern or conflicting fact.",
+                required: true,
+                constraints: {
+                    minimumItems: 2,
+                    maximumItems: MAX_EVIDENCE_ITEMS,
+                    maximumCharactersPerItem: MAX_EVIDENCE_LENGTH
+                },
+                value: normalPatternEvidence
             }
         ],
         outputs: [{
@@ -275,8 +323,8 @@ export function createAnomalousPhrasePuzzle(
                 anomalyKind,
                 placeholder,
                 ruleVersion: RULE_VERSION,
-                solverInstruction,
                 normalityContext,
+                normalPatternEvidence,
                 anomalousPhrase,
                 documentSha256: documentHash
             }

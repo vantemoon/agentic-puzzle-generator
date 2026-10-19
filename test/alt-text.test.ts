@@ -31,7 +31,8 @@ const knownSpec = (id: string) => ({
     intendedSolution: "DEPLOY-742",
     visibleTitle: "Gallery Review",
     visibleBody: "One diagram looks ordinary in the release gallery.",
-    imageLabel: "System Diagram",});
+    imageLabel: "System Diagram",
+    altText: "System deployment diagram with the release node labeled DEPLOY-742.",});
 
 function removeMarkedAltImage(source: string): string {
     return source.replace(
@@ -61,6 +62,7 @@ describe("alt-text engine", () => {
             payloadRole: string;
             hasImageCaption: boolean;
             imageSourceKind: string;
+            contextualImageKind: string;
             artifactSha256: string;
         };
 
@@ -73,17 +75,18 @@ describe("alt-text engine", () => {
         expect(first.inputs.map((port) => port.key))
             .toEqual(["visible_page_text", "image_alt_payload"]);
         expect(first.inputs.map((port) => port.valueType))
-            .toEqual(["html-visible-text", "image-alt-text"]);
+            .toEqual(["html-visible-text", "image-alt-text-description"]);
         expect(first.outputs[0].valueType).toBe("plain-text");
-        expect(extractAltTextPayloads(getHtmlEntrySource(first.artifact))).toEqual(["DEPLOY-742"]);
+        expect(extractAltTextPayloads(getHtmlEntrySource(first.artifact))).toEqual(["System deployment diagram with the release node labeled DEPLOY-742."]);
         expect(getHtmlEntrySource(first.artifact)).toContain('data-puzzle-role="alt-text-payload"');
         expect(getHtmlEntrySource(first.artifact)).toContain('src="data:image/svg+xml;utf8,');
-        expect(getHtmlEntrySource(first.artifact)).toContain('alt="DEPLOY-742"');
-        expect(first.prompt).toBe("Open the webpage artifact and recover the image alt-text message.");
-        expect(metadata.templateVersion).toBe("safe-static-alt-text-v1");
+        expect(getHtmlEntrySource(first.artifact)).toContain('alt="System deployment diagram with the release node labeled DEPLOY-742."');
+        expect(first.prompt).toBe("Review the contextual webpage image and report the requested detail.");
+        expect(metadata.templateVersion).toBe("contextual-alt-text-v2");
         expect(metadata.payloadRole).toBe("alt-text-payload");
         expect(metadata.hasImageCaption).toBe(false);
-        expect(metadata.imageSourceKind).toBe("inline-svg-data-url");
+        expect(metadata.imageSourceKind).toBe("contextual-inline-svg-data-url");
+        expect(metadata.contextualImageKind).toBe("diagram");
         expect(metadata.artifactSha256).toMatch(/^[0-9a-f]{64}$/);
         expect(first.externalKnowledge).toEqual({ required: false });
         expect(() => assertSafeStaticHtml(getHtmlEntrySource(first.artifact))).not.toThrow();
@@ -97,15 +100,16 @@ describe("alt-text engine", () => {
             visibleTitle: "Gallery <Review>",
             visibleBody: "Check the system diagram & B before 'launch' and \"handoff\".",
             imageLabel: "System <Diagram>",
+            altText: "System deployment diagram with the release node labeled KEEP <CASE> & go.",
             imageCaption: "Figure <one> & notes"
         });
 
         expect(getHtmlEntrySource(puzzle.artifact)).toContain("<title>Gallery &lt;Review&gt;</title>");
         expect(getHtmlEntrySource(puzzle.artifact)).toContain('Check the system diagram &amp; B before &#39;launch&#39; and &quot;handoff&quot;.');
         expect(getHtmlEntrySource(puzzle.artifact)).toContain("Figure &lt;one&gt; &amp; notes");
-        expect(getHtmlEntrySource(puzzle.artifact)).toContain('alt="KEEP &lt;CASE&gt; &amp; go"');
+        expect(getHtmlEntrySource(puzzle.artifact)).toContain('alt="System deployment diagram with the release node labeled KEEP &lt;CASE&gt; &amp; go."');
         expect(decodeURIComponent(getHtmlEntrySource(puzzle.artifact))).toContain("System &lt;Diagram&gt;");
-        expect(extractAltTextPayloads(getHtmlEntrySource(puzzle.artifact))).toEqual(["KEEP <CASE> & go"]);
+        expect(extractAltTextPayloads(getHtmlEntrySource(puzzle.artifact))).toEqual(["System deployment diagram with the release node labeled KEEP <CASE> & go."]);
         expect(removeMarkedAltImage(getHtmlEntrySource(puzzle.artifact))).not.toContain("KEEP <CASE> & go");
     });
 
@@ -121,6 +125,7 @@ describe("alt-text engine", () => {
         const puzzle = createAltTextPuzzle({
             ...knownSpec("alt-text-3"),
             intendedSolution: "artifact/ref-17",
+            altText: "Artifact reference label showing artifact/ref-17 on the crate.",
             acceptedAlternatives: ["artifact/ref-017"]
         });
 
@@ -129,7 +134,7 @@ describe("alt-text engine", () => {
         expect(validateNormalizedTextAnswer(puzzle, "ARTIFACT/REF-17")).toBe(false);
     });
 
-    it("creates a public projection that hides private metadata while retaining the public alt attribute", () => {
+   it("creates a public projection that hides private metadata while retaining the public alt attribute", () => {
         const puzzle = createAltTextPuzzle(knownSpec("alt-text-4"));
         const publicPuzzle = toPublicPuzzle(puzzle);
         const serialized = JSON.stringify(publicPuzzle);
@@ -141,7 +146,7 @@ describe("alt-text engine", () => {
         expect(serialized).not.toContain("validator");
         expect(serialized).not.toContain("extensions");
         expect(getHtmlEntrySource(publicPuzzle.artifact)).toContain('data-puzzle-role="alt-text-payload"');
-        expect(getHtmlEntrySource(publicPuzzle.artifact)).toContain('alt="DEPLOY-742"');
+        expect(getHtmlEntrySource(publicPuzzle.artifact)).toContain('alt="System deployment diagram with the release node labeled DEPLOY-742."');
         expect(removeMarkedAltImage(getHtmlEntrySource(publicPuzzle.artifact))).not.toContain("DEPLOY-742");
     });
 
@@ -161,12 +166,14 @@ describe("alt-text engine", () => {
         })).toThrow("ID must not be empty");
         expect(() => createAltTextPuzzle({
             ...knownSpec("visible-leak"),
+            altText: "System deployment diagram without release labels.",
             visibleBody: "The answer is DEPLOY-742."
-        })).toThrow("must not appear in visible page or image text");
+        })).toThrow("must not appear in visible page, image label, or caption.");
         expect(() => createAltTextPuzzle({
             ...knownSpec("image-label-leak"),
-            imageLabel: "DEPLOY-742"
-        })).toThrow("must not appear in visible page or image text");
+            imageLabel: "DEPLOY-742",
+            altText: "DEPLOY-742 shown on the panel."
+        })).toThrow("must not appear in visible page, image label, or caption.");
     });
 
     it("rejects unsafe static HTML patterns", () => {
@@ -202,7 +209,8 @@ describe("alt-text engine", () => {
             intendedSolution: "DEPLOY-742",
             visibleTitle: "Gallery Review",
             visibleBody: "One diagram looks ordinary in the release gallery.",
-            imageLabel: "System Diagram",});
+            imageLabel: "System Diagram",
+            altText: "System deployment diagram with the release node labeled DEPLOY-742.",});
         const textContent = result.content[0];
         if (textContent.type !== "text") {
             throw new Error("Expected text tool content.");
@@ -212,6 +220,7 @@ describe("alt-text engine", () => {
             artifactPreviewUrl: string;
             answer: string;
         };
+        expect(payload.answer).toBe("DEPLOY-742");
 
         try {
             expect(payload.artifactPreviewPath).toBe(
@@ -220,7 +229,7 @@ describe("alt-text engine", () => {
             expect(payload.artifactPreviewUrl).toMatch(/^file:\/\//);
             expect(payload.answer).toBe("DEPLOY-742");
             await expect(readFile(payload.artifactPreviewPath, "utf8"))
-                .resolves.toContain('alt="DEPLOY-742"');
+                .resolves.toContain('alt="System deployment diagram with the release node labeled DEPLOY-742."');
         } finally {
             await rm(path.dirname(payload.artifactPreviewPath), { force: true, recursive: true });
         }
