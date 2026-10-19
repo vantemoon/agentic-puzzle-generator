@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 
+import { buildContextualSvg, contextualImageKind } from "../../core/contextual-image.js";
 import {
     assertPrivatePuzzleInstance,
     createSvgImageArtifact,
@@ -26,7 +27,7 @@ const MAX_THEME_LENGTH = 160;
 const MAX_DESCRIPTION_LENGTH = 1_000;
 const MAX_CLUE_LABEL_LENGTH = 80;
 const MAX_CAPTION_LENGTH = 300;
-const TEMPLATE_VERSION = "safe-static-visual-clue-v1";
+const TEMPLATE_VERSION = "contextual-visual-clue-v2";
 const CLUE_KINDS: readonly VisualClueKind[] = ["object", "symbol", "text", "pattern", "contradiction"];
 
 function normalizeInlineText(input: string, fieldName: string, maximumLength: number): string {
@@ -240,14 +241,9 @@ export function buildVisualClueSvg(options: {
     const descriptionParts = [options.sceneTheme, options.sceneDescription, options.imageCaption]
         .filter((part): part is string => part !== undefined);
     const palette = paletteForTheme(options.sceneTheme);
-    const source = [
-        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"420\" height=\"220\" viewBox=\"0 0 420 220\" role=\"img\" aria-labelledby=\"scene-title\" aria-describedby=\"scene-desc\">",
-        `  <title id=\"scene-title\">${escapeHtmlText(options.sceneTitle)}</title>`,
-        `  <desc id=\"scene-desc\">${escapeHtmlText(descriptionParts.join(" "))}</desc>`,
-        ...buildThemeCover(options.sceneTheme, options.sceneTitle, palette),
-        ...visualElementForKind(options.clueKind, options.clueLabel, options.sceneTheme, palette),
-        "</svg>"
-    ].join("\n");
+    const sceneSvg = buildContextualSvg(descriptionParts.join(" "), 420, 220);
+    const clueOverlay = visualElementForKind(options.clueKind, options.clueLabel, options.sceneTheme, palette).join("\n");
+    const source = sceneSvg.replace(/<\/svg>\s*$/, `\n${clueOverlay}\n</svg>`);
     assertSafeStaticSvg(source);
     return source;
 }
@@ -286,6 +282,8 @@ export function createVisualCluePuzzle(spec: VisualCluePuzzleSpec): PrivatePuzzl
     if (clueLabel !== solution) throw new Error("The clue label must match the intended visual clue answer.");
     assertSolutionNotLeaked({ solution, sceneTitle, sceneTheme, sceneDescription, imageCaption });
 
+    const descriptionParts = [sceneTheme, sceneDescription, imageCaption]
+        .filter((part): part is string => part !== undefined);
     const svgSource = buildVisualClueSvg({ sceneTitle, sceneTheme, sceneDescription, clueKind, clueLabel, imageCaption });
     const payloads = extractVisualCluePayloads(svgSource);
     if (payloads.length !== 1 || payloads[0] !== solution) {
@@ -341,6 +339,7 @@ export function createVisualCluePuzzle(spec: VisualCluePuzzleSpec): PrivatePuzzl
                 templateVersion: TEMPLATE_VERSION,
                 clueKind,
                 sceneTheme,
+                contextualImageKind: contextualImageKind(descriptionParts.join(" ")),
                 imageFormat: "svg",
                 hasImageCaption: imageCaption !== undefined,
                 artifactSha256: createHash("sha256").update(svgSource, "utf8").digest("hex")

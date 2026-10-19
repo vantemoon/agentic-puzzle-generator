@@ -58,6 +58,7 @@ describe("visual-clue engine", () => {
             templateVersion: string;
             clueKind: string;
             sceneTheme: string;
+            contextualImageKind: string;
             imageFormat: string;
             hasImageCaption: boolean;
             artifactSha256: string;
@@ -73,8 +74,9 @@ describe("visual-clue engine", () => {
         expect(svg).toContain("<svg");
         expect(svg).toContain('data-puzzle-role="visual-clue-payload"');
         expect(extractVisualCluePayloads(svg)).toEqual(["STAR"]);
-        expect(metadata.templateVersion).toBe("safe-static-visual-clue-v1");
+        expect(metadata.templateVersion).toBe("contextual-visual-clue-v2");
         expect(metadata.clueKind).toBe("symbol");
+        expect(metadata.contextualImageKind).toBe("facility");
         expect(metadata.sceneTheme).toBe("dusty archive room with shelves and labels");
         expect(metadata.imageFormat).toBe("svg");
         expect(metadata.hasImageCaption).toBe(true);
