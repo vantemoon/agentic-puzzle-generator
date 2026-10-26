@@ -75,6 +75,25 @@ function productionSchema(schema: TSchema): TSchema {
     }) ?? schema;
 }
 
+function omitSchemaProperties(schema: TSchema, names: string[]): TSchema {
+    if (names.length === 0) return schema;
+    const objectSchema = schema as TSchema & {
+        properties?: Record<string, TSchema>;
+        required?: string[];
+    };
+    if (objectSchema.properties === undefined) return schema;
+    const omitted = new Set(names);
+    return {
+        ...objectSchema,
+        properties: Object.fromEntries(
+            Object.entries(objectSchema.properties).filter(([name]) => !omitted.has(name))
+        ),
+        ...(objectSchema.required === undefined
+            ? {}
+            : { required: objectSchema.required.filter((name) => !omitted.has(name)) })
+    };
+}
+
 function textPuzzleEntry(options: {
     tool: ToolLike;
     puzzleType: string;
@@ -82,6 +101,7 @@ function textPuzzleEntry(options: {
     displayName: string;
     narrativeTags: string[];
     difficultyControls?: string[];
+    generatedFields?: string[];
 }): PuzzleCatalogEntry {
     return {
         puzzleType: options.puzzleType,
@@ -89,7 +109,10 @@ function textPuzzleEntry(options: {
         displayName: options.displayName,
         description: options.tool.description,
         generatorTool: options.tool.name,
-        generationSpecSchema: productionSchema(options.tool.parameters),
+        generationSpecSchema: omitSchemaProperties(
+            productionSchema(options.tool.parameters),
+            options.generatedFields ?? []
+        ),
         inputs: [{
             key: "intendedSolution",
             dataType: "string",
@@ -138,7 +161,7 @@ export const repositoryPuzzleCatalog: PuzzleCatalog = {
         textPuzzleEntry({ tool: createSubstitutionPuzzleTool, puzzleType: "encoding", subtype: "monoalphabetic-substitution", displayName: "Substitution cipher", narrativeTags: ["cipher", "message", "text"] }),
         textPuzzleEntry({ tool: createTelestichPuzzleTool, puzzleType: "hidden-information", subtype: "cover-text-line-telestich", displayName: "Telestich", narrativeTags: ["document", "text", "hidden-data"] }),
         textPuzzleEntry({ tool: createVigenerePuzzleTool, puzzleType: "encoding", subtype: "vigenere-cipher", displayName: "Vigenere cipher", narrativeTags: ["cipher", "message", "text"], difficultyControls: ["key"] }),
-        textPuzzleEntry({ tool: createVisualCluePuzzleTool, puzzleType: "hidden-information", subtype: "visual-clue", displayName: "Visual clue", narrativeTags: ["image", "observation", "investigation"], difficultyControls: ["clueKind"] }),
+        textPuzzleEntry({ tool: createVisualCluePuzzleTool, puzzleType: "hidden-information", subtype: "visual-clue", displayName: "Visual clue", narrativeTags: ["image", "observation", "investigation"], difficultyControls: ["clueKind"], generatedFields: ["backgroundElements", "clueElements", "showClueLabel"] }),
         textPuzzleEntry({ tool: createWordIndexPuzzleTool, puzzleType: "hidden-information", subtype: "cover-text-word-index-cipher", displayName: "Word index", narrativeTags: ["document", "text", "hidden-data"] })
     ]
 };

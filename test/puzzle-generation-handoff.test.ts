@@ -25,6 +25,16 @@ describe("level-to-puzzle generation handoff", () => {
         );
     });
 
+    it("keeps agent-generated visual artwork out of upstream level specifications", () => {
+        const entry = repositoryPuzzleCatalog.entries.find((candidate) => candidate.subtype === "visual-clue");
+        const properties = (entry?.generationSpecSchema as { properties?: Record<string, unknown> }).properties;
+
+        expect(properties).toBeDefined();
+        expect(properties).not.toHaveProperty("backgroundElements");
+        expect(properties).not.toHaveProperty("clueElements");
+        expect(properties).not.toHaveProperty("showClueLabel");
+    });
+
     it("builds a production handoff for the selected puzzle", () => {
         const handoff = createPuzzleGenerationHandoff(
             openWebExampleLevel,
@@ -56,6 +66,30 @@ describe("level-to-puzzle generation handoff", () => {
 
         expect(puzzle.solution.canonical).toBe("RIVER CLEANUP");
         expect(validateGeneratedPuzzle(handoff, puzzle)).toBe(puzzle);
+    });
+
+    it("asks the visual-clue agent to author a contextual drawing plan", () => {
+        const prompt = buildPuzzleGenerationPrompt({
+            levelId: "level",
+            puzzleId: "visual",
+            puzzleType: "hidden-information",
+            subtype: "visual-clue",
+            generatorTool: "create_visual_clue_puzzle",
+            generationSpec: {
+                mode: "production",
+                id: "visual",
+                intendedSolution: "PIN",
+                sceneTitle: "Repair Bench",
+                sceneTheme: "cluttered bicycle repair workshop",
+                sceneDescription: "Tools hang above a workbench.",
+                clueKind: "object",
+                clueLabel: "PIN"
+            },
+            verification: { prompt: "Answer", dataType: "string", expectedValue: "PIN" }
+        });
+
+        expect(prompt).toContain("decide showClueLabel from visual ambiguity");
+        expect(prompt).not.toContain("exactly this JSON object");
     });
 
     it("rejects a generated puzzle for the wrong node", () => {

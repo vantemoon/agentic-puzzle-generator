@@ -88,9 +88,12 @@ export function createPuzzleGenerationHandoff(
 }
 
 export function buildPuzzleGenerationPrompt(handoff: PuzzleGenerationHandoff): string {
+    const toolInstruction = handoff.subtype === "visual-clue"
+        ? "Preserve every supplied field. Create context-specific backgroundElements and clueElements drawing plans, decide showClueLabel from visual ambiguity, then call your puzzle creation tool with the augmented object:"
+        : "Preserve every supplied field and call your puzzle creation tool with exactly this JSON object:";
     return [
         "Generate this production puzzle from the upstream level-design specification.",
-        "Preserve every supplied field and call your puzzle creation tool with exactly this JSON object:",
+        toolInstruction,
         JSON.stringify(handoff.generationSpec, null, 2)
     ].join("\n\n");
 }

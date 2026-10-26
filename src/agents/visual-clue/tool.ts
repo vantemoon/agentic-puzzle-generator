@@ -23,6 +23,19 @@ const baseFields = {
     sceneTitle: Type.String({ minLength: 1, maxLength: 120 }),
     sceneTheme: Type.String({ minLength: 1, maxLength: 160 }),
     sceneDescription: Type.String({ minLength: 1, maxLength: 1000 }),
+    backgroundElements: Type.Array(Type.String({ minLength: 1, maxLength: 700 }), {
+        minItems: 1,
+        maxItems: 250,
+        description: "Compact drawing instructions for a context-specific 420x220 background. Use the documented pipe-delimited drawing language; never send SVG/XML markup."
+    }),
+    clueElements: Type.Array(Type.String({ minLength: 1, maxLength: 700 }), {
+        minItems: 1,
+        maxItems: 80,
+        description: "Compact drawing instructions for the context-integrated clue. Include the exact clueLabel as text only when showClueLabel is true. Never send SVG/XML markup."
+    }),
+    showClueLabel: Type.Boolean({
+        description: "Whether the exact answer needs a visible scene-native text label because the artwork alone would be ambiguous."
+    }),
     clueKind: clueKindSchema,
     clueLabel: Type.String({ minLength: 1, maxLength: 80 }),
     imageCaption: Type.Optional(Type.String({ minLength: 1, maxLength: 300 })),
@@ -58,13 +71,15 @@ AgentTool<typeof parameters, PrivatePuzzleInstance> = {
         if (params.mode === "production" && params.id === undefined) {
             throw new Error("Production visual-clue puzzles require an upstream puzzle ID.");
         }
-
         const puzzle = createVisualCluePuzzle({
             id: params.id ?? "demo-visual-clue",
             intendedSolution: params.intendedSolution,
             sceneTitle: params.sceneTitle,
             sceneTheme: params.sceneTheme,
             sceneDescription: params.sceneDescription,
+            backgroundElements: params.backgroundElements,
+            clueElements: params.clueElements,
+            showClueLabel: params.showClueLabel,
             clueKind: params.clueKind,
             clueLabel: params.clueLabel,
             imageCaption: params.imageCaption,
