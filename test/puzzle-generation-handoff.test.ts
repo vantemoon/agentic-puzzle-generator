@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import { createBinaryCapitalizationPuzzle } from "../src/agents/binary-capitalization/engine.js";
 import { createHtmlCommentPuzzle } from "../src/agents/html-comment/engine.js";
 import { repositoryPuzzleCatalog } from "../src/levels/catalog.js";
-import { openWebExampleLevel } from "../src/levels/examples/open-web-example.js";
+import { levelFixture } from "./fixtures/level-v4.js";
 import {
     buildPuzzleGenerationPrompt,
     createPuzzleGenerationHandoff,
@@ -37,7 +37,7 @@ describe("level-to-puzzle generation handoff", () => {
 
     it("builds a production handoff for the selected puzzle", () => {
         const handoff = createPuzzleGenerationHandoff(
-            openWebExampleLevel,
+            levelFixture,
             "find-project-name",
             repositoryPuzzleCatalog
         );
@@ -54,7 +54,7 @@ describe("level-to-puzzle generation handoff", () => {
 
     it("accepts generator normalization without changing the designed answer", () => {
         const handoff = createPuzzleGenerationHandoff(
-            openWebExampleLevel,
+            levelFixture,
             "find-project-name",
             repositoryPuzzleCatalog
         );
@@ -94,7 +94,7 @@ describe("level-to-puzzle generation handoff", () => {
 
     it("rejects a generated puzzle for the wrong node", () => {
         const handoff = createPuzzleGenerationHandoff(
-            openWebExampleLevel,
+            levelFixture,
             "find-project-name",
             repositoryPuzzleCatalog
         );
@@ -108,7 +108,7 @@ describe("level-to-puzzle generation handoff", () => {
     });
 
     it("rejects demo specifications before dispatch", () => {
-        const level = structuredClone(openWebExampleLevel);
+        const level = structuredClone(levelFixture);
         level.puzzles[0].design.generationSpec.mode = "demo";
 
         expect(() => createPuzzleGenerationHandoff(

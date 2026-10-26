@@ -15,8 +15,6 @@ import {
 import type { LevelBlueprint, PuzzleNode } from "./levels/types.js";
 import { assertLevelBlueprint } from "./levels/validator.js";
 
-const DEFAULT_LEVEL_PATH = "src/levels/examples/open-web-example.level.json";
-
 async function readLevel(filePath: string): Promise<LevelBlueprint> {
     const level = JSON.parse(await readFile(filePath, "utf8")) as unknown;
     assertLevelBlueprint(level, repositoryPuzzleCatalog);
@@ -25,7 +23,15 @@ async function readLevel(filePath: string): Promise<LevelBlueprint> {
 
 async function discoverLevels(directory = "generated-levels"): Promise<LevelBlueprint[]> {
     const absoluteDirectory = path.resolve(directory);
-    const entries = await readdir(absoluteDirectory, { withFileTypes: true });
+    let entries;
+    try {
+        entries = await readdir(absoluteDirectory, { withFileTypes: true });
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+            throw new Error(`No generated level directory exists at ${absoluteDirectory}. Pass a level file explicitly.`);
+        }
+        throw error;
+    }
     const choices: LevelBlueprint[] = [];
     for (const entry of entries.filter((candidate) => candidate.isFile() && candidate.name.endsWith(".level.json")).sort((a, b) => a.name.localeCompare(b.name))) {
         const filePath = path.join(absoluteDirectory, entry.name);
@@ -36,7 +42,9 @@ async function discoverLevels(directory = "generated-levels"): Promise<LevelBlue
             process.stderr.write(`Skipping invalid level ${entry.name}: ${error instanceof Error ? error.message : String(error)}\n`);
         }
     }
-    if (choices.length === 0) choices.push(await readLevel(path.resolve(DEFAULT_LEVEL_PATH)));
+    if (choices.length === 0) {
+        throw new Error(`No valid generated levels were found in ${absoluteDirectory}. Pass a level file explicitly.`);
+    }
     return choices;
 }
 

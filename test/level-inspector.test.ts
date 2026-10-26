@@ -6,7 +6,7 @@ import { repositoryPuzzleCatalog } from "../src/levels/catalog.js";
 import { validateLevelBlueprint } from "../src/levels/validator.js";
 
 const inspectorPath = path.resolve("tools/level-inspector/index.html");
-const defaultLevelPath = path.resolve("src/levels/examples/open-web-example.level.json");
+const levelFixturePath = path.resolve("test/fixtures/level-v4.fixture.json");
 
 describe("level metadata inspector", () => {
     it("is a self-contained interactive HTML inspector", () => {
@@ -45,7 +45,7 @@ describe("level metadata inspector", () => {
         expect(match).not.toBeNull();
 
         const level = JSON.parse(match?.[1] ?? "{}");
-        const sourceLevel = JSON.parse(readFileSync(defaultLevelPath, "utf8"));
+        const sourceLevel = JSON.parse(readFileSync(levelFixturePath, "utf8"));
         expect(level.title).toBe("Community Cleanup Records");
         expect(level.environment.mode).toBe("external-public");
         expect(level.generationConfig.structuralDifficulty.linearity).toBe(0.5);

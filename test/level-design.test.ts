@@ -12,7 +12,7 @@ import {
 } from "../src/agents/level-design/prompt.js";
 import { LEVEL_REVIEW_SYSTEM_PROMPT } from "../src/agents/level-review/prompt.js";
 import { repositoryPuzzleCatalog } from "../src/levels/catalog.js";
-import { openWebExampleLevel, openWebExampleRequest } from "../src/levels/examples/open-web-example.js";
+import { levelFixture, levelRequestFixture } from "./fixtures/level-v4.js";
 import { generateReviewedLevel } from "../src/levels/orchestration.js";
 import { validateLevelPatch } from "../src/levels/patch.js";
 import { availablePuzzleIds, toPublicLevelView } from "../src/levels/projection.js";
@@ -20,7 +20,7 @@ import { LevelBlueprintSchema, type LevelBlueprint } from "../src/levels/types.j
 import { validateGameLevelManifest, validateLevelAgainstRequest, validateLevelBlueprint } from "../src/levels/validator.js";
 
 function copyLevel(): LevelBlueprint {
-    return structuredClone(openWebExampleLevel);
+    return structuredClone(levelFixture);
 }
 
 function copyLevelSubmission(): Omit<LevelBlueprint, "schemaVersion"> {
@@ -96,13 +96,13 @@ describe("level metadata v4", () => {
     });
 
     it("validates a complete metadata-only level", () => {
-        expect(validateLevelBlueprint(openWebExampleLevel, repositoryPuzzleCatalog)).toEqual([]);
-        expect(validateLevelAgainstRequest(openWebExampleLevel, openWebExampleRequest, repositoryPuzzleCatalog)).toEqual([]);
+        expect(validateLevelBlueprint(levelFixture, repositoryPuzzleCatalog)).toEqual([]);
+        expect(validateLevelAgainstRequest(levelFixture, levelRequestFixture, repositoryPuzzleCatalog)).toEqual([]);
     });
 
-    it("keeps the checked-in example on the current schema", () => {
-        expect(openWebExampleLevel.schemaVersion).toBe("4.0.0");
-        expect(validateLevelBlueprint(openWebExampleLevel, repositoryPuzzleCatalog)).toEqual([]);
+    it("keeps the test fixture on the current schema", () => {
+        expect(levelFixture.schemaVersion).toBe("4.0.0");
+        expect(validateLevelBlueprint(levelFixture, repositoryPuzzleCatalog)).toEqual([]);
     });
 
     it("binds each external-content requirement to at least one puzzle", () => {
@@ -166,7 +166,7 @@ describe("level metadata v4", () => {
         });
         level.puzzles[0].design.externalContentRequirementIds = ["outside-fact"];
 
-        expect(validateLevelAgainstRequest(level, openWebExampleRequest, repositoryPuzzleCatalog)).toContain(
+        expect(validateLevelAgainstRequest(level, levelRequestFixture, repositoryPuzzleCatalog)).toContain(
             "Level external-content requirements must match the game-design request."
         );
     });
@@ -260,20 +260,20 @@ describe("level metadata v4", () => {
     });
 
     it("reveals initial puzzles and derives later availability from input sources", () => {
-        expect(availablePuzzleIds(openWebExampleLevel, [])).toEqual(["find-project-name", "find-event-date"]);
-        const initial = toPublicLevelView(openWebExampleLevel);
+        expect(availablePuzzleIds(levelFixture, [])).toEqual(["find-project-name", "find-event-date"]);
+        const initial = toPublicLevelView(levelFixture);
         expect(initial.puzzles.map((puzzle) => puzzle.id)).toEqual(["find-project-name", "find-event-date"]);
         expect(JSON.stringify(initial)).not.toContain("MAYA CHEN");
 
-        expect(availablePuzzleIds(openWebExampleLevel, ["find-project-name"])).toEqual(["find-event-date", "find-meeting-place"]);
-        expect(availablePuzzleIds(openWebExampleLevel, ["find-project-name", "find-event-date", "find-meeting-place"])).toEqual(["identify-coordinator"]);
-        expect(toPublicLevelView(openWebExampleLevel, openWebExampleLevel.puzzles.map((puzzle) => puzzle.id)).terminalAction.available).toBe(true);
+        expect(availablePuzzleIds(levelFixture, ["find-project-name"])).toEqual(["find-event-date", "find-meeting-place"]);
+        expect(availablePuzzleIds(levelFixture, ["find-project-name", "find-event-date", "find-meeting-place"])).toEqual(["identify-coordinator"]);
+        expect(toPublicLevelView(levelFixture, levelFixture.puzzles.map((puzzle) => puzzle.id)).terminalAction.available).toBe(true);
     });
 
     it("protects completed puzzle IDs in progress-preserving patches", () => {
         const errors = validateLevelPatch({
-            levelId: openWebExampleLevel.id,
-            baseSchemaVersion: openWebExampleLevel.schemaVersion,
+            levelId: levelFixture.id,
+            baseSchemaVersion: levelFixture.schemaVersion,
             mode: "progress-preserving",
             completedPuzzleIds: ["find-project-name"],
             operations: [{
@@ -281,14 +281,14 @@ describe("level metadata v4", () => {
                 path: "/puzzles/find-project-name",
                 reason: "Invalid attempt to remove completed work."
             }]
-        }, openWebExampleLevel);
+        }, levelFixture);
         expect(errors).toContain("Progress-preserving patch cannot modify completed puzzle find-project-name.");
     });
 
     it("retries rejected design reviews", async () => {
         let designCalls = 0;
         const result = await generateReviewedLevel({
-            request: openWebExampleRequest,
+            request: levelRequestFixture,
             catalog: repositoryPuzzleCatalog,
             design: async () => {
                 designCalls += 1;
