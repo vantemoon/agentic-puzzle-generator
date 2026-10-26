@@ -1,0 +1,270 @@
+import { createHash } from "node:crypto";
+
+import {
+    assertPrivatePuzzleInstance,
+    type PrivatePuzzleInstance,
+    type PuzzleGenerationSpec
+} from "../../core/types.js";
+
+export interface TelestichPuzzleSpec extends PuzzleGenerationSpec {
+    coverText: string;
+    genre: string;
+}
+
+const MAX_SOLUTION_LENGTH = 120;
+const MAX_COVER_TEXT_LENGTH = 8_000;
+const MAX_GENRE_LENGTH = 80;
+const MIN_WORDS_PER_LINE = 3;
+const MIN_PLAIN_WRAPS = 1;
+const RULE_VERSION = "line-final-ascii-v2";
+const WORD_PATTERN = /[A-Za-z]+(?:['’][A-Za-z]+)*/g;
+
+export function normalizeTelestichPhrase(input: string): string {
+    const normalized = input.trim().replace(/\s+/g, " ").toUpperCase();
+
+    if (normalized.length === 0) {
+        throw new Error("The intended solution must not be empty.");
+    }
+    if (normalized.length > MAX_SOLUTION_LENGTH) {
+        throw new Error(
+            `The intended solution must not exceed ${MAX_SOLUTION_LENGTH} characters.`
+        );
+    }
+    if (!/^[A-Z ]+$/.test(normalized)) {
+        throw new Error("The intended solution may contain only English letters and spaces.");
+    }
+
+    return normalized;
+}
+
+export function normalizeTelestichGenre(input: string): string {
+    const normalized = input.trim().replace(/\s+/g, " ");
+
+    if (normalized.length === 0) {
+        throw new Error("The cover-text genre must not be empty.");
+    }
+    if (normalized.length > MAX_GENRE_LENGTH) {
+        throw new Error(`The cover-text genre must not exceed ${MAX_GENRE_LENGTH} characters.`);
+    }
+    if (/[\u0000-\u001F\u007F-\u009F]/.test(normalized)) {
+        throw new Error("The cover-text genre must not contain control characters.");
+    }
+
+    return normalized;
+}
+
+export function normalizeTelestichCoverText(input: string): string {
+    const normalized = input.replace(/\r\n?/g, "\n").trim();
+
+    if (normalized.length === 0) {
+        throw new Error("The cover text must not be empty.");
+    }
+    if (normalized.length > MAX_COVER_TEXT_LENGTH) {
+        throw new Error(
+            `The cover text must not exceed ${MAX_COVER_TEXT_LENGTH} characters.`
+        );
+    }
+    if (/[^\x09\x0A\x20-\x7E\u2018\u2019\u201C\u201D\u2013\u2014]/.test(normalized)) {
+        throw new Error(
+            "The cover text may contain printable ASCII, tabs, line breaks, and common typographic punctuation."
+        );
+    }
+
+    return normalized;
+}
+
+function wordsInLine(line: string): string[] {
+    return line.match(WORD_PATTERN) ?? [];
+}
+
+export function extractTelestich(input: string): string {
+    const coverText = normalizeTelestichCoverText(input);
+    let extracted = "";
+
+    for (const line of coverText.split("\n")) {
+        if (line.trim().length === 0) {
+            continue;
+        }
+
+        const terminal = line.match(/[A-Za-z](?!.*[A-Za-z])/s)?.[0];
+        if (terminal === undefined) {
+            throw new Error("Every nonblank carrier line must contain an ASCII letter.");
+        }
+        if (wordsInLine(line).length < MIN_WORDS_PER_LINE) {
+            throw new Error(
+                `Every nonblank carrier line must contain at least ${MIN_WORDS_PER_LINE} words.`
+            );
+        }
+        extracted += terminal.toUpperCase();
+    }
+
+    if (extracted.length === 0) {
+        throw new Error("The cover text must contain at least one carrier line.");
+    }
+    return extracted;
+}
+
+function containsVisibleSolution(coverText: string, answer: string): boolean {
+    const coverWords = coverText.match(WORD_PATTERN)?.map((word) => word.toUpperCase()) ?? [];
+    const answerWords = answer.split(" ");
+
+    return coverWords.some((_, start) => answerWords.every(
+        (word, offset) => coverWords[start + offset] === word
+    ));
+}
+
+function validateNaturalLineFlow(coverText: string): void {
+    const lines = coverText.split("\n");
+    const carrierLines = lines.filter((line) => line.trim().length > 0);
+    let previousLine: string | undefined;
+    let plainWraps = 0;
+
+    for (const line of lines) {
+        if (line.trim().length === 0) {
+            previousLine = undefined;
+            continue;
+        }
+
+        if (previousLine !== undefined) {
+            const previousEndsSentence = /[.!?]["'’”)]*$/.test(previousLine.trimEnd());
+            const previousEndsWithPunctuation = /[.!?,;:–—]["'’”)]*$/.test(
+                previousLine.trimEnd()
+            );
+            const initial = line.match(/[A-Za-z]/)?.[0];
+
+            if (!previousEndsSentence && initial !== undefined && initial !== initial.toLowerCase()) {
+                throw new Error(
+                    "A line continuing the previous sentence must use normal lowercase "
+                    + "capitalization; do not capitalize carrier lines solely for the telestich."
+                );
+            }
+            if (!previousEndsWithPunctuation) {
+                plainWraps += 1;
+            }
+        }
+
+        previousLine = line;
+    }
+
+    if (carrierLines.length >= 3) {
+        if (plainWraps < MIN_PLAIN_WRAPS) {
+            throw new Error(
+                `The cover text needs at least ${MIN_PLAIN_WRAPS} natural mid-sentence `
+                + "line break(s) without punctuation at the preceding line end."
+            );
+        }
+    }
+}
+
+export function validateTelestichCover(intendedSolution: string, input: string): string {
+    const answer = normalizeTelestichPhrase(intendedSolution);
+    const coverText = normalizeTelestichCoverText(input);
+    const extracted = extractTelestich(coverText);
+    const expectedLetters = answer.replaceAll(" ", "");
+
+    if (extracted !== expectedLetters) {
+        throw new Error(
+            `The cover text extracts to "${extracted}", not the intended solution letters `
+            + `"${expectedLetters}".`
+        );
+    }
+    if (containsVisibleSolution(coverText, answer)) {
+        throw new Error("The intended solution must not appear contiguously in the cover text.");
+    }
+    validateNaturalLineFlow(coverText);
+
+    return answer;
+}
+
+export function createTelestichPuzzle(spec: TelestichPuzzleSpec): PrivatePuzzleInstance {
+    if (spec.id.trim().length === 0) {
+        throw new Error("The puzzle ID must not be empty.");
+    }
+
+    const answer = normalizeTelestichPhrase(spec.intendedSolution);
+    const coverText = normalizeTelestichCoverText(spec.coverText);
+    const genre = normalizeTelestichGenre(spec.genre);
+    const validatedMessage = validateTelestichCover(answer, coverText);
+    const extractedLetters = extractTelestich(coverText);
+    const sourceHash = createHash("sha256").update(coverText, "utf8").digest("hex");
+    const extractionRule = {
+        unit: "line",
+        character: "last-ascii-letter",
+        direction: "top-to-bottom",
+        trailingNonletters: "ignored",
+        blankLineBehavior: "ignored",
+        ruleVersion: RULE_VERSION
+    } as const;
+    const instruction = [
+        "Read the last letter on each nonblank line from top to bottom.",
+        "Ignore trailing nonletters and blank lines, then recover the original phrase."
+    ].join(" ");
+    const prompt = [instruction, coverText].join("\n\n");
+
+    const puzzle: PrivatePuzzleInstance = {
+        id: spec.id,
+        puzzleType: "hidden-information",
+        subtype: "cover-text-line-telestich",
+        inputs: [
+            {
+                key: "cover_text",
+                valueType: "telestich-cover-text",
+                description: "The cohesive line-oriented text containing the telestich.",
+                required: true,
+                constraints: {
+                    genre,
+                    maximumCharacters: MAX_COVER_TEXT_LENGTH,
+                    minimumWordsPerLine: MIN_WORDS_PER_LINE,
+                    minimumPlainWraps: MIN_PLAIN_WRAPS,
+                    preservesLineBreaks: true
+                },
+                value: coverText
+            },
+            {
+                key: "extraction_rule",
+                valueType: "telestich-extraction-rule",
+                description: "The ordered line-final extraction convention.",
+                required: true,
+                constraints: { ruleVersion: RULE_VERSION },
+                value: extractionRule
+            }
+        ],
+        outputs: [{
+            key: "decoded_message",
+            valueType: "plain-text",
+            description: "The plaintext recovered from the ordered line endings.",
+            value: answer
+        }],
+        artifact: { kind: "text", mediaType: "text/plain", source: coverText },
+        prompt,
+        solution: {
+            valueType: "text",
+            canonical: answer,
+            normalization: ["trim", "case-insensitive", "collapse-whitespace"]
+        },
+        validator: {
+            kind: "normalized-text",
+            mode: "deterministic",
+            options: { trim: true, caseInsensitive: true, collapseWhitespace: true }
+        },
+        externalKnowledge: { required: false },
+        extensions: {
+            telestich: {
+                genre,
+                ...extractionRule,
+                extractedLetters,
+                validatedMessage,
+                coverTextSha256: sourceHash
+            }
+        }
+    };
+
+    assertPrivatePuzzleInstance(puzzle);
+    if (extractTelestich(coverText) !== answer.replaceAll(" ", "")) {
+        throw new Error(
+            "Internal validation failed: the line endings did not recover the intended solution."
+        );
+    }
+
+    return puzzle;
+}
