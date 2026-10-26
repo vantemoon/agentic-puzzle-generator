@@ -207,5 +207,14 @@ describe("anomalous phrase engine", () => {
             ...knownSpec("missing-provenance"),
             externalKnowledgeRequired: true
         })).toThrow("provenance");
+        expect(() => createAnomalousPhrasePuzzle({
+            ...knownSpec("missing-retrieval-time"),
+            externalKnowledgeRequired: true,
+            externalKnowledgeProvenance: [{
+                sourceId: "fixture/company-timeline.json",
+                retrievedValue: { founded: 1998 },
+                retrievedAt: ""
+            }]
+        })).toThrow("retrieval timestamp");
     });
 });

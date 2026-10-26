@@ -127,14 +127,20 @@ export function validateLevelBlueprint(value: unknown, catalog: PuzzleCatalog): 
     const phaseOrders = level.phases.map((phase) => String(phase.order));
     const puzzleIds = level.puzzles.map((puzzle) => puzzle.id);
     const startingInputIds = level.startingInputs.map((input) => input.id);
+    const externalRequirementIds = level.externalContentRequirements.map((requirement) => requirement.id);
+    const requiredResourceIds = level.requiredResources.map((resource) => resource.id);
     for (const duplicate of duplicateValues(phaseIds)) errors.push(`Duplicate phase ID: ${duplicate}.`);
     for (const duplicate of duplicateValues(phaseOrders)) errors.push(`Duplicate phase order: ${duplicate}.`);
     for (const duplicate of duplicateValues(puzzleIds)) errors.push(`Duplicate puzzle ID: ${duplicate}.`);
     for (const duplicate of duplicateValues(startingInputIds)) errors.push(`Duplicate starting-input ID: ${duplicate}.`);
+    for (const duplicate of duplicateValues(externalRequirementIds)) errors.push(`Duplicate external-content requirement ID: ${duplicate}.`);
+    for (const duplicate of duplicateValues(requiredResourceIds)) errors.push(`Duplicate required-resource ID: ${duplicate}.`);
 
     const phaseMap = new Map(level.phases.map((phase) => [phase.id, phase]));
     const puzzleMap = new Map(level.puzzles.map((puzzle) => [puzzle.id, puzzle]));
     const startingInputMap = new Map(level.startingInputs.map((input) => [input.id, input]));
+    const externalRequirementIdSet = new Set(externalRequirementIds);
+    const usedExternalRequirementIds = new Set<string>();
     const edges: Array<{ from: string; to: string }> = [];
     const consumedOutputs = new Map<string, number>();
     const consumedStartingInputs = new Set<string>();
@@ -159,6 +165,17 @@ export function validateLevelBlueprint(value: unknown, catalog: PuzzleCatalog): 
 
         for (const duplicate of duplicateValues(design.inputs.map((input) => input.id))) errors.push(`Puzzle ${puzzle.id} has duplicate input ${duplicate}.`);
         for (const duplicate of duplicateValues(design.outputs.map((output) => output.id))) errors.push(`Puzzle ${puzzle.id} has duplicate output ${duplicate}.`);
+        const puzzleExternalRequirementIds = design.externalContentRequirementIds ?? [];
+        for (const duplicate of duplicateValues(puzzleExternalRequirementIds)) {
+            errors.push(`Puzzle ${puzzle.id} has duplicate external-content requirement ${duplicate}.`);
+        }
+        for (const requirementId of puzzleExternalRequirementIds) {
+            if (!externalRequirementIdSet.has(requirementId)) {
+                errors.push(`Puzzle ${puzzle.id} references missing external-content requirement ${requirementId}.`);
+            } else {
+                usedExternalRequirementIds.add(requirementId);
+            }
+        }
         const hasRevealedOutput = design.outputs.some((output) => output.from === "revealed");
         if (hasRevealedOutput && design.revealContext === undefined) errors.push(`Puzzle ${puzzle.id} must explain how its separately revealed outputs become available.`);
         if (!hasRevealedOutput && design.revealContext !== undefined) errors.push(`Puzzle ${puzzle.id} has revealContext but no separately revealed outputs.`);
@@ -227,6 +244,11 @@ export function validateLevelBlueprint(value: unknown, catalog: PuzzleCatalog): 
     for (const input of level.startingInputs) {
         if (!consumedStartingInputs.has(input.id)) errors.push(`Starting input ${input.id} is not consumed by any puzzle.`);
     }
+    for (const requirementId of externalRequirementIds) {
+        if (!usedExternalRequirementIds.has(requirementId)) {
+            errors.push(`External-content requirement ${requirementId} is not used by any puzzle.`);
+        }
+    }
 
     const answerGroups = new Map<string, typeof level.puzzles>();
     for (const puzzle of level.puzzles) {
@@ -282,13 +304,7 @@ export function validateLevelBlueprint(value: unknown, catalog: PuzzleCatalog): 
     }
 
     if (level.environment.mode === "self-contained" && level.externalContentRequirements.length > 0) {
-        errors.push("Self-contained levels cannot declare external public content requirements.");
-    }
-    if (level.environment.mode === "external-public") {
-        for (const requirement of level.externalContentRequirements) {
-            if (!level.environment.platforms.includes(requirement.platform)) errors.push(`External requirement ${requirement.id} uses undeclared platform ${requirement.platform}.`);
-            if (requirement.status === "deployed" && requirement.url === undefined) errors.push(`Deployed external requirement ${requirement.id} must include a URL.`);
-        }
+        errors.push("Self-contained levels cannot require knowledge from outside the game.");
     }
 
     return errors;
@@ -301,6 +317,9 @@ export function validateLevelAgainstRequest(level: LevelBlueprint, request: Leve
     if (level.genre !== request.genre) errors.push(`Level genre must remain ${request.genre}.`);
     if (JSON.stringify(level.environment) !== JSON.stringify(request.environment)) errors.push("Level environment must match the game-design request.");
     if (JSON.stringify(level.startingInputs) !== JSON.stringify(request.startingInputs)) errors.push("Level starting inputs must match the game-design request.");
+    if (JSON.stringify(level.externalContentRequirements) !== JSON.stringify(request.externalContentRequirements)) {
+        errors.push("Level external-content requirements must match the game-design request.");
+    }
     if (level.terminalAction.actionType !== request.terminalAction.actionType) errors.push("Terminal action type must match the game-design request.");
     if (level.terminalAction.description !== request.terminalAction.description) errors.push("Terminal action description must match the game-design request.");
 

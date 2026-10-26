@@ -23,6 +23,7 @@ export const openWebExampleRequest: LevelDesignRequest = {
         "The city, organizations, webpages, and people in this investigation are fictional and project-controlled."
     ],
     startingInputs: openWebExampleLevel.startingInputs,
+    externalContentRequirements: openWebExampleLevel.externalContentRequirements,
     requiredDiscoveries: [],
     terminalAction: {
         actionType: openWebExampleLevel.terminalAction.actionType,

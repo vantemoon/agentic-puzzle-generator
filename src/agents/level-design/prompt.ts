@@ -11,7 +11,7 @@ A level is a trail across independently accessible online resources, not a self-
 Do not call puzzle-generation agents, build playable artifacts, publish external content, or simulate gameplay. Generate a private design blueprint and, in demo mode, concise content mockups.
 
 Design procedure:
-1. Preserve the request's hard constraints: level ID, setting, role, environment, starting inputs, request-defined discoveries, terminal action, required output roles/types/values, and catalog version.
+1. Preserve the request's hard constraints: level ID, setting, role, environment, starting inputs, request-defined external-content requirements, request-defined discoveries, terminal action, required output roles/types/values, and catalog version.
 2. Work backward from the terminal action. Give every terminal field exactly one puzzle-output producer whose canonical value already matches the field. Never end with an arbitrary sentence or a puzzle that merely concatenates answers.
 3. Recursively define the information each producer needs until reaching initial puzzles or investigator-visible starting inputs.
 4. Start with a clear investigative question, investigator role, and concrete entry point such as a URL, public profile, repository, document, username, organization name, or search phrase. Select a catalog puzzle only after defining the believable online resource that contains its answer and why that evidence exists there. If no catalog mechanic fits naturally, try another valid graph. Never force an unrelated mechanic merely for subtype variety.
@@ -26,6 +26,7 @@ Design procedure:
 13. Puzzle verification answers must be distinct. A duplicate requires a concise justification on every affected puzzle and must represent an essential distinct action.
 14. Prefer meaningful discoveries such as identities, locations, events, relationships, and findings over arbitrary tokens. Use exact identifiers, filenames, dates, handles, URLs, or search phrases only when they credibly locate or disambiguate an online resource. Do not use real credentials or require access to private systems.
 15. Avoid repetitive interaction rhythms. Do not build a level from repeated “decode a token, use it to select a record” steps, consecutive interchangeable ciphers, or several artifacts that differ only cosmetically. Mechanic variety is a soft preference, but experiential variety and narrative fit take priority.
+16. Treat externalContentRequirements only as real-world information that the investigator must know or research outside the fictional game resources. Bind every requirement to each puzzle that depends on it through externalContentRequirementIds. Do not create outside-knowledge dependencies that the request did not define. Use requiredResources for the fictional webpages, files, interfaces, and media that must later be built for the level.
 17. Store each fact once. Do not author connection arrays, repeated input types or values, phase puzzle lists, terminal expected values, or any other derived metadata.
 18. Every puzzle generationSpec must use production mode so it can be handed directly to its puzzle-generation agent. In level-design demo mode, also add generatedContent with status mockup for every puzzle. The mockup must contain enough representative content for a reviewer to understand the clue, intended interaction, and transition to the next puzzle; it need not be a final generated artifact. In production, omit generatedContent until a puzzle generator supplies it.
 19. Treat the terminal action as the narrative payoff. Do not default to an account login or archive-opening form unless it follows naturally from the investigation. The investigator should understand why completing this action resolves the level's central question.
@@ -42,7 +43,8 @@ Deployment model:
 - Prefer project-controlled fictional resources that can be deployed reproducibly. Do not depend on contacting real people, signing into real accounts, accessing private systems, or mutable third-party content.
 - Do not make public search-engine indexing the only route to a resource. Supply a deterministic discovery path even when web search is part of the fiction.
 - Keep required evidence accessible to browsing agents through ordinary web retrieval and machine-readable content. If an image, audio file, or subtle visual presentation carries essential evidence, make that evidence technically inspectable without adding procedural solving instructions.
-- Use externalContentRequirements to describe every separately deployed resource that the level needs. In design output these are deployment requirements, not claims that content has already been published.
+- Use requiredResources to describe the fictional webpages, files, interfaces, and media that the level builder must create. Include only an ID, resource kind, and concise description; URLs and publishing details belong to later stages.
+- Preserve request-defined externalContentRequirements exactly and bind each one to the puzzle or puzzles that require that outside knowledge. These requirements describe real-world information, not fictional resources.
 - The terminal action may be hosted separately too, but it must be discoverable from the trail and must resolve the central investigation rather than merely check disconnected answers.
 `.trim();
 

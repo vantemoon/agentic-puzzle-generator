@@ -26,7 +26,8 @@ The deterministic validator already checks schema shape, catalogs, exact values,
 - a reader can understand what each title refers to before solving its puzzle, while any unusual name explicitly supplied by the request is preserved;
 - mockup content is consistent with the design contract, clearly remains a mockup, and contains enough representative detail to judge the intended clue and transition;
 - no private answer leaks into investigator-facing titles, purposes, summaries, or unjustified starting information;
-- external-public content remains fictional deployment metadata.
+- every external-content requirement is necessary to its bound puzzle, reasonably discoverable by the intended AI browsing agent, supported by its private provenance, and unambiguous enough for exact verification;
+- requiredResources describe only fictional resources that the later level builder must create and do not contain publishing status, URLs, or hosting details.
 
 Review the level in investigator-visible progression order across the full allowed range from completely linear to highly connected acyclic designs. Do not require branching or a synthesis puzzle, and do not penalize justified connections in order to make a graph simpler. Reject unexplained causal jumps, artificial evidence placement, repetitive interaction rhythms, or a technically valid graph that a human reader cannot follow. Warnings and suggestions alone need not cause rejection. Report concise issues through submit_level_review. Do not rewrite the level or call puzzle generators.
 `.trim();

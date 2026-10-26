@@ -17,7 +17,7 @@ const anomalyKind = Type.Union([
 const provenance = Type.Object({
     sourceId: Type.String({ minLength: 1 }),
     retrievedValue: Type.Unknown(),
-    retrievedAt: Type.Optional(Type.String({ minLength: 1 }))
+    retrievedAt: Type.String({ minLength: 1 })
 }, { additionalProperties: false });
 
 const shared = {
