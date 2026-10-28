@@ -7,13 +7,35 @@ import {
     LevelBlueprintSchema,
     LevelDesignFailureSchema,
     LEVEL_SCHEMA_VERSION,
+    TerminalActionSchema,
     type LevelBlueprint,
     type LevelDesignFailure,
     type LevelDesignRequest
 } from "../../levels/types.js";
-import { validateLevelAgainstRequest, validateLevelBlueprint } from "../../levels/validator.js";
+import { validateLevelAgainstRequest } from "../../levels/validator.js";
 
-const LevelBlueprintSubmissionSchema = Type.Omit(LevelBlueprintSchema, ["schemaVersion"], { additionalProperties: false });
+const LevelBlueprintSubmissionBaseSchema = Type.Omit(LevelBlueprintSchema, [
+    "schemaVersion",
+    "catalogVersion",
+    "id",
+    "world",
+    "genre",
+    "environment",
+    "startingSituation",
+    "playerRole",
+    "playerCapabilities",
+    "playerConstraints",
+    "startingInputs",
+    "generationConfig",
+    "externalContentRequirements",
+    "terminalAction"
+], { additionalProperties: false });
+const LevelBlueprintSubmissionSchema = Type.Object({
+    ...LevelBlueprintSubmissionBaseSchema.properties,
+    terminalAction: Type.Omit(TerminalActionSchema, ["actionType", "description"], {
+        additionalProperties: false
+    })
+}, { additionalProperties: false });
 const LevelDesignFailureSubmissionSchema = Type.Omit(LevelDesignFailureSchema, ["schemaVersion"], { additionalProperties: false });
 
 const parameters = Type.Object({
@@ -30,9 +52,15 @@ export interface LevelDesignSubmission {
     outputPath: string;
 }
 
+type LevelDesignRequestSource = LevelDesignRequest | (() => LevelDesignRequest | undefined);
+
+function currentRequest(source: LevelDesignRequestSource | undefined): LevelDesignRequest | undefined {
+    return typeof source === "function" ? source() : source;
+}
+
 export function createSubmitLevelBlueprintTool(
     catalog: PuzzleCatalog,
-    request?: LevelDesignRequest,
+    requestSource?: LevelDesignRequestSource,
     outputDirectory?: string
 ): AgentTool<typeof parameters, LevelDesignSubmission> {
     return {
@@ -42,12 +70,16 @@ export function createSubmitLevelBlueprintTool(
         parameters,
 
         async execute(_toolCallId, params) {
+            const request = currentRequest(requestSource);
+            if (request === undefined) {
+                throw new Error("Level design requires a validated level-design request.");
+            }
             if (params.result.status === "needs-game-design-revision") {
                 const failure: LevelDesignFailure = {
                     ...params.result,
                     schemaVersion: LEVEL_SCHEMA_VERSION
                 };
-                if (request !== undefined && failure.requestId !== request.levelId) {
+                if (failure.requestId !== request.levelId) {
                     throw new Error(`Rejection requestId must be ${request.levelId}.`);
                 }
                 const outputPath = await writeLevelDesignFailureFile({ failure, outputDirectory });
@@ -60,11 +92,31 @@ export function createSubmitLevelBlueprintTool(
 
             const blueprint: LevelBlueprint = {
                 ...params.result.blueprint,
-                schemaVersion: LEVEL_SCHEMA_VERSION
+                schemaVersion: LEVEL_SCHEMA_VERSION,
+                catalogVersion: request.catalogVersion,
+                id: request.levelId,
+                world: structuredClone(request.world),
+                genre: request.genre,
+                environment: structuredClone(request.environment),
+                startingSituation: request.startingSituation,
+                playerRole: request.playerRole,
+                playerCapabilities: structuredClone(request.playerCapabilities),
+                playerConstraints: structuredClone(request.playerConstraints),
+                startingInputs: structuredClone(request.startingInputs),
+                generationConfig: structuredClone(request.config),
+                externalContentRequirements: structuredClone(request.externalContentRequirements),
+                setting: {
+                    ...params.result.blueprint.setting,
+                    ...(request.theme === undefined ? {} : { theme: request.theme }),
+                    ...(request.setting === undefined ? {} : { location: request.setting })
+                },
+                terminalAction: {
+                    ...params.result.blueprint.terminalAction,
+                    actionType: request.terminalAction.actionType,
+                    description: request.terminalAction.description
+                }
             };
-            const errors = request === undefined
-                ? validateLevelBlueprint(blueprint, catalog)
-                : validateLevelAgainstRequest(blueprint, request, catalog);
+            const errors = validateLevelAgainstRequest(blueprint, request, catalog);
             if (errors.length > 0) throw new Error(`Level blueprint was rejected:\n- ${errors.join("\n- ")}`);
             const outputPath = await writeLevelBlueprintFile({
                 level: blueprint,

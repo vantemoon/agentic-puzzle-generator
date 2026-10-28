@@ -12,6 +12,8 @@ prompts/
 generated-artifacts/
 generated-levels/
 generated-puzzles/
+level-requests/
+worlds/
 
 # macOS metadata
 .DS_Store

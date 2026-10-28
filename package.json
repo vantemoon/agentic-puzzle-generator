@@ -27,7 +27,7 @@
     "pi:alt-text": "pi --extension ./pi-extensions/alt-text.ts",
     "pi:static-url": "pi --extension ./pi-extensions/static-url.ts",
     "pi:html-source-inspection": "pi --extension ./pi-extensions/html-source-inspection.ts", "pi:page-version": "pi --extension ./pi-extensions/page-version.ts", "pi:visual-clue": "pi --extension ./pi-extensions/visual-clue.ts", "pi:steganography": "pi --extension ./pi-extensions/steganography.ts", "pi:reverse-audio": "pi --extension ./pi-extensions/reverse-audio.ts", "pi:alpha-channel": "pi --extension ./pi-extensions/alpha-channel.ts", "pi:color-channel": "pi --extension ./pi-extensions/color-channel.ts", "pi:morse-audio": "pi --extension ./pi-extensions/morse-audio.ts", "pi:qr-code": "pi --extension ./pi-extensions/qr-code.ts", "pi:ascii-art": "pi --extension ./pi-extensions/ascii-art.ts",
-    "pi:level-design": "pi --extension ./pi-extensions/level-design.ts",
+    "level:design": "node src/run-level-design.ts",
     "level:generate-puzzle": "tsx src/generate-level-puzzle.ts",
     "level:inspect": "python3 -m http.server 4173 --bind 127.0.0.1 --directory tools/level-inspector"
   },

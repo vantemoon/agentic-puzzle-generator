@@ -1,5 +1,7 @@
 import Type, { type Static } from "typebox";
 
+import { ExternalKnowledgeProvenanceSchema } from "../core/types.js";
+
 const closed = { additionalProperties: false } as const;
 
 export const ScalarDataTypeSchema = Type.Union([Type.Literal("string"), Type.Literal("number")]);
@@ -119,8 +121,23 @@ export const TerminalActionRequestSchema = Type.Object({
     requiredOutputs: Type.Array(RequiredOutputSchema, { minItems: 1 })
 }, closed);
 
+export const ExternalContentRequirementSchema = Type.Object({
+    id: Type.String({ minLength: 1 }),
+    description: Type.String({ minLength: 1 }),
+    provenance: Type.Array(ExternalKnowledgeProvenanceSchema, { minItems: 1 })
+}, closed);
+
+export const WorldReferenceSchema = Type.Object({
+    id: Type.String({ minLength: 1 }),
+    revision: Type.String({ minLength: 1 }),
+    entityIds: Type.Array(Type.String({ minLength: 1 }), { minItems: 1 }),
+    factIds: Type.Array(Type.String({ minLength: 1 })),
+    asOf: Type.Optional(Type.String({ pattern: "^\\d{4}-\\d{2}-\\d{2}$" }))
+}, closed);
+
 export const LevelDesignRequestSchema = Type.Object({
     levelId: Type.String({ minLength: 1 }),
+    world: WorldReferenceSchema,
     titleHint: Type.Optional(Type.String({ minLength: 1 })),
     genre: Type.Literal("online-investigation"),
     theme: Type.Optional(Type.String({ minLength: 1 })),
@@ -132,6 +149,7 @@ export const LevelDesignRequestSchema = Type.Object({
     environment: EnvironmentSchema,
     narrativeContext: Type.Array(Type.String({ minLength: 1 })),
     startingInputs: Type.Array(StartingInputSchema),
+    externalContentRequirements: Type.Array(ExternalContentRequirementSchema),
     requiredDiscoveries: Type.Array(RequiredDiscoverySchema),
     terminalAction: TerminalActionRequestSchema,
     catalogVersion: Type.String({ minLength: 1 }),
@@ -233,6 +251,10 @@ export const PuzzleDesignSchema = Type.Object({
     verification: VerificationSchema,
     inputs: Type.Array(PuzzleInputSchema),
     outputs: Type.Array(PuzzleOutputSchema, { minItems: 1 }),
+    externalContentRequirementIds: Type.Optional(Type.Array(
+        Type.String({ minLength: 1 }),
+        { minItems: 1 }
+    )),
     revealContext: Type.Optional(Type.String({ minLength: 1 })),
     duplicateAnswerJustification: Type.Optional(Type.String({ minLength: 1 }))
 }, closed);
@@ -268,20 +290,17 @@ export const TerminalActionSchema = Type.Object({
     successOutcome: Type.String({ minLength: 1 })
 }, closed);
 
-export const ExternalContentRequirementSchema = Type.Object({
+export const RequiredResourceSchema = Type.Object({
     id: Type.String({ minLength: 1 }),
-    platform: Type.String({ minLength: 1 }),
-    contentKind: Type.String({ minLength: 1 }),
-    fictionalContentSummary: Type.String({ minLength: 1 }),
-    status: Type.Union([Type.Literal("planned"), Type.Literal("deployed")]),
-    url: Type.Optional(Type.String({ minLength: 1 })),
-    cleanupPolicy: Type.Optional(Type.String({ minLength: 1 }))
+    kind: Type.String({ minLength: 1 }),
+    description: Type.String({ minLength: 1 })
 }, closed);
 
 export const LevelBlueprintSchema = Type.Object({
     schemaVersion: Type.String({ minLength: 1 }),
     catalogVersion: Type.String({ minLength: 1 }),
     id: Type.String({ minLength: 1 }),
+    world: WorldReferenceSchema,
     title: Type.String({ minLength: 1 }),
     summary: Type.String({ minLength: 1 }),
     genre: Type.Literal("online-investigation"),
@@ -300,7 +319,8 @@ export const LevelBlueprintSchema = Type.Object({
     phases: Type.Array(PhaseSchema, { minItems: 1 }),
     puzzles: Type.Array(PuzzleNodeSchema, { minItems: 1 }),
     terminalAction: TerminalActionSchema,
-    externalContentRequirements: Type.Array(ExternalContentRequirementSchema)
+    externalContentRequirements: Type.Array(ExternalContentRequirementSchema),
+    requiredResources: Type.Array(RequiredResourceSchema)
 }, closed);
 
 export const ReviewIssueSchema = Type.Object({
@@ -383,10 +403,13 @@ export type PuzzleInput = Static<typeof PuzzleInputSchema>;
 export type PuzzleOutput = Static<typeof PuzzleOutputSchema>;
 export type PuzzleNode = Static<typeof PuzzleNodeSchema>;
 export type TerminalAction = Static<typeof TerminalActionSchema>;
+export type ExternalContentRequirement = Static<typeof ExternalContentRequirementSchema>;
+export type WorldReference = Static<typeof WorldReferenceSchema>;
+export type RequiredResource = Static<typeof RequiredResourceSchema>;
 export type LevelBlueprint = Static<typeof LevelBlueprintSchema>;
 export type LevelReview = Static<typeof LevelReviewSchema>;
 export type LevelDesignFailure = Static<typeof LevelDesignFailureSchema>;
 export type LevelPatch = Static<typeof LevelPatchSchema>;
 export type GameLevelManifest = Static<typeof GameLevelManifestSchema>;
 
-export const LEVEL_SCHEMA_VERSION = "3.0.0";
+export const LEVEL_SCHEMA_VERSION = "5.0.0";

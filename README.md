@@ -1,5 +1,17 @@
 # agentic-puzzle-generator
 
+## Generate a level from a world-aware request
+
+Create `worlds/<world-id>.world.json` and a matching
+`level-requests/<level-id>.request.json`, then run:
+
+```bash
+npm run level:design -- level-requests/<level-id>.request.json
+```
+
+The request's `world.id` selects `worlds/<world-id>.world.json`. Both files are
+validated before the level-design agent starts.
+
 ## Generate a puzzle from a level
 
 Generate one puzzle from a validated level blueprint:

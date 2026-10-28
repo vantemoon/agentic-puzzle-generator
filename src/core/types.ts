@@ -159,11 +159,11 @@ export const ValidatorSchema = Type.Union([
     SecureRelayValidatorSchema
 ]);
 
-const ExternalKnowledgeProvenanceSchema = Type.Object(
+export const ExternalKnowledgeProvenanceSchema = Type.Object(
     {
         sourceId: Type.String({ minLength: 1 }),
         retrievedValue: Type.Unknown(),
-        retrievedAt: Type.Optional(Type.String({ minLength: 1 }))
+        retrievedAt: Type.String({ minLength: 1 })
     },
     closed
 );
@@ -223,6 +223,7 @@ export type SvgImagePuzzleArtifact = Static<typeof SvgImagePuzzleArtifactSchema>
 export type PngImagePuzzleArtifact = Static<typeof PngImagePuzzleArtifactSchema>;
 export type WavAudioPuzzleArtifact = Static<typeof WavAudioPuzzleArtifactSchema>;
 export type PuzzleArtifact = Static<typeof PuzzleArtifactSchema>;
+export type ExternalKnowledgeProvenance = Static<typeof ExternalKnowledgeProvenanceSchema>;
 export type PrivatePuzzleInstance = Static<typeof PrivatePuzzleInstanceSchema>;
 export type PublicPuzzleInstance = Static<typeof PublicPuzzleInstanceSchema>;
 

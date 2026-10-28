@@ -8,7 +8,7 @@ import { createSubmitLevelBlueprintTool } from "./tool.js";
 
 export async function createLevelDesignAgent(
     catalog: PuzzleCatalog,
-    request?: LevelDesignRequest,
+    request: LevelDesignRequest,
     outputDirectory?: string
 ): Promise<Agent> {
     const { modelRuntime, model } = await loadKadiModel();

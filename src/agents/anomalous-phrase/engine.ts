@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 
 import {
     assertPrivatePuzzleInstance,
+    type ExternalKnowledgeProvenance,
     type PrivatePuzzleInstance,
     type PuzzleGenerationSpec
 } from "../../core/types.js";
@@ -12,12 +13,6 @@ export type AnomalyKind =
     | "out-of-context-entity"
     | "timeline-inconsistency"
     | "location-inconsistency";
-
-export interface ExternalKnowledgeProvenance {
-    sourceId: string;
-    retrievedValue: unknown;
-    retrievedAt?: string;
-}
 
 export interface AnomalousPhrasePuzzleSpec extends PuzzleGenerationSpec {
     documentTemplate: string;
@@ -181,6 +176,9 @@ function assertExternalKnowledge(
     for (const [index, record] of provenance.entries()) {
         if (record.sourceId.trim().length === 0) {
             throw new Error(`External-knowledge provenance record ${index + 1} has an empty source ID.`);
+        }
+        if (record.retrievedAt.trim().length === 0) {
+            throw new Error(`External-knowledge provenance record ${index + 1} has an empty retrieval timestamp.`);
         }
     }
 }
