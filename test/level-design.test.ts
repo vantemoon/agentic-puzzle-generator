@@ -12,7 +12,7 @@ import {
 } from "../src/agents/level-design/prompt.js";
 import { LEVEL_REVIEW_SYSTEM_PROMPT } from "../src/agents/level-review/prompt.js";
 import { repositoryPuzzleCatalog } from "../src/levels/catalog.js";
-import { levelFixture, levelRequestFixture } from "./fixtures/level-v4.js";
+import { levelFixture, levelRequestFixture } from "./fixtures/level-v5.js";
 import { generateReviewedLevel } from "../src/levels/orchestration.js";
 import { validateLevelPatch } from "../src/levels/patch.js";
 import { availablePuzzleIds, toPublicLevelView } from "../src/levels/projection.js";
@@ -23,12 +23,33 @@ function copyLevel(): LevelBlueprint {
     return structuredClone(levelFixture);
 }
 
-function copyLevelSubmission(): Omit<LevelBlueprint, "schemaVersion"> {
-    const { schemaVersion: _schemaVersion, ...blueprint } = copyLevel();
-    return blueprint;
+function copyLevelSubmission() {
+    const {
+        schemaVersion: _schemaVersion,
+        catalogVersion: _catalogVersion,
+        id: _id,
+        world: _world,
+        genre: _genre,
+        environment: _environment,
+        startingSituation: _startingSituation,
+        playerRole: _playerRole,
+        playerCapabilities: _playerCapabilities,
+        playerConstraints: _playerConstraints,
+        startingInputs: _startingInputs,
+        generationConfig: _generationConfig,
+        externalContentRequirements: _externalContentRequirements,
+        terminalAction,
+        ...blueprint
+    } = copyLevel();
+    const {
+        actionType: _actionType,
+        description: _terminalDescription,
+        ...agentTerminalAction
+    } = terminalAction;
+    return { ...blueprint, terminalAction: agentTerminalAction };
 }
 
-describe("level metadata v4", () => {
+describe("level metadata v5", () => {
     it("requires readable causal transitions without forcing nonlinear structure", () => {
         expect(LEVEL_DESIGN_SYSTEM_PROMPT).toContain("A completely linear trail, a partly connected graph");
         expect(LEVEL_DESIGN_SYSTEM_PROMPT).toContain("There is no preferred graph shape");
@@ -64,7 +85,7 @@ describe("level metadata v4", () => {
 
     it("returns the generated JSON file path in demo mode", async () => {
         const outputDirectory = await mkdtemp(path.join(os.tmpdir(), "level-demo-"));
-        const tool = createSubmitLevelBlueprintTool(repositoryPuzzleCatalog, undefined, outputDirectory);
+        const tool = createSubmitLevelBlueprintTool(repositoryPuzzleCatalog, levelRequestFixture, outputDirectory);
         const result = await tool.execute("demo-tool-call", {
             mode: "demo",
             result: { status: "success", blueprint: copyLevelSubmission() }
@@ -75,12 +96,17 @@ describe("level metadata v4", () => {
         expect(result.details.outputPath).toBe(outputPath);
         const savedLevel = JSON.parse(await readFile(outputPath, "utf8"));
         expect(savedLevel.id).toBe("community-cleanup-records");
-        expect(savedLevel.schemaVersion).toBe("4.0.0");
-        expect(result.details.result.status === "success" && result.details.result.blueprint.schemaVersion).toBe("4.0.0");
+        expect(savedLevel.schemaVersion).toBe("5.0.0");
+        expect(savedLevel.world).toEqual(levelRequestFixture.world);
+        expect(savedLevel.environment).toEqual(levelRequestFixture.environment);
+        expect(savedLevel.startingInputs).toEqual(levelRequestFixture.startingInputs);
+        expect(savedLevel.terminalAction.actionType).toBe(levelRequestFixture.terminalAction.actionType);
+        expect(savedLevel.terminalAction.description).toBe(levelRequestFixture.terminalAction.description);
+        expect(result.details.result.status === "success" && result.details.result.blueprint.schemaVersion).toBe("5.0.0");
     });
 
-    it("keeps the schema version out of the agent-owned submission contract", () => {
-        const tool = createSubmitLevelBlueprintTool(repositoryPuzzleCatalog);
+    it("keeps request-owned fields out of the agent submission contract", () => {
+        const tool = createSubmitLevelBlueprintTool(repositoryPuzzleCatalog, levelRequestFixture);
         const blueprint = copyLevelSubmission();
         expect(Value.Check(tool.parameters, {
             mode: "demo",
@@ -90,7 +116,7 @@ describe("level metadata v4", () => {
             mode: "demo",
             result: {
                 status: "success",
-                blueprint: { ...blueprint, schemaVersion: "level-blueprint-1.0" }
+                blueprint: { ...blueprint, world: levelFixture.world }
             }
         })).toBe(false);
     });
@@ -100,8 +126,69 @@ describe("level metadata v4", () => {
         expect(validateLevelAgainstRequest(levelFixture, levelRequestFixture, repositoryPuzzleCatalog)).toEqual([]);
     });
 
+    it("requires and preserves the request's world reference", () => {
+        const withoutWorld = copyLevel() as unknown as Record<string, unknown>;
+        delete withoutWorld.world;
+        expect(validateLevelBlueprint(withoutWorld, repositoryPuzzleCatalog)).toEqual([
+            "Level does not satisfy the canonical level schema."
+        ]);
+
+        const changedWorld = copyLevel();
+        changedWorld.world.revision = "2";
+        expect(validateLevelAgainstRequest(changedWorld, levelRequestFixture, repositoryPuzzleCatalog)).toContain(
+            "Level world reference must match the game-design request."
+        );
+    });
+
+    it("treats object property order as irrelevant when preserving request data", () => {
+        const level = copyLevel();
+        const request = structuredClone(levelRequestFixture);
+        level.world = {
+            factIds: [...request.world.factIds],
+            entityIds: [...request.world.entityIds],
+            revision: request.world.revision,
+            id: request.world.id
+        };
+        level.environment = {
+            deploymentAgentRequired: true,
+            platforms: ["project-hosted-web"],
+            mode: "external-public"
+        };
+        level.startingInputs = request.startingInputs.map((input) => input.dataType === "string"
+            ? {
+                value: input.value,
+                dataType: input.dataType,
+                description: input.description,
+                semanticRole: input.semanticRole,
+                id: input.id
+            }
+            : input
+        );
+        request.externalContentRequirements = [{
+            id: "public-reference",
+            description: "Consult one stable public reference.",
+            provenance: [{
+                sourceId: "fixture/reference.json",
+                retrievedValue: "reference value",
+                retrievedAt: "2026-10-26T00:00:00Z"
+            }]
+        }];
+        level.externalContentRequirements = [{
+            provenance: [{
+                retrievedAt: "2026-10-26T00:00:00Z",
+                retrievedValue: "reference value",
+                sourceId: "fixture/reference.json"
+            }],
+            description: "Consult one stable public reference.",
+            id: "public-reference"
+        }];
+        level.puzzles[0].design.externalContentRequirementIds = ["public-reference"];
+
+        expect(validateLevelAgainstRequest(level, request, repositoryPuzzleCatalog)).toEqual([]);
+    });
+
     it("keeps the test fixture on the current schema", () => {
-        expect(levelFixture.schemaVersion).toBe("4.0.0");
+        expect(levelFixture.schemaVersion).toBe("5.0.0");
         expect(validateLevelBlueprint(levelFixture, repositoryPuzzleCatalog)).toEqual([]);
     });
 

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 
 import type { LevelBlueprint, LevelDesignRequest } from "../../src/levels/types.js";
 
-const levelUrl = new URL("./level-v4.fixture.json", import.meta.url);
+const levelUrl = new URL("./level-v5.fixture.json", import.meta.url);
 
 export const levelFixture = JSON.parse(
     readFileSync(levelUrl, "utf8")
@@ -10,6 +10,7 @@ export const levelFixture = JSON.parse(
 
 export const levelRequestFixture: LevelDesignRequest = {
     levelId: levelFixture.id,
+    world: levelFixture.world,
     titleHint: levelFixture.title,
     genre: levelFixture.genre,
     theme: levelFixture.setting.theme,

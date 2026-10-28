@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import { createBinaryCapitalizationPuzzle } from "../src/agents/binary-capitalization/engine.js";
 import { createHtmlCommentPuzzle } from "../src/agents/html-comment/engine.js";
 import { repositoryPuzzleCatalog } from "../src/levels/catalog.js";
-import { levelFixture } from "./fixtures/level-v4.js";
+import { levelFixture } from "./fixtures/level-v5.js";
 import {
     buildPuzzleGenerationPrompt,
     createPuzzleGenerationHandoff,

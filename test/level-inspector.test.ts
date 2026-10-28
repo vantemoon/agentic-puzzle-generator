@@ -6,7 +6,7 @@ import { repositoryPuzzleCatalog } from "../src/levels/catalog.js";
 import { validateLevelBlueprint } from "../src/levels/validator.js";
 
 const inspectorPath = path.resolve("tools/level-inspector/index.html");
-const levelFixturePath = path.resolve("test/fixtures/level-v4.fixture.json");
+const levelFixturePath = path.resolve("test/fixtures/level-v5.fixture.json");
 
 describe("level metadata inspector", () => {
     it("is a self-contained interactive HTML inspector", () => {

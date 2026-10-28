@@ -127,8 +127,17 @@ export const ExternalContentRequirementSchema = Type.Object({
     provenance: Type.Array(ExternalKnowledgeProvenanceSchema, { minItems: 1 })
 }, closed);
 
+export const WorldReferenceSchema = Type.Object({
+    id: Type.String({ minLength: 1 }),
+    revision: Type.String({ minLength: 1 }),
+    entityIds: Type.Array(Type.String({ minLength: 1 }), { minItems: 1 }),
+    factIds: Type.Array(Type.String({ minLength: 1 })),
+    asOf: Type.Optional(Type.String({ pattern: "^\\d{4}-\\d{2}-\\d{2}$" }))
+}, closed);
+
 export const LevelDesignRequestSchema = Type.Object({
     levelId: Type.String({ minLength: 1 }),
+    world: WorldReferenceSchema,
     titleHint: Type.Optional(Type.String({ minLength: 1 })),
     genre: Type.Literal("online-investigation"),
     theme: Type.Optional(Type.String({ minLength: 1 })),
@@ -291,6 +300,7 @@ export const LevelBlueprintSchema = Type.Object({
     schemaVersion: Type.String({ minLength: 1 }),
     catalogVersion: Type.String({ minLength: 1 }),
     id: Type.String({ minLength: 1 }),
+    world: WorldReferenceSchema,
     title: Type.String({ minLength: 1 }),
     summary: Type.String({ minLength: 1 }),
     genre: Type.Literal("online-investigation"),
@@ -394,6 +404,7 @@ export type PuzzleOutput = Static<typeof PuzzleOutputSchema>;
 export type PuzzleNode = Static<typeof PuzzleNodeSchema>;
 export type TerminalAction = Static<typeof TerminalActionSchema>;
 export type ExternalContentRequirement = Static<typeof ExternalContentRequirementSchema>;
+export type WorldReference = Static<typeof WorldReferenceSchema>;
 export type RequiredResource = Static<typeof RequiredResourceSchema>;
 export type LevelBlueprint = Static<typeof LevelBlueprintSchema>;
 export type LevelReview = Static<typeof LevelReviewSchema>;
@@ -401,4 +412,4 @@ export type LevelDesignFailure = Static<typeof LevelDesignFailureSchema>;
 export type LevelPatch = Static<typeof LevelPatchSchema>;
 export type GameLevelManifest = Static<typeof GameLevelManifestSchema>;
 
-export const LEVEL_SCHEMA_VERSION = "4.0.0";
+export const LEVEL_SCHEMA_VERSION = "5.0.0";

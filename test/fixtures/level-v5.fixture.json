@@ -1,7 +1,15 @@
 {
-    "schemaVersion": "4.0.0",
-    "catalogVersion": "repository-puzzles-2.0.0",
+    "schemaVersion": "5.0.0",
     "id": "community-cleanup-records",
+    "world": {
+        "id": "test-community-world",
+        "revision": "1",
+        "entityIds": [
+            "site:community-notices"
+        ],
+        "factIds": []
+    },
+    "catalogVersion": "repository-puzzles-2.0.0",
     "title": "Community Cleanup Records",
     "summary": "Follow two public record trails to identify who coordinated an unreported river cleanup.",
     "genre": "online-investigation",

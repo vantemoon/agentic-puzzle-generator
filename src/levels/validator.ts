@@ -1,3 +1,5 @@
+import { isDeepStrictEqual } from "node:util";
+
 import Value from "typebox/value";
 
 import { getTerminalAction } from "./action-catalog.js";
@@ -11,6 +13,7 @@ import {
     GameLevelManifestSchema,
     LEVEL_SCHEMA_VERSION,
     LevelBlueprintSchema,
+    LevelDesignRequestSchema,
     type GameLevelManifest,
     type LevelBlueprint,
     type LevelDesignRequest,
@@ -31,6 +34,37 @@ function duplicateValues(values: string[]): string[] {
         seen.add(value);
     }
     return [...duplicates];
+}
+
+function isCalendarDate(value: string): boolean {
+    const parsed = new Date(`${value}T00:00:00.000Z`);
+    return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
+}
+
+function validateWorldReferenceShape(reference: LevelDesignRequest["world"]): string[] {
+    const errors: string[] = [];
+    for (const duplicate of duplicateValues(reference.entityIds)) {
+        errors.push(`Duplicate referenced world-entity ID: ${duplicate}.`);
+    }
+    for (const duplicate of duplicateValues(reference.factIds)) {
+        errors.push(`Duplicate referenced world-fact ID: ${duplicate}.`);
+    }
+    if (reference.asOf !== undefined && !isCalendarDate(reference.asOf)) {
+        errors.push(`World reference has invalid asOf date ${reference.asOf}.`);
+    }
+    return errors;
+}
+
+export function validateLevelDesignRequest(value: unknown): string[] {
+    if (!Value.Check(LevelDesignRequestSchema, value)) {
+        return ["Level-design request does not satisfy the canonical schema."];
+    }
+    return validateWorldReferenceShape((value as LevelDesignRequest).world);
+}
+
+export function assertLevelDesignRequest(value: unknown): asserts value is LevelDesignRequest {
+    const errors = validateLevelDesignRequest(value);
+    if (errors.length > 0) throw new Error(`Invalid level-design request:\n- ${errors.join("\n- ")}`);
 }
 
 function outputValue(level: LevelBlueprint, puzzleId: string, output: PuzzleOutput): ResolvedValue {
@@ -111,6 +145,7 @@ export function validateLevelBlueprint(value: unknown, catalog: PuzzleCatalog): 
     if (level.schemaVersion !== LEVEL_SCHEMA_VERSION) {
         errors.push(`Unsupported schema version ${level.schemaVersion}; expected ${LEVEL_SCHEMA_VERSION}.`);
     }
+    errors.push(...validateWorldReferenceShape(level.world));
     if (level.catalogVersion !== catalog.version) errors.push(`Level catalog version ${level.catalogVersion} does not match ${catalog.version}.`);
 
     const structure = level.generationConfig.structuralDifficulty;
@@ -159,7 +194,7 @@ export function validateLevelBlueprint(value: unknown, catalog: PuzzleCatalog): 
             if (!Value.Check(entry.generationSpecSchema, design.generationSpec)) errors.push(`Puzzle ${puzzle.id} has an invalid generationSpec for ${design.subtype}.`);
         }
         if (design.generationSpec.id !== puzzle.id) errors.push(`Puzzle ${puzzle.id} generationSpec must preserve the same ID.`);
-        if (JSON.stringify(design.generationSpec.intendedSolution) !== JSON.stringify(design.verification.expectedValue)) {
+        if (!isDeepStrictEqual(design.generationSpec.intendedSolution, design.verification.expectedValue)) {
             errors.push(`Puzzle ${puzzle.id} verification answer must match generationSpec.intendedSolution.`);
         }
 
@@ -229,7 +264,7 @@ export function validateLevelBlueprint(value: unknown, catalog: PuzzleCatalog): 
                     }
                     try {
                         const transformed = applyTransformation(input.transform.type, sourceValue.value, input.transform.config);
-                        if (JSON.stringify(transformed) === JSON.stringify(sourceValue.value)) errors.push(`Transformation ${input.transform.type} on ${puzzle.id}.${input.id} does not change the source value; omit it.`);
+                        if (isDeepStrictEqual(transformed, sourceValue.value)) errors.push(`Transformation ${input.transform.type} on ${puzzle.id}.${input.id} does not change the source value; omit it.`);
                     } catch (error) {
                         errors.push(`Transformation ${input.transform.type} on ${puzzle.id}.${input.id} is invalid: ${error instanceof Error ? error.message : String(error)}`);
                     }
@@ -313,11 +348,14 @@ export function validateLevelBlueprint(value: unknown, catalog: PuzzleCatalog): 
 export function validateLevelAgainstRequest(level: LevelBlueprint, request: LevelDesignRequest, catalog: PuzzleCatalog): string[] {
     const errors = validateLevelBlueprint(level, catalog);
     if (level.id !== request.levelId) errors.push(`Level ID must remain ${request.levelId}.`);
+    if (!isDeepStrictEqual(level.world, request.world)) {
+        errors.push("Level world reference must match the game-design request.");
+    }
     if (level.catalogVersion !== request.catalogVersion) errors.push("Level must use the requested puzzle catalog version.");
     if (level.genre !== request.genre) errors.push(`Level genre must remain ${request.genre}.`);
-    if (JSON.stringify(level.environment) !== JSON.stringify(request.environment)) errors.push("Level environment must match the game-design request.");
-    if (JSON.stringify(level.startingInputs) !== JSON.stringify(request.startingInputs)) errors.push("Level starting inputs must match the game-design request.");
-    if (JSON.stringify(level.externalContentRequirements) !== JSON.stringify(request.externalContentRequirements)) {
+    if (!isDeepStrictEqual(level.environment, request.environment)) errors.push("Level environment must match the game-design request.");
+    if (!isDeepStrictEqual(level.startingInputs, request.startingInputs)) errors.push("Level starting inputs must match the game-design request.");
+    if (!isDeepStrictEqual(level.externalContentRequirements, request.externalContentRequirements)) {
         errors.push("Level external-content requirements must match the game-design request.");
     }
     if (level.terminalAction.actionType !== request.terminalAction.actionType) errors.push("Terminal action type must match the game-design request.");
@@ -335,7 +373,7 @@ export function validateLevelAgainstRequest(level: LevelBlueprint, request: Leve
         if (field.semanticRole !== required.semanticRole) errors.push(`Terminal field ${required.id} must use semantic role ${required.semanticRole}.`);
         const resolved = resolvePuzzleOutput(level, field.source.puzzleId, field.source.outputId);
         if (resolved !== undefined && resolved.dataType !== required.dataType) errors.push(`Terminal field ${required.id} must have type ${required.dataType}.`);
-        if (required.requiredValue !== undefined && resolved !== undefined && JSON.stringify(resolved.value) !== JSON.stringify(required.requiredValue)) {
+        if (required.requiredValue !== undefined && resolved !== undefined && !isDeepStrictEqual(resolved.value, required.requiredValue)) {
             errors.push(`Terminal field ${required.id} must resolve to its game-defined value.`);
         }
     }
@@ -349,7 +387,7 @@ export function validateLevelAgainstRequest(level: LevelBlueprint, request: Leve
             continue;
         }
         const resolved = outputValue(level, matches[0].puzzle.id, matches[0].output);
-        if (resolved.dataType !== required.dataType || JSON.stringify(resolved.value) !== JSON.stringify(required.value)) {
+        if (resolved.dataType !== required.dataType || !isDeepStrictEqual(resolved.value, required.value)) {
             errors.push(`Required discovery ${required.id} does not match its game-defined type and value.`);
         }
     }
