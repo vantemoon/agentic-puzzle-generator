@@ -39,6 +39,23 @@ export interface CatalogPort {
     required?: boolean;
 }
 
+export type BundlePlacementStrategy =
+    | "page-body"
+    | "native-html"
+    | "media-viewer"
+    | "downloadable-file"
+    | "version-set";
+
+export type BundleIntegrityRequirement =
+    | "text-content"
+    | "html-source"
+    | "exact-file";
+
+export interface PuzzleBundleCapabilities {
+    placements: BundlePlacementStrategy[];
+    integrity: BundleIntegrityRequirement;
+}
+
 export interface PuzzleCatalogEntry {
     puzzleType: string;
     subtype: string;
@@ -50,6 +67,7 @@ export interface PuzzleCatalogEntry {
     outputs: CatalogPort[];
     narrativeTags: string[];
     difficultyControls: string[];
+    bundle: PuzzleBundleCapabilities;
 }
 
 export interface PuzzleCatalog {
@@ -102,6 +120,7 @@ function textPuzzleEntry(options: {
     narrativeTags: string[];
     difficultyControls?: string[];
     generatedFields?: string[];
+    bundle?: PuzzleBundleCapabilities;
 }): PuzzleCatalogEntry {
     return {
         puzzleType: options.puzzleType,
@@ -127,7 +146,11 @@ function textPuzzleEntry(options: {
             description: "The value recovered by solving the puzzle."
         }],
         narrativeTags: options.narrativeTags,
-        difficultyControls: options.difficultyControls ?? []
+        difficultyControls: options.difficultyControls ?? [],
+        bundle: options.bundle ?? {
+            placements: ["page-body", "downloadable-file"],
+            integrity: "text-content"
+        }
     };
 }
 
@@ -135,8 +158,8 @@ export const repositoryPuzzleCatalog: PuzzleCatalog = {
     version: "repository-puzzles-2.0.0",
     entries: [
         textPuzzleEntry({ tool: createAcrosticPuzzleTool, puzzleType: "hidden-information", subtype: "cover-text-line-acrostic", displayName: "Acrostic", narrativeTags: ["document", "text", "investigation"] }),
-        textPuzzleEntry({ tool: createAlphaChannelPuzzleTool, puzzleType: "hidden-information", subtype: "alpha-channel", displayName: "Alpha channel", narrativeTags: ["image", "forensics", "hidden-data"] }),
-        textPuzzleEntry({ tool: createAltTextPuzzleTool, puzzleType: "hidden-information", subtype: "alt-text", displayName: "Alt text", narrativeTags: ["web", "image", "accessibility", "hidden-data"] }),
+        textPuzzleEntry({ tool: createAlphaChannelPuzzleTool, puzzleType: "hidden-information", subtype: "alpha-channel", displayName: "Alpha channel", narrativeTags: ["image", "forensics", "hidden-data"], bundle: { placements: ["media-viewer", "downloadable-file"], integrity: "exact-file" } }),
+        textPuzzleEntry({ tool: createAltTextPuzzleTool, puzzleType: "hidden-information", subtype: "alt-text", displayName: "Alt text", narrativeTags: ["web", "image", "accessibility", "hidden-data"], bundle: { placements: ["native-html"], integrity: "html-source" } }),
         textPuzzleEntry({ tool: createAnagramPuzzleTool, puzzleType: "reconstruction", subtype: "anagram", displayName: "Anagram", narrativeTags: ["text", "reconstruction"] }),
         textPuzzleEntry({ tool: createAnomalousPhrasePuzzleTool, puzzleType: "hidden-information", subtype: "anomalous-phrase", displayName: "Anomalous phrase", narrativeTags: ["document", "research", "investigation"] }),
         textPuzzleEntry({ tool: createAsciiArtPuzzleTool, puzzleType: "visual-recognition", subtype: "ascii-art", displayName: "ASCII art", narrativeTags: ["terminal", "visual", "text"] }),
@@ -144,24 +167,24 @@ export const repositoryPuzzleCatalog: PuzzleCatalog = {
         textPuzzleEntry({ tool: createBinaryCapitalizationPuzzleTool, puzzleType: "hidden-information", subtype: "binary-capitalization-pattern", displayName: "Binary capitalization", narrativeTags: ["document", "binary", "hidden-data"] }),
         textPuzzleEntry({ tool: createCaesarPuzzleTool, puzzleType: "encoding", subtype: "caesar-cipher", displayName: "Caesar cipher", narrativeTags: ["cipher", "message", "text"], difficultyControls: ["shift"] }),
         textPuzzleEntry({ tool: createCapitalLetterExtractionPuzzleTool, puzzleType: "hidden-information", subtype: "capital-letter-extraction", displayName: "Capital-letter extraction", narrativeTags: ["document", "text", "hidden-data"] }),
-        textPuzzleEntry({ tool: createColorChannelPuzzleTool, puzzleType: "hidden-information", subtype: "color-channel", displayName: "Color channel", narrativeTags: ["image", "forensics", "hidden-data"], difficultyControls: ["channel"] }),
-        textPuzzleEntry({ tool: createDomElementPuzzleTool, puzzleType: "hidden-information", subtype: "dom-element", displayName: "DOM element", narrativeTags: ["web", "source", "hidden-data"], difficultyControls: ["hideStrategy"] }),
-        textPuzzleEntry({ tool: createHtmlCommentPuzzleTool, puzzleType: "hidden-information", subtype: "html-comment", displayName: "HTML comment", narrativeTags: ["web", "source", "hidden-data"] }),
-        textPuzzleEntry({ tool: createMorseAudioPuzzleTool, puzzleType: "hidden-information", subtype: "morse-audio", displayName: "Morse audio", narrativeTags: ["audio", "encoding", "message"], difficultyControls: ["unitDurationMs"] }),
+        textPuzzleEntry({ tool: createColorChannelPuzzleTool, puzzleType: "hidden-information", subtype: "color-channel", displayName: "Color channel", narrativeTags: ["image", "forensics", "hidden-data"], difficultyControls: ["channel"], bundle: { placements: ["media-viewer", "downloadable-file"], integrity: "exact-file" } }),
+        textPuzzleEntry({ tool: createDomElementPuzzleTool, puzzleType: "hidden-information", subtype: "dom-element", displayName: "DOM element", narrativeTags: ["web", "source", "hidden-data"], difficultyControls: ["hideStrategy"], bundle: { placements: ["native-html"], integrity: "html-source" } }),
+        textPuzzleEntry({ tool: createHtmlCommentPuzzleTool, puzzleType: "hidden-information", subtype: "html-comment", displayName: "HTML comment", narrativeTags: ["web", "source", "hidden-data"], bundle: { placements: ["native-html"], integrity: "html-source" } }),
+        textPuzzleEntry({ tool: createMorseAudioPuzzleTool, puzzleType: "hidden-information", subtype: "morse-audio", displayName: "Morse audio", narrativeTags: ["audio", "encoding", "message"], difficultyControls: ["unitDurationMs"], bundle: { placements: ["media-viewer", "downloadable-file"], integrity: "exact-file" } }),
         textPuzzleEntry({ tool: createMorsePuzzleTool, puzzleType: "encoding", subtype: "morse-code", displayName: "Morse code", narrativeTags: ["encoding", "message", "text"] }),
         textPuzzleEntry({ tool: createNthCharacterPuzzleTool, puzzleType: "hidden-information", subtype: "periodic-letter-extraction", displayName: "Periodic letter extraction", narrativeTags: ["document", "text", "hidden-data"], difficultyControls: ["step", "startIndex"] }),
         textPuzzleEntry({ tool: createNthWordPuzzleTool, puzzleType: "hidden-information", subtype: "periodic-word-extraction", displayName: "Periodic word extraction", narrativeTags: ["document", "text", "hidden-data"], difficultyControls: ["step", "startIndex"] }),
-        textPuzzleEntry({ tool: createPageVersionPuzzleTool, puzzleType: "hidden-information", subtype: "page-version", displayName: "Page version", narrativeTags: ["web", "comparison", "investigation"], difficultyControls: ["changeKind"] }),
-        textPuzzleEntry({ tool: createQrCodePuzzleTool, puzzleType: "encoding", subtype: "qr-code", displayName: "QR code", narrativeTags: ["image", "encoding", "identifier"] }),
-        textPuzzleEntry({ tool: createReverseAudioPuzzleTool, puzzleType: "hidden-information", subtype: "reverse-audio", displayName: "Reverse audio", narrativeTags: ["audio", "forensics", "message"] }),
+        textPuzzleEntry({ tool: createPageVersionPuzzleTool, puzzleType: "hidden-information", subtype: "page-version", displayName: "Page version", narrativeTags: ["web", "comparison", "investigation"], difficultyControls: ["changeKind"], bundle: { placements: ["version-set"], integrity: "html-source" } }),
+        textPuzzleEntry({ tool: createQrCodePuzzleTool, puzzleType: "encoding", subtype: "qr-code", displayName: "QR code", narrativeTags: ["image", "encoding", "identifier"], bundle: { placements: ["media-viewer", "downloadable-file"], integrity: "exact-file" } }),
+        textPuzzleEntry({ tool: createReverseAudioPuzzleTool, puzzleType: "hidden-information", subtype: "reverse-audio", displayName: "Reverse audio", narrativeTags: ["audio", "forensics", "message"], bundle: { placements: ["media-viewer", "downloadable-file"], integrity: "exact-file" } }),
         textPuzzleEntry({ tool: createSecureRelayPuzzleTool, puzzleType: "secure-communication", subtype: "asymmetric-sealed-relay", displayName: "Secure relay", narrativeTags: ["communication", "cryptography", "identity"] }),
-        textPuzzleEntry({ tool: createSourceCodePuzzleTool, puzzleType: "hidden-information", subtype: "html-source-inspection", displayName: "HTML source inspection", narrativeTags: ["web", "source", "hidden-data"], difficultyControls: ["carrier"] }),
+        textPuzzleEntry({ tool: createSourceCodePuzzleTool, puzzleType: "hidden-information", subtype: "html-source-inspection", displayName: "HTML source inspection", narrativeTags: ["web", "source", "hidden-data"], difficultyControls: ["carrier"], bundle: { placements: ["native-html"], integrity: "html-source" } }),
         textPuzzleEntry({ tool: createStaticUrlPuzzleTool, puzzleType: "hidden-information", subtype: "static-url", displayName: "Static URL", narrativeTags: ["web", "url", "investigation"], difficultyControls: ["manipulationKind"] }),
-        textPuzzleEntry({ tool: createSteganographyPuzzleTool, puzzleType: "hidden-information", subtype: "steganography", displayName: "Steganography", narrativeTags: ["image", "forensics", "hidden-data"] }),
+        textPuzzleEntry({ tool: createSteganographyPuzzleTool, puzzleType: "hidden-information", subtype: "steganography", displayName: "Steganography", narrativeTags: ["image", "forensics", "hidden-data"], bundle: { placements: ["media-viewer", "downloadable-file"], integrity: "exact-file" } }),
         textPuzzleEntry({ tool: createSubstitutionPuzzleTool, puzzleType: "encoding", subtype: "monoalphabetic-substitution", displayName: "Substitution cipher", narrativeTags: ["cipher", "message", "text"] }),
         textPuzzleEntry({ tool: createTelestichPuzzleTool, puzzleType: "hidden-information", subtype: "cover-text-line-telestich", displayName: "Telestich", narrativeTags: ["document", "text", "hidden-data"] }),
         textPuzzleEntry({ tool: createVigenerePuzzleTool, puzzleType: "encoding", subtype: "vigenere-cipher", displayName: "Vigenere cipher", narrativeTags: ["cipher", "message", "text"], difficultyControls: ["key"] }),
-        textPuzzleEntry({ tool: createVisualCluePuzzleTool, puzzleType: "hidden-information", subtype: "visual-clue", displayName: "Visual clue", narrativeTags: ["image", "observation", "investigation"], difficultyControls: ["clueKind"], generatedFields: ["backgroundElements", "clueElements", "showClueLabel"] }),
+        textPuzzleEntry({ tool: createVisualCluePuzzleTool, puzzleType: "hidden-information", subtype: "visual-clue", displayName: "Visual clue", narrativeTags: ["image", "observation", "investigation"], difficultyControls: ["clueKind"], generatedFields: ["backgroundElements", "clueElements", "showClueLabel"], bundle: { placements: ["media-viewer", "downloadable-file"], integrity: "exact-file" } }),
         textPuzzleEntry({ tool: createWordIndexPuzzleTool, puzzleType: "hidden-information", subtype: "cover-text-word-index-cipher", displayName: "Word index", narrativeTags: ["document", "text", "hidden-data"] })
     ]
 };
@@ -172,6 +195,12 @@ export function assertPuzzleCatalog(catalog: PuzzleCatalog): void {
     for (const entry of catalog.entries) {
         if (seen.has(entry.subtype)) throw new Error(`Duplicate puzzle subtype in catalog: ${entry.subtype}.`);
         seen.add(entry.subtype);
+        if (entry.bundle.placements.length === 0) {
+            throw new Error(`Puzzle subtype ${entry.subtype} has no bundle placement strategy.`);
+        }
+        if (new Set(entry.bundle.placements).size !== entry.bundle.placements.length) {
+            throw new Error(`Puzzle subtype ${entry.subtype} has duplicate bundle placement strategies.`);
+        }
     }
 }
 

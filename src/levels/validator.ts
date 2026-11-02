@@ -138,7 +138,14 @@ function graphShape(ids: string[], edges: Array<{ from: string; to: string }>): 
 
 export function validateLevelBlueprint(value: unknown, catalog: PuzzleCatalog): string[] {
     assertPuzzleCatalog(catalog);
-    if (!Value.Check(LevelBlueprintSchema, value)) return ["Level does not satisfy the canonical level schema."];
+    if (!Value.Check(LevelBlueprintSchema, value)) {
+        const schemaErrors = [...Value.Errors(LevelBlueprintSchema, value)].slice(0, 12);
+        return schemaErrors.map((error) => {
+            const details = error as unknown as { path?: string; instancePath?: string; message?: string };
+            const errorPath = details.path ?? details.instancePath ?? "/";
+            return `Level schema error at ${errorPath.length === 0 ? "/" : errorPath}: ${details.message ?? "invalid value"}`;
+        });
+    }
     const level = value as LevelBlueprint;
     const errors: string[] = [];
 

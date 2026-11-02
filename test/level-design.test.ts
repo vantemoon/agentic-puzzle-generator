@@ -130,7 +130,7 @@ describe("level metadata v5", () => {
         const withoutWorld = copyLevel() as unknown as Record<string, unknown>;
         delete withoutWorld.world;
         expect(validateLevelBlueprint(withoutWorld, repositoryPuzzleCatalog)).toEqual([
-            "Level does not satisfy the canonical level schema."
+            expect.stringContaining("required properties world")
         ]);
 
         const changedWorld = copyLevel();
@@ -236,7 +236,7 @@ describe("level metadata v5", () => {
 
         expect(Value.Check(LevelBlueprintSchema, level)).toBe(false);
         expect(validateLevelBlueprint(level, repositoryPuzzleCatalog)).toEqual([
-            "Level does not satisfy the canonical level schema."
+            expect.stringContaining("required properties retrievedAt")
         ]);
     });
 

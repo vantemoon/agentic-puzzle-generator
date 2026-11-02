@@ -41,3 +41,39 @@ Supplying only a level file skips the level menu and displays its puzzle menu. G
 - `<puzzle-id>/puzzle.txt`, `puzzle.svg`, `puzzle.png`, or `puzzle.wav` — the corresponding non-HTML artifact.
 
 Deploy the puzzle artifact directory, not the private `.puzzle.json` file.
+
+## Plan a level bundle
+
+After every puzzle in a level has been generated, create and build a validated level bundle:
+
+```bash
+npm run level:bundle -- generated-levels/<level-id>.level.json
+```
+
+The command verifies the world reference, private puzzle records, and artifact files before starting the Level Bundle Agent. It writes the private plan to `generated-bundles/<level-id>/level.bundle.json` and builds the public site. Missing or modified puzzle artifacts stop the command with an actionable preflight report.
+
+Development bundles default to 10–15 supporting items per site. Override the bounds with `LEVEL_BUNDLE_SUPPORTING_MIN` and `LEVEL_BUNDLE_SUPPORTING_MAX`, or set `LEVEL_BUNDLE_SEED` for a specific deterministic content seed.
+
+Build the validated plan into separated public and private output:
+
+```bash
+npm run level:build-bundle -- generated-levels/<level-id>.level.json
+```
+
+The deployable site is written to `generated-bundles/<level-id>/public/`. Puzzle mappings and build diagnostics remain under `private/` and must not be published.
+
+Preview the site with authoritative local terminal validation:
+
+```bash
+npm run level:preview-bundle -- generated-levels/<level-id>.level.json
+```
+
+The preview binds to `127.0.0.1:4173` by default. Pass a second argument to select another port. The validation endpoint resolves expected fields from private level data at runtime; canonical answers are not added to the public directory.
+
+Re-run all deterministic checks without regenerating the plan or rebuilding:
+
+```bash
+npm run level:verify-bundle -- generated-levels/<level-id>.level.json
+```
+
+Verification checks supporting-content depth, manifest hashes, clue artifact integrity, private-answer leakage outside puzzle resources, broken links, declared journey transitions, basic accessibility, and unsafe or external page dependencies. A failed report is still written under the bundle's `private/` directory.
