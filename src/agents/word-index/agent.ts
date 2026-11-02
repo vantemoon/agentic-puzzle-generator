@@ -5,7 +5,7 @@ import { WORD_INDEX_SYSTEM_PROMPT } from "./prompt.js";
 import { createWordIndexPuzzleTool } from "./tool.js";
 
 export async function createWordIndexAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "cover-text-word-index-cipher" });
 
     return new Agent({
         initialState: {

@@ -5,7 +5,7 @@ import { CAESAR_SYSTEM_PROMPT } from "./prompt.js";
 import { createCaesarPuzzleTool } from "./tool.js";
 
 export async function createCaesarAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "caesar-cipher" });
 
     return new Agent({
         initialState: {

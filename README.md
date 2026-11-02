@@ -26,12 +26,39 @@ Run the command without arguments to select a level and puzzle from numbered men
 npm run level:generate-puzzle
 ```
 
-Puzzle generation defaults to `kadi-openai/openai/gpt-5.6-sol`. To try another
-Kadi model, set `KADI_MODEL_ID`; the loader automatically checks both Kadi
-providers. You can select one explicitly with `KADI_PROVIDER_ID`:
+Configure agent models in the repository's `llm-models.json` file:
+
+```json
+{
+  "default": { "modelId": "fast-model", "providerId": "kadi" },
+  "tasks": {
+    "level-design": { "modelId": "complex-model" },
+    "level-review": { "modelId": "complex-model" },
+    "level-bundle": { "modelId": "bundle-model" }
+  },
+  "puzzles": {
+    "default": { "modelId": "fast-model" },
+    "visual-composition": { "modelId": "vision-capable-model" },
+    "caesar-cipher": { "modelId": "fast-model" }
+  }
+}
+```
+
+`puzzles.default` applies to every puzzle without a more specific entry.
+`prose-composition` and `visual-composition` configure puzzle agents that author
+those kinds of content, while a subtype entry can still override either group.
+If either `modelId` or `providerId` is omitted from an entry, that field inherits
+through the normal fallback. Both fields under `default` are required. Resolution
+order is puzzle subtype, authored-content mode, puzzle default, then global
+default. Level tasks use their task entry, then the global default. Run
+`npm run models:list` to see the configurable task names, authored-content modes,
+and puzzle subtypes.
+
+Only puzzle subtypes that need a different model require their own entry. List
+every valid configurable task and puzzle subtype with:
 
 ```bash
-KADI_PROVIDER_ID=kadi KADI_MODEL_ID=moonshot/kimi-k2.6 npm run level:generate-puzzle
+npm run models:list
 ```
 
 Supplying only a level file skips the level menu and displays its puzzle menu. Generation writes both private metadata and a deployable artifact under `generated-puzzles/<level-id>/`:
@@ -51,6 +78,8 @@ npm run level:bundle -- generated-levels/<level-id>.level.json
 ```
 
 The command verifies the world reference, private puzzle records, and artifact files before starting the Level Bundle Agent. It writes the private plan to `generated-bundles/<level-id>/level.bundle.json` and builds the public site. Missing or modified puzzle artifacts stop the command with an actionable preflight report.
+
+Bundle runs print the selected model and write an incremental private JSONL trace under `generation-logs/<level-id>/`. A heartbeat is printed every 15 seconds while the model is producing its structured bundle submission.
 
 Development bundles default to 10–15 supporting items per site. Override the bounds with `LEVEL_BUNDLE_SUPPORTING_MIN` and `LEVEL_BUNDLE_SUPPORTING_MAX`, or set `LEVEL_BUNDLE_SEED` for a specific deterministic content seed.
 

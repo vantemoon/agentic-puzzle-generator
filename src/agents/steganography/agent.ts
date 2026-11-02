@@ -5,7 +5,7 @@ import { STEGANOGRAPHY_SYSTEM_PROMPT } from "./prompt.js";
 import { createSteganographyPuzzleTool } from "./tool.js";
 
 export async function createSteganographyAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "steganography" });
 
     return new Agent({
         initialState: {

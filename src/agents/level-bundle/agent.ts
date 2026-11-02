@@ -12,7 +12,7 @@ export async function createLevelBundleAgent(
     options: LevelBundleAgentOptions,
     outputDirectory?: string
 ): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel("level-bundle");
     return new Agent({
         initialState: {
             systemPrompt: buildLevelBundlePrompt(inputs, catalog, options),

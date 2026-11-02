@@ -7,6 +7,7 @@
     "test": "vitest run",
     "start": "tsx src/index.ts",
     "typecheck": "tsc --noEmit",
+    "models:list": "tsx src/list-model-tasks.ts",
     "pi:caesar": "pi --extension ./pi-extensions/caesar.ts",
     "pi:morse": "pi --extension ./pi-extensions/morse.ts",
     "pi:ascii": "pi --extension ./pi-extensions/ascii.ts",

@@ -21,6 +21,11 @@ const baseFields = {
     visibleTitle: Type.String({ minLength: 1, maxLength: 120 }),
     visibleBody: Type.String({ minLength: 1, maxLength: 1000 }),
     imageLabel: Type.String({ minLength: 1, maxLength: 120 }),
+    imageElements: Type.Array(Type.String({ minLength: 1, maxLength: 700 }), {
+        minItems: 1,
+        maxItems: 250,
+        description: "Drawing instructions for a context-specific 420x180 image. Use the documented pipe-delimited drawing language; never send SVG/XML markup."
+    }),
     altText: Type.String({ minLength: 1, maxLength: 500 }),
     imageCaption: Type.Optional(Type.String({ minLength: 1, maxLength: 300 })),
     acceptedAlternatives: Type.Optional(acceptedAlternativesSchema)
@@ -66,6 +71,7 @@ AgentTool<typeof parameters, PrivatePuzzleInstance> = {
             visibleTitle: params.visibleTitle,
             visibleBody: params.visibleBody,
             imageLabel: params.imageLabel,
+            imageElements: params.imageElements,
             altText: params.altText,
             imageCaption: params.imageCaption,
             acceptedAlternatives: params.acceptedAlternatives

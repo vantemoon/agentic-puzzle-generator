@@ -5,7 +5,7 @@ import { REVERSE_AUDIO_SYSTEM_PROMPT } from "./prompt.js";
 import { createReverseAudioPuzzleTool } from "./tool.js";
 
 export async function createReverseAudioAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "reverse-audio" });
 
     return new Agent({
         initialState: {

@@ -35,6 +35,32 @@ describe("level-to-puzzle generation handoff", () => {
         expect(properties).not.toHaveProperty("showClueLabel");
     });
 
+    it("keeps agent-authored prose and alt-text artwork out of level specifications", () => {
+        const acrostic = repositoryPuzzleCatalog.entries.find(
+            (candidate) => candidate.subtype === "cover-text-line-acrostic"
+        );
+        const altText = repositoryPuzzleCatalog.entries.find(
+            (candidate) => candidate.subtype === "alt-text"
+        );
+        const acrosticProperties = (acrostic?.generationSpecSchema as {
+            properties?: Record<string, unknown>;
+        }).properties;
+        const altTextProperties = (altText?.generationSpecSchema as {
+            properties?: Record<string, unknown>;
+        }).properties;
+
+        expect(acrostic?.authoredContent).toEqual({
+            mode: "prose-composition",
+            fields: ["coverText"]
+        });
+        expect(acrosticProperties).not.toHaveProperty("coverText");
+        expect(altText?.authoredContent).toEqual({
+            mode: "visual-composition",
+            fields: ["imageElements"]
+        });
+        expect(altTextProperties).not.toHaveProperty("imageElements");
+    });
+
     it("builds a production handoff for the selected puzzle", () => {
         const handoff = createPuzzleGenerationHandoff(
             levelFixture,
@@ -88,7 +114,27 @@ describe("level-to-puzzle generation handoff", () => {
             verification: { prompt: "Answer", dataType: "string", expectedValue: "PIN" }
         });
 
-        expect(prompt).toContain("decide showClueLabel from visual ambiguity");
+        expect(prompt).toContain("making any visibility decisions from visual ambiguity");
+        expect(prompt).not.toContain("exactly this JSON object");
+    });
+
+    it("asks prose-composition agents to author only their carrier text", () => {
+        const prompt = buildPuzzleGenerationPrompt({
+            levelId: "level",
+            puzzleId: "letter",
+            puzzleType: "hidden-information",
+            subtype: "cover-text-line-acrostic",
+            generatorTool: "create_acrostic_puzzle",
+            generationSpec: {
+                mode: "production",
+                id: "letter",
+                intendedSolution: "MEET",
+                genre: "community newsletter"
+            },
+            verification: { prompt: "Answer", dataType: "string", expectedValue: "MEET" }
+        });
+
+        expect(prompt).toContain("Compose natural, context-specific prose for coverText");
         expect(prompt).not.toContain("exactly this JSON object");
     });
 

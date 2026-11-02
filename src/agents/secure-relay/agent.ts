@@ -5,7 +5,7 @@ import { SECURE_RELAY_SYSTEM_PROMPT } from "./prompt.js";
 import { createSecureRelayPuzzleTool } from "./tool.js";
 
 export async function createSecureRelayAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "asymmetric-sealed-relay" });
 
     return new Agent({
         initialState: {

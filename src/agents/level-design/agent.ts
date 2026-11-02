@@ -11,7 +11,7 @@ export async function createLevelDesignAgent(
     request: LevelDesignRequest,
     outputDirectory?: string
 ): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel("level-design");
     return new Agent({
         initialState: {
             systemPrompt: buildLevelDesignPrompt(catalog, request),

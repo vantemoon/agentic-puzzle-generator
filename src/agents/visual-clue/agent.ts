@@ -7,7 +7,7 @@ import { createVisualCluePuzzleTool } from "./tool.js";
 export const VISUAL_CLUE_MAX_OUTPUT_TOKENS = 16_000;
 
 export async function createVisualClueAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "visual-clue" });
     const streamCompactSvg = ((selectedModel, context, options) =>
         modelRuntime.streamSimple(selectedModel, context, {
             ...options,

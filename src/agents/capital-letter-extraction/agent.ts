@@ -5,7 +5,7 @@ import { CAPITAL_LETTER_EXTRACTION_SYSTEM_PROMPT } from "./prompt.js";
 import { createCapitalLetterExtractionPuzzleTool } from "./tool.js";
 
 export async function createCapitalLetterExtractionAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "capital-letter-extraction" });
 
     return new Agent({
         initialState: {

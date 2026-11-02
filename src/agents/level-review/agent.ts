@@ -10,7 +10,7 @@ export async function createLevelReviewAgent(
     request: LevelDesignRequest,
     attempt: number
 ): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel("level-review");
     return new Agent({
         initialState: {
             systemPrompt: buildLevelReviewPrompt(level, request, attempt),

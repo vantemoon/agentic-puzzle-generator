@@ -5,7 +5,7 @@ import { SOURCE_CODE_SYSTEM_PROMPT } from "./prompt.js";
 import { createSourceCodePuzzleTool } from "./tool.js";
 
 export async function createSourceCodeAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "html-source-inspection" });
 
     return new Agent({
         initialState: {

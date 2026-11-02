@@ -5,7 +5,7 @@ import { MORSE_SYSTEM_PROMPT } from "./prompt.js";
 import { createMorsePuzzleTool } from "./tool.js";
 
 export async function createMorseAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "morse-code" });
     
     return new Agent({
         initialState: {

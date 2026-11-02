@@ -139,6 +139,14 @@ function generatedPuzzle(node: PuzzleNode) {
     }
     if (node.design.subtype === "alt-text") {
         spec.altText = "Volunteers gathered at the North River boardwalk on APRIL 18 2026, standing beside filled cleanup bags.";
+        spec.imageElements = [
+            "rect|0|0|420|180|#b9d4df|none|0|1|0|0",
+            "rect|0|115|420|65|#78966f|none|0|1|0|0",
+            "circle|150|78|18|#c89f82|none|0|1",
+            "circle|250|82|18|#c89f82|none|0|1",
+            "rect|125|96|50|60|#66869a|none|0|1|8|8",
+            "rect|225|100|50|56|#8c7568|none|0|1|8|8"
+        ];
         return createAltTextPuzzle(spec as unknown as Parameters<typeof createAltTextPuzzle>[0]);
     }
     if (node.design.subtype === "page-version") {

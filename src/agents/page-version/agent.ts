@@ -5,7 +5,7 @@ import { PAGE_VERSION_SYSTEM_PROMPT } from "./prompt.js";
 import { createPageVersionPuzzleTool } from "./tool.js";
 
 export async function createPageVersionAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "page-version" });
 
     return new Agent({
         initialState: {

@@ -5,7 +5,7 @@ import { SUBSTITUTION_SYSTEM_PROMPT } from "./prompt.js";
 import { createSubstitutionPuzzleTool } from "./tool.js";
 
 export async function createSubstitutionAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "monoalphabetic-substitution" });
 
     return new Agent({
         initialState: {

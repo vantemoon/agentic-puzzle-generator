@@ -5,7 +5,7 @@ import { ASCII_SYSTEM_PROMPT } from "./prompt.js";
 import { createAsciiPuzzleTool } from "./tool.js";
 
 export async function createAsciiAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "ascii-code" });
 
     return new Agent({
         initialState: {

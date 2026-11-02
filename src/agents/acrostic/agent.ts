@@ -5,7 +5,7 @@ import { ACROSTIC_SYSTEM_PROMPT } from "./prompt.js";
 import { createAcrosticPuzzleTool } from "./tool.js";
 
 export async function createAcrosticAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "cover-text-line-acrostic" });
 
     return new Agent({
         initialState: {

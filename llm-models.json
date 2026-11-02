@@ -1,0 +1,30 @@
+{
+  "default": {
+    "modelId": "moonshot/kimi-k3",
+    "providerId": "kadi"
+  },
+  "tasks": {
+    "level-design": {
+      "modelId": "moonshot/kimi-k3",
+      "providerId": "kadi"
+    },
+    "level-review": {
+      "modelId": "moonshot/kimi-k3",
+      "providerId": "kadi"
+    },
+    "level-bundle": {
+      "modelId": "openai/gpt-5.6-sol",
+      "providerId": "kadi-openai"
+    }
+  },
+  "puzzles": {
+    "default": {
+      "modelId": "moonshot/kimi-k3",
+      "providerId": "kadi"
+    },
+    "visual-composition": {
+      "modelId": "humin/Qwen3.8-Flash-Next-oQ4e-mtp",
+      "providerId": "kadi"
+    }
+  }
+}

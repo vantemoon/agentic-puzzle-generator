@@ -5,6 +5,6 @@ import { ASCII_ART_SYSTEM_PROMPT } from "./prompt.js";
 import { createAsciiArtPuzzleTool } from "./tool.js";
 
 export async function createAsciiArtAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "ascii-art" });
     return new Agent({ initialState: { systemPrompt: ASCII_ART_SYSTEM_PROMPT, model, thinkingLevel: "off", tools: [createAsciiArtPuzzleTool] }, streamFn: modelRuntime.streamSimple.bind(modelRuntime), toolExecution: "sequential" });
 }

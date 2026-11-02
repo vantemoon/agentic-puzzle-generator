@@ -5,6 +5,6 @@ import { QR_CODE_SYSTEM_PROMPT } from "./prompt.js";
 import { createQrCodePuzzleTool } from "./tool.js";
 
 export async function createQrCodeAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "qr-code" });
     return new Agent({ initialState: { systemPrompt: QR_CODE_SYSTEM_PROMPT, model, thinkingLevel: "off", tools: [createQrCodePuzzleTool] }, streamFn: modelRuntime.streamSimple.bind(modelRuntime), toolExecution: "sequential" });
 }

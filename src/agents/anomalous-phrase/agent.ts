@@ -5,7 +5,7 @@ import { ANOMALOUS_PHRASE_SYSTEM_PROMPT } from "./prompt.js";
 import { createAnomalousPhrasePuzzleTool } from "./tool.js";
 
 export async function createAnomalousPhraseAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "anomalous-phrase" });
 
     return new Agent({
         initialState: {

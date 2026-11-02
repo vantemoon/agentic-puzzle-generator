@@ -5,7 +5,7 @@ import { NTH_WORD_SYSTEM_PROMPT } from "./prompt.js";
 import { createNthWordPuzzleTool } from "./tool.js";
 
 export async function createNthWordAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "periodic-word-extraction" });
 
     return new Agent({
         initialState: {

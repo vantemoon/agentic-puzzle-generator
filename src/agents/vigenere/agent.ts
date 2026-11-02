@@ -5,7 +5,7 @@ import { VIGENERE_SYSTEM_PROMPT } from "./prompt.js";
 import { createVigenerePuzzleTool } from "./tool.js";
 
 export async function createVigenereAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "vigenere-cipher" });
 
     return new Agent({
         initialState: {

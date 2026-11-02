@@ -5,7 +5,7 @@ import { NTH_CHARACTER_SYSTEM_PROMPT } from "./prompt.js";
 import { createNthCharacterPuzzleTool } from "./tool.js";
 
 export async function createNthCharacterAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "periodic-letter-extraction" });
 
     return new Agent({
         initialState: {

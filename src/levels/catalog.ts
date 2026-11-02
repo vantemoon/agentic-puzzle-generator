@@ -1,5 +1,9 @@
 import Type, { type TSchema } from "typebox";
 
+import {
+    authoredContentForPuzzle,
+    type AuthoredContentDefinition
+} from "../core/authored-content.js";
 import { createAcrosticPuzzleTool } from "../agents/acrostic/tool.js";
 import { createAlphaChannelPuzzleTool } from "../agents/alpha-channel/tool.js";
 import { createAltTextPuzzleTool } from "../agents/alt-text/tool.js";
@@ -67,6 +71,7 @@ export interface PuzzleCatalogEntry {
     outputs: CatalogPort[];
     narrativeTags: string[];
     difficultyControls: string[];
+    authoredContent?: AuthoredContentDefinition;
     bundle: PuzzleBundleCapabilities;
 }
 
@@ -119,9 +124,9 @@ function textPuzzleEntry(options: {
     displayName: string;
     narrativeTags: string[];
     difficultyControls?: string[];
-    generatedFields?: string[];
     bundle?: PuzzleBundleCapabilities;
 }): PuzzleCatalogEntry {
+    const authoredContent = authoredContentForPuzzle(options.subtype);
     return {
         puzzleType: options.puzzleType,
         subtype: options.subtype,
@@ -130,7 +135,7 @@ function textPuzzleEntry(options: {
         generatorTool: options.tool.name,
         generationSpecSchema: omitSchemaProperties(
             productionSchema(options.tool.parameters),
-            options.generatedFields ?? []
+            authoredContent?.fields ?? []
         ),
         inputs: [{
             key: "intendedSolution",
@@ -147,6 +152,7 @@ function textPuzzleEntry(options: {
         }],
         narrativeTags: options.narrativeTags,
         difficultyControls: options.difficultyControls ?? [],
+        ...(authoredContent === undefined ? {} : { authoredContent }),
         bundle: options.bundle ?? {
             placements: ["page-body", "downloadable-file"],
             integrity: "text-content"
@@ -184,7 +190,7 @@ export const repositoryPuzzleCatalog: PuzzleCatalog = {
         textPuzzleEntry({ tool: createSubstitutionPuzzleTool, puzzleType: "encoding", subtype: "monoalphabetic-substitution", displayName: "Substitution cipher", narrativeTags: ["cipher", "message", "text"] }),
         textPuzzleEntry({ tool: createTelestichPuzzleTool, puzzleType: "hidden-information", subtype: "cover-text-line-telestich", displayName: "Telestich", narrativeTags: ["document", "text", "hidden-data"] }),
         textPuzzleEntry({ tool: createVigenerePuzzleTool, puzzleType: "encoding", subtype: "vigenere-cipher", displayName: "Vigenere cipher", narrativeTags: ["cipher", "message", "text"], difficultyControls: ["key"] }),
-        textPuzzleEntry({ tool: createVisualCluePuzzleTool, puzzleType: "hidden-information", subtype: "visual-clue", displayName: "Visual clue", narrativeTags: ["image", "observation", "investigation"], difficultyControls: ["clueKind"], generatedFields: ["backgroundElements", "clueElements", "showClueLabel"], bundle: { placements: ["media-viewer", "downloadable-file"], integrity: "exact-file" } }),
+        textPuzzleEntry({ tool: createVisualCluePuzzleTool, puzzleType: "hidden-information", subtype: "visual-clue", displayName: "Visual clue", narrativeTags: ["image", "observation", "investigation"], difficultyControls: ["clueKind"], bundle: { placements: ["media-viewer", "downloadable-file"], integrity: "exact-file" } }),
         textPuzzleEntry({ tool: createWordIndexPuzzleTool, puzzleType: "hidden-information", subtype: "cover-text-word-index-cipher", displayName: "Word index", narrativeTags: ["document", "text", "hidden-data"] })
     ]
 };
@@ -220,7 +226,10 @@ export function catalogForPrompt(catalog: PuzzleCatalog): unknown {
             outputCapabilities: entry.outputs,
             levelInputGuidance: "Declare only data materially used by the puzzle. Sources and optional transformations are defined by the level blueprint.",
             narrativeTags: entry.narrativeTags,
-            difficultyControls: entry.difficultyControls
+            difficultyControls: entry.difficultyControls,
+            ...(entry.authoredContent === undefined
+                ? {}
+                : { authoredContent: entry.authoredContent })
         }))
     };
 }

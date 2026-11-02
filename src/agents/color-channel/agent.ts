@@ -5,6 +5,6 @@ import { COLOR_CHANNEL_SYSTEM_PROMPT } from "./prompt.js";
 import { createColorChannelPuzzleTool } from "./tool.js";
 
 export async function createColorChannelAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "color-channel" });
     return new Agent({ initialState: { systemPrompt: COLOR_CHANNEL_SYSTEM_PROMPT, model, thinkingLevel: "off", tools: [createColorChannelPuzzleTool] }, streamFn: modelRuntime.streamSimple.bind(modelRuntime), toolExecution: "sequential" });
 }

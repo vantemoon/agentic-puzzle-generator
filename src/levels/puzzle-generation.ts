@@ -3,6 +3,7 @@ import path from "node:path";
 
 import type { Agent, AgentEvent } from "@earendil-works/pi-agent-core";
 
+import { authoredContentForPuzzle } from "../core/authored-content.js";
 import {
     assertPrivatePuzzleInstance,
     type PrivatePuzzleInstance,
@@ -88,9 +89,13 @@ export function createPuzzleGenerationHandoff(
 }
 
 export function buildPuzzleGenerationPrompt(handoff: PuzzleGenerationHandoff): string {
-    const toolInstruction = handoff.subtype === "visual-clue"
-        ? "Preserve every supplied field. Create context-specific backgroundElements and clueElements drawing plans, decide showClueLabel from visual ambiguity, then call your puzzle creation tool with the augmented object:"
-        : "Preserve every supplied field and call your puzzle creation tool with exactly this JSON object:";
+    const authoredContent = authoredContentForPuzzle(handoff.subtype);
+    const fields = authoredContent?.fields.join(", ");
+    const toolInstruction = authoredContent?.mode === "prose-composition"
+        ? `Preserve every supplied field. Compose natural, context-specific prose for ${fields} that satisfies this puzzle's extraction mechanic, then call your puzzle creation tool with the augmented object:`
+        : authoredContent?.mode === "visual-composition"
+            ? `Preserve every supplied field. Author a context-specific SVG drawing plan for ${fields}, making any visibility decisions from visual ambiguity, then call your puzzle creation tool with the augmented object:`
+            : "Preserve every supplied field and call your puzzle creation tool with exactly this JSON object:";
     return [
         "Generate this production puzzle from the upstream level-design specification.",
         toolInstruction,

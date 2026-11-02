@@ -5,7 +5,7 @@ import { DOM_ELEMENT_SYSTEM_PROMPT } from "./prompt.js";
 import { createDomElementPuzzleTool } from "./tool.js";
 
 export async function createDomElementAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "dom-element" });
 
     return new Agent({
         initialState: {

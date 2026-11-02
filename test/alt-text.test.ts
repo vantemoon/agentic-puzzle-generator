@@ -32,6 +32,13 @@ const knownSpec = (id: string) => ({
     visibleTitle: "Gallery Review",
     visibleBody: "One diagram looks ordinary in the release gallery.",
     imageLabel: "System Diagram",
+    imageElements: [
+        "rect|0|0|420|180|#e8eef2|none|0|1|0|0",
+        "rect|45|25|330|130|#ffffff|#526979|3|1|8|8",
+        "circle|120|90|25|#9ec5d4|#526979|3|1",
+        "line|145|90|275|90|#526979|4|1",
+        "rect|275|65|70|50|#d7e5cc|#526979|3|1|4|4"
+    ],
     altText: "System deployment diagram with the release node labeled DEPLOY-742.",});
 
 function removeMarkedAltImage(source: string): string {
@@ -62,7 +69,7 @@ describe("alt-text engine", () => {
             payloadRole: string;
             hasImageCaption: boolean;
             imageSourceKind: string;
-            contextualImageKind: string;
+            imageRenderer: string;
             artifactSha256: string;
         };
 
@@ -82,11 +89,11 @@ describe("alt-text engine", () => {
         expect(getHtmlEntrySource(first.artifact)).toContain('src="data:image/svg+xml;utf8,');
         expect(getHtmlEntrySource(first.artifact)).toContain('alt="System deployment diagram with the release node labeled DEPLOY-742."');
         expect(first.prompt).toBe("Review the contextual webpage image and report the requested detail.");
-        expect(metadata.templateVersion).toBe("contextual-alt-text-v2");
+        expect(metadata.templateVersion).toBe("authored-visual-alt-text-v3");
         expect(metadata.payloadRole).toBe("alt-text-payload");
         expect(metadata.hasImageCaption).toBe(false);
-        expect(metadata.imageSourceKind).toBe("contextual-inline-svg-data-url");
-        expect(metadata.contextualImageKind).toBe("diagram");
+        expect(metadata.imageSourceKind).toBe("authored-inline-svg-data-url");
+        expect(metadata.imageRenderer).toBe("llm-authored-drawing-plan");
         expect(metadata.artifactSha256).toMatch(/^[0-9a-f]{64}$/);
         expect(first.externalKnowledge).toEqual({ required: false });
         expect(() => assertSafeStaticHtml(getHtmlEntrySource(first.artifact))).not.toThrow();
@@ -100,6 +107,7 @@ describe("alt-text engine", () => {
             visibleTitle: "Gallery <Review>",
             visibleBody: "Check the system diagram & B before 'launch' and \"handoff\".",
             imageLabel: "System <Diagram>",
+            imageElements: knownSpec("unused").imageElements,
             altText: "System deployment diagram with the release node labeled KEEP <CASE> & go.",
             imageCaption: "Figure <one> & notes"
         });
@@ -174,6 +182,10 @@ describe("alt-text engine", () => {
             imageLabel: "DEPLOY-742",
             altText: "DEPLOY-742 shown on the panel."
         })).toThrow("must not appear in visible page, image label, or caption.");
+        expect(() => createAltTextPuzzle({
+            ...knownSpec("image-art-leak"),
+            imageElements: ["text|210|90|20|#000000|middle|sans-serif|DEPLOY-742"]
+        })).toThrow("must not appear as visible text in the authored image");
     });
 
     it("rejects unsafe static HTML patterns", () => {
@@ -210,6 +222,7 @@ describe("alt-text engine", () => {
             visibleTitle: "Gallery Review",
             visibleBody: "One diagram looks ordinary in the release gallery.",
             imageLabel: "System Diagram",
+            imageElements: knownSpec("unused").imageElements,
             altText: "System deployment diagram with the release node labeled DEPLOY-742.",});
         const textContent = result.content[0];
         if (textContent.type !== "text") {

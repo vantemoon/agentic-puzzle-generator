@@ -5,7 +5,7 @@ import { BINARY_CAPITALIZATION_SYSTEM_PROMPT } from "./prompt.js";
 import { createBinaryCapitalizationPuzzleTool } from "./tool.js";
 
 export async function createBinaryCapitalizationAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "binary-capitalization-pattern" });
 
     return new Agent({
         initialState: {

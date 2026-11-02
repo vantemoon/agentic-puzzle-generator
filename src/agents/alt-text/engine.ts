@@ -1,6 +1,5 @@
 import { createHash } from "node:crypto";
 
-import { buildContextualSvg, contextualImageKind } from "../../core/contextual-image.js";
 import {
     assertPrivatePuzzleInstance,
     createSingleHtmlArtifact,
@@ -8,6 +7,7 @@ import {
     type PuzzleGenerationSpec
 } from "../../core/types.js";
 import { assertSafeStaticHtml, escapeHtmlText } from "../html-comment/engine.js";
+import { assertSafeStaticSvg, compileDrawingInstructions } from "../visual-clue/engine.js";
 export { assertSafeStaticHtml, escapeHtmlText } from "../html-comment/engine.js";
 
 
@@ -15,6 +15,7 @@ export interface AltTextPuzzleSpec extends PuzzleGenerationSpec {
     visibleTitle: string;
     visibleBody: string;
     imageLabel: string;
+    imageElements: string[];
     altText: string;
     imageCaption?: string;
     acceptedAlternatives?: string[];
@@ -26,7 +27,7 @@ const MAX_TITLE_LENGTH = 120;
 const MAX_BODY_LENGTH = 1_000;
 const MAX_IMAGE_LABEL_LENGTH = 120;
 const MAX_CAPTION_LENGTH = 300;
-const TEMPLATE_VERSION = "contextual-alt-text-v2";
+const TEMPLATE_VERSION = "authored-visual-alt-text-v3";
 const PAYLOAD_ROLE = "alt-text-payload";
 
 function normalizeInlineText(input: string, fieldName: string, maximumLength: number): string {
@@ -90,21 +91,43 @@ function decodeHtmlAttribute(input: string): string {
         .replace(/&amp;/g, "&");
 }
 
-function buildSvgDataUrl(imageLabel: string): string {
-    return `data:image/svg+xml;utf8,${encodeURIComponent(buildContextualSvg(imageLabel))}`;
+function buildAuthoredSvg(imageLabel: string, imageElements: string[]): string {
+    const drawing = compileDrawingInstructions(imageElements, "alt-text image", 250);
+    const source = [
+        '<svg xmlns="http://www.w3.org/2000/svg" width="420" height="180" viewBox="0 0 420 180" role="img">',
+        `  <title>${escapeHtmlText(imageLabel)}</title>`,
+        drawing,
+        "</svg>"
+    ].join("\n");
+    assertSafeStaticSvg(source);
+    return source;
+}
+
+function buildSvgDataUrl(imageLabel: string, imageElements: string[]): string {
+    return `data:image/svg+xml;utf8,${encodeURIComponent(buildAuthoredSvg(imageLabel, imageElements))}`;
+}
+
+function assertSolutionNotWrittenInImage(imageElements: string[], solution: string): void {
+    const visibleText = imageElements
+        .filter((instruction) => instruction.startsWith("text|"))
+        .map((instruction) => instruction.split("|").at(-1) ?? "");
+    if (visibleText.some((text) => text.includes(solution))) {
+        throw new Error("The intended solution must not appear as visible text in the authored image.");
+    }
 }
 
 export function buildAltTextHtmlArtifact(options: {
     visibleTitle: string;
     visibleBody: string;
     imageLabel: string;
+    imageElements: string[];
     altText: string;
     imageCaption?: string;
 }): string {
     const caption = options.imageCaption === undefined
         ? ""
         : `\n        <figcaption>${escapeHtmlText(options.imageCaption)}</figcaption>`;
-    const imageSource = buildSvgDataUrl(options.imageLabel);
+    const imageSource = buildSvgDataUrl(options.imageLabel, options.imageElements);
 
     return [
         "<!doctype html>",
@@ -209,11 +232,13 @@ export function createAltTextPuzzle(spec: AltTextPuzzleSpec): PrivatePuzzleInsta
     if (!altText.includes(solution)) {
         throw new Error("The natural image alt text must contain the intended solution.");
     }
+    assertSolutionNotWrittenInImage(spec.imageElements, solution);
 
     const artifactSource = buildAltTextHtmlArtifact({
         visibleTitle,
         visibleBody,
         imageLabel,
+        imageElements: spec.imageElements,
         altText,
         imageCaption
     });
@@ -291,8 +316,8 @@ export function createAltTextPuzzle(spec: AltTextPuzzleSpec): PrivatePuzzleInsta
                 templateVersion: TEMPLATE_VERSION,
                 payloadRole: PAYLOAD_ROLE,
                 hasImageCaption: imageCaption !== undefined,
-                imageSourceKind: "contextual-inline-svg-data-url",
-                contextualImageKind: contextualImageKind(imageLabel),
+                imageSourceKind: "authored-inline-svg-data-url",
+                imageRenderer: "llm-authored-drawing-plan",
                 artifactSha256: createHash("sha256").update(artifactSource, "utf8").digest("hex")
             }
         }

@@ -5,7 +5,7 @@ import { ALT_TEXT_SYSTEM_PROMPT } from "./prompt.js";
 import { createAltTextPuzzleTool } from "./tool.js";
 
 export async function createAltTextAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "alt-text" });
 
     return new Agent({
         initialState: {

@@ -5,7 +5,7 @@ import { TELESTICH_SYSTEM_PROMPT } from "./prompt.js";
 import { createTelestichPuzzleTool } from "./tool.js";
 
 export async function createTelestichAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "cover-text-line-telestich" });
 
     return new Agent({
         initialState: {

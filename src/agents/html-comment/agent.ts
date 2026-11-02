@@ -5,7 +5,7 @@ import { HTML_COMMENT_SYSTEM_PROMPT } from "./prompt.js";
 import { createHtmlCommentPuzzleTool } from "./tool.js";
 
 export async function createHtmlCommentAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "html-comment" });
 
     return new Agent({
         initialState: {

@@ -5,7 +5,7 @@ import { ANAGRAM_SYSTEM_PROMPT } from "./prompt.js";
 import { createAnagramPuzzleTool } from "./tool.js";
 
 export async function createAnagramAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "anagram" });
 
     return new Agent({
         initialState: {

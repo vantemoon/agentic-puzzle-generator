@@ -5,7 +5,7 @@ import { STATIC_URL_SYSTEM_PROMPT } from "./prompt.js";
 import { createStaticUrlPuzzleTool } from "./tool.js";
 
 export async function createStaticUrlAgent(): Promise<Agent> {
-    const { modelRuntime, model } = await loadKadiModel();
+    const { modelRuntime, model } = await loadKadiModel({ kind: "puzzle", subtype: "static-url" });
 
     return new Agent({
         initialState: {
