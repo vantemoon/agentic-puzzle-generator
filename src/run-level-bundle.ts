@@ -3,13 +3,18 @@ import { createWriteStream } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 
-import { createLevelBundleAgent } from "./agents/level-bundle/agent.js";
+import {
+    createLevelBundleAgent,
+    isLevelBundleToolName
+} from "./agents/level-bundle/agent.js";
 import type { LevelBundleSubmission } from "./agents/level-bundle/tool.js";
 import { loadLevelBundleInputs } from "./levels/bundle-inputs.js";
 import { buildLevelBundle } from "./levels/bundle-build.js";
 import { verifyLevelBundle } from "./levels/bundle-verify.js";
 import { repositoryPuzzleCatalog } from "./levels/catalog.js";
 import { resolveModelConfiguration } from "./core/model.js";
+import { scaledSupportingItemRange } from "./agents/level-bundle/limits.js";
+import { generateSupportingMedia } from "./agents/supporting-media/coordinator.js";
 
 function safeFileStem(id: string): string {
     const stem = id.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "");
@@ -32,6 +37,15 @@ function integerEnvironment(name: string, fallback: number): number {
     return value;
 }
 
+function toolResultText(result: { content?: Array<{ type: string; text?: string }> }): string | undefined {
+    const text = result.content
+        ?.filter((item) => item.type === "text" && typeof item.text === "string")
+        .map((item) => item.text)
+        .join("\n")
+        .trim();
+    return text === undefined || text.length === 0 ? undefined : text;
+}
+
 async function main(): Promise<void> {
     const [levelFile, ...extraArguments] = process.argv.slice(2);
     if (levelFile === undefined || extraArguments.length > 0) {
@@ -47,10 +61,31 @@ async function main(): Promise<void> {
     if (supportingItemsMinimum > supportingItemsMaximum) {
         throw new Error("LEVEL_BUNDLE_SUPPORTING_MIN cannot exceed LEVEL_BUNDLE_SUPPORTING_MAX.");
     }
+    const supportingItemsMinimumPerPuzzle = integerEnvironment(
+        "LEVEL_BUNDLE_SUPPORTING_PER_PUZZLE_MIN",
+        2
+    );
+    const supportingItemsMaximumPerPuzzle = integerEnvironment(
+        "LEVEL_BUNDLE_SUPPORTING_PER_PUZZLE_MAX",
+        3
+    );
+    if (supportingItemsMinimumPerPuzzle > supportingItemsMaximumPerPuzzle) {
+        throw new Error(
+            "LEVEL_BUNDLE_SUPPORTING_PER_PUZZLE_MIN cannot exceed " +
+            "LEVEL_BUNDLE_SUPPORTING_PER_PUZZLE_MAX."
+        );
+    }
+    const supportingRange = scaledSupportingItemRange({
+        puzzleCount: inputs.puzzles.length,
+        minimumFloor: supportingItemsMinimum,
+        maximumFloor: supportingItemsMaximum,
+        minimumPerPuzzle: supportingItemsMinimumPerPuzzle,
+        maximumPerPuzzle: supportingItemsMaximumPerPuzzle
+    });
     const options = {
         seed: process.env.LEVEL_BUNDLE_SEED || `${inputs.level.id}-bundle-v1`,
-        supportingItemsMinimum,
-        supportingItemsMaximum
+        supportingItemsMinimum: supportingRange.minimum,
+        supportingItemsMaximum: supportingRange.maximum
     };
     const modelSelection = resolveModelConfiguration("level-bundle");
     const logDirectory = path.resolve("generation-logs", safeFileStem(inputs.level.id));
@@ -75,13 +110,17 @@ async function main(): Promise<void> {
     process.stderr.write(`Generation log: ${logPath}\n`);
     const agent = await createLevelBundleAgent(inputs, repositoryPuzzleCatalog, options);
     let submission: LevelBundleSubmission | undefined;
+    let lastSubmissionError: string | undefined;
     agent.subscribe((event: AgentEvent) => {
         if (event.type !== "message_update") record("agent-event", event);
         if (event.type === "tool_execution_start") {
             process.stderr.write(`Agent is validating ${event.toolName} after ${Math.round((Date.now() - startedAt) / 1000)}s...\n`);
         }
-        if (event.type === "tool_execution_end" && event.toolName === "submit_level_bundle" && !event.isError) {
+        if (event.type === "tool_execution_end" && event.toolName === "finalize_level_bundle" && !event.isError) {
             submission = event.result.details as LevelBundleSubmission;
+        }
+        if (event.type === "tool_execution_end" && isLevelBundleToolName(event.toolName) && event.isError) {
+            lastSubmissionError = toolResultText(event.result);
         }
     });
 
@@ -94,8 +133,27 @@ async function main(): Promise<void> {
     try {
         await agent.prompt("Create and submit the validated level bundle now.");
         if (submission === undefined) {
-            throw new Error(agent.state.errorMessage || "The Level Bundle Agent did not submit a bundle.");
+            throw new Error(
+                lastSubmissionError
+                || agent.state.errorMessage
+                || "The Level Bundle Agent did not submit a bundle."
+            );
         }
+        const mediaResults = await generateSupportingMedia({
+            bundle: submission.bundle,
+            inputs,
+            onStatus: (message) => process.stderr.write(`${message}\n`),
+            onEvent: (event, request) => {
+                if (event.type !== "message_update") {
+                    record("supporting-media-agent-event", { requestId: request.id, event });
+                }
+            }
+        });
+        record("supporting-media-complete", {
+            generated: mediaResults.filter((result) => result.status === "generated").length,
+            reused: mediaResults.filter((result) => result.status === "reused").length,
+            assets: mediaResults.map((result) => result.asset.id)
+        });
         const build = await buildLevelBundle({
             bundle: submission.bundle,
             inputs,
@@ -107,14 +165,15 @@ async function main(): Promise<void> {
             inputs,
             publicDirectory: build.publicDirectory,
             privateDirectory: build.privateDirectory,
-            supportingItemsMinimum,
-            supportingItemsMaximum
+            supportingItemsMinimum: options.supportingItemsMinimum,
+            supportingItemsMaximum: options.supportingItemsMaximum
         });
         record("bundle-complete", { verification: verification.status });
         process.stdout.write(`Level bundle plan: ${submission.outputPath}\n`);
         process.stdout.write(`Public level bundle: ${build.publicDirectory}\n`);
         process.stdout.write(`Private build report: ${build.reportPath}\n`);
         process.stdout.write(`Bundle verification: ${verification.status}\n`);
+        process.stdout.write(`Preview command: npm run level:preview-bundle -- ${levelFile}\n`);
     } catch (error) {
         record("bundle-error", { message: error instanceof Error ? error.message : String(error) });
         throw error;

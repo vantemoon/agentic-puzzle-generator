@@ -12,7 +12,8 @@ async function main(): Promise<void> {
     const bundle = await readLevelBundleFile({
         filePath: levelBundlePlanPath(inputs.level.id),
         level: inputs.level,
-        catalog: repositoryPuzzleCatalog
+        catalog: repositoryPuzzleCatalog,
+        world: inputs.world
     });
     const result = await buildLevelBundle({ bundle, inputs, catalog: repositoryPuzzleCatalog });
     process.stdout.write(`Public level bundle: ${result.publicDirectory}\n`);

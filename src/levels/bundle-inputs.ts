@@ -197,7 +197,7 @@ export async function loadLevelBundleInputs(options: {
 
     const worldDirectory = path.resolve(options.worldDirectory ?? "worlds");
     const worldFile = path.join(worldDirectory, `${safeFileStem(level.world.id)}.world.json`);
-    const world = await readGameWorldFile(worldFile);
+    const world = await readGameWorldFile(worldFile, { revision: level.world.revision });
     const context = resolveLevelWorld(level.world, world);
     const generatedPuzzleDirectory = path.resolve(options.generatedPuzzleDirectory ?? "generated-puzzles");
 

@@ -7,10 +7,15 @@ import {
     type PuzzleCatalog
 } from "./catalog.js";
 import type { LevelBlueprint } from "./types.js";
+import {
+    WorldEntitySchema,
+    WorldFactSchema,
+    type GameWorld
+} from "../world/types.js";
 
 const closed = { additionalProperties: false } as const;
 
-export const LEVEL_BUNDLE_SCHEMA_VERSION = "1.0.0";
+export const LEVEL_BUNDLE_SCHEMA_VERSION = "2.0.0";
 
 export const BundlePlacementStrategySchema = Type.Union([
     Type.Literal("page-body"),
@@ -32,10 +37,106 @@ export const BundleSiteArchetypeSchema = Type.Union([
     Type.Literal("generic")
 ]);
 
+const BundleProseBlockSchema = Type.Object({
+    kind: Type.Literal("prose"),
+    heading: Type.Optional(Type.String({ minLength: 1 })),
+    paragraphs: Type.Array(Type.String({ minLength: 1 }), { minItems: 1 })
+}, closed);
+
+const BundleListBlockSchema = Type.Object({
+    kind: Type.Literal("list"),
+    heading: Type.Optional(Type.String({ minLength: 1 })),
+    items: Type.Array(Type.String({ minLength: 1 }), { minItems: 1 })
+}, closed);
+
+const BundleRecordBlockSchema = Type.Object({
+    kind: Type.Literal("records"),
+    heading: Type.Optional(Type.String({ minLength: 1 })),
+    entries: Type.Array(Type.Object({
+        label: Type.String({ minLength: 1 }),
+        value: Type.String({ minLength: 1 })
+    }, closed), { minItems: 1 })
+}, closed);
+
+const BundleTableBlockSchema = Type.Object({
+    kind: Type.Literal("table"),
+    heading: Type.Optional(Type.String({ minLength: 1 })),
+    columns: Type.Array(Type.String({ minLength: 1 }), { minItems: 1 }),
+    rows: Type.Array(Type.Array(Type.String({ minLength: 1 }), { minItems: 1 }), { minItems: 1 })
+}, closed);
+
+const BundleCardBlockSchema = Type.Object({
+    kind: Type.Literal("cards"),
+    heading: Type.Optional(Type.String({ minLength: 1 })),
+    items: Type.Array(Type.Object({
+        title: Type.String({ minLength: 1 }),
+        summary: Type.String({ minLength: 1 }),
+        href: Type.Optional(Type.String({ minLength: 1 }))
+    }, closed), { minItems: 1 })
+}, closed);
+
+const BundleMediaBlockSchema = Type.Object({
+    kind: Type.Literal("media"),
+    mediaId: Type.String({ minLength: 1 }),
+    caption: Type.Optional(Type.String({ minLength: 1 }))
+}, closed);
+
+export const BundleContentBlockSchema = Type.Union([
+    BundleProseBlockSchema,
+    BundleListBlockSchema,
+    BundleRecordBlockSchema,
+    BundleTableBlockSchema,
+    BundleCardBlockSchema,
+    BundleMediaBlockSchema
+]);
+
 export const BundlePageContentSchema = Type.Object({
     title: Type.String({ minLength: 1 }),
     description: Type.String({ minLength: 1 }),
-    body: Type.Array(Type.String({ minLength: 1 }), { minItems: 1 })
+    blocks: Type.Array(BundleContentBlockSchema, { minItems: 1 })
+}, closed);
+
+export const BundleSiteVisualProfileSchema = Type.Object({
+    tone: Type.Union([
+        Type.Literal("warm"),
+        Type.Literal("neutral"),
+        Type.Literal("formal"),
+        Type.Literal("playful"),
+        Type.Literal("artistic")
+    ]),
+    fontStyle: Type.Union([
+        Type.Literal("sans"),
+        Type.Literal("serif"),
+        Type.Literal("mixed"),
+        Type.Literal("mono-accent")
+    ]),
+    density: Type.Union([
+        Type.Literal("compact"),
+        Type.Literal("comfortable"),
+        Type.Literal("spacious")
+    ]),
+    accentColor: Type.String({ pattern: "^#[0-9a-fA-F]{6}$" }),
+    mediaStyle: Type.String({ minLength: 1 })
+}, closed);
+
+export const SupportingMediaRequestSchema = Type.Object({
+    id: Type.String({ minLength: 1 }),
+    siteId: Type.String({ minLength: 1 }),
+    routePath: Type.String({ minLength: 1 }),
+    kind: Type.Union([
+        Type.Literal("raster-image"),
+        Type.Literal("svg"),
+        Type.Literal("document")
+    ]),
+    purpose: Type.String({ minLength: 1 }),
+    brief: Type.String({ minLength: 1 }),
+    accessibilityText: Type.String({ minLength: 1 }),
+    worldEntityIds: Type.Array(Type.String({ minLength: 1 }), { minItems: 1 })
+}, closed);
+
+export const BundleWorldAdditionsSchema = Type.Object({
+    entities: Type.Array(WorldEntitySchema),
+    facts: Type.Array(WorldFactSchema)
 }, closed);
 
 export const BundleDiscoverySchema = Type.Object({
@@ -50,16 +151,34 @@ export const BundleDiscoverySchema = Type.Object({
     cue: Type.String({ minLength: 1 })
 }, closed);
 
-const SupportingRouteSchema = Type.Object({
+export const BundleNavigationPlacementSchema = Type.Union([
+    Type.Literal("primary"),
+    Type.Literal("secondary"),
+    Type.Literal("footer"),
+    Type.Literal("contextual"),
+    Type.Literal("hidden")
+]);
+
+export const SupportingRouteSchema = Type.Object({
     path: Type.String({ minLength: 1 }),
-    role: Type.Union([Type.Literal("supporting"), Type.Literal("structural")]),
+    role: Type.Literal("supporting"),
+    navigation: Type.Optional(BundleNavigationPlacementSchema),
     content: BundlePageContentSchema,
     discovery: Type.Optional(BundleDiscoverySchema)
 }, closed);
 
-const PuzzleRouteSchema = Type.Object({
+export const StructuralRouteSchema = Type.Object({
+    path: Type.String({ minLength: 1 }),
+    role: Type.Literal("structural"),
+    navigation: Type.Optional(BundleNavigationPlacementSchema),
+    content: BundlePageContentSchema,
+    discovery: Type.Optional(BundleDiscoverySchema)
+}, closed);
+
+export const PuzzleRouteSchema = Type.Object({
     path: Type.String({ minLength: 1 }),
     role: Type.Literal("puzzle"),
+    navigation: Type.Optional(BundleNavigationPlacementSchema),
     content: BundlePageContentSchema,
     puzzleId: Type.String({ minLength: 1 }),
     placement: BundlePlacementStrategySchema,
@@ -67,15 +186,17 @@ const PuzzleRouteSchema = Type.Object({
     discovery: Type.Optional(BundleDiscoverySchema)
 }, closed);
 
-const TerminalRouteSchema = Type.Object({
+export const TerminalRouteSchema = Type.Object({
     path: Type.String({ minLength: 1 }),
     role: Type.Literal("terminal"),
+    navigation: Type.Optional(BundleNavigationPlacementSchema),
     content: BundlePageContentSchema,
     discovery: Type.Optional(BundleDiscoverySchema)
 }, closed);
 
 export const BundleRouteSchema = Type.Union([
     SupportingRouteSchema,
+    StructuralRouteSchema,
     PuzzleRouteSchema,
     TerminalRouteSchema
 ]);
@@ -85,6 +206,7 @@ export const BundledSiteSchema = Type.Object({
     name: Type.String({ minLength: 1 }),
     worldEntityId: Type.Optional(Type.String({ minLength: 1 })),
     archetype: BundleSiteArchetypeSchema,
+    visualProfile: BundleSiteVisualProfileSchema,
     basePath: Type.String({ minLength: 1 }),
     routes: Type.Array(BundleRouteSchema, { minItems: 1 })
 }, closed);
@@ -98,6 +220,8 @@ export const LevelBundleSchema = Type.Object({
         asOf: Type.Optional(Type.String({ pattern: "^\\d{4}-\\d{2}-\\d{2}$" }))
     }, closed),
     seed: Type.String({ minLength: 1 }),
+    worldAdditions: BundleWorldAdditionsSchema,
+    mediaRequests: Type.Array(SupportingMediaRequestSchema),
     sites: Type.Array(BundledSiteSchema, { minItems: 1 }),
     terminal: Type.Object({
         siteId: Type.String({ minLength: 1 }),
@@ -108,7 +232,11 @@ export const LevelBundleSchema = Type.Object({
 
 export type BundlePlacement = Static<typeof BundlePlacementStrategySchema>;
 export type BundleSiteArchetype = Static<typeof BundleSiteArchetypeSchema>;
+export type BundleContentBlock = Static<typeof BundleContentBlockSchema>;
 export type BundlePageContent = Static<typeof BundlePageContentSchema>;
+export type BundleSiteVisualProfile = Static<typeof BundleSiteVisualProfileSchema>;
+export type SupportingMediaRequest = Static<typeof SupportingMediaRequestSchema>;
+export type BundleWorldAdditions = Static<typeof BundleWorldAdditionsSchema>;
 export type BundleDiscovery = Static<typeof BundleDiscoverySchema>;
 export type BundleRoute = Static<typeof BundleRouteSchema>;
 export type BundledSite = Static<typeof BundledSiteSchema>;
@@ -142,7 +270,8 @@ function fullRoutePath(basePath: string, routePath: string): string {
 export function validateLevelBundle(
     value: unknown,
     level: LevelBlueprint,
-    catalog: PuzzleCatalog
+    catalog: PuzzleCatalog,
+    world?: GameWorld
 ): string[] {
     if (!Value.Check(LevelBundleSchema, value)) {
         return ["Level bundle does not satisfy the canonical schema."];
@@ -167,13 +296,47 @@ export function validateLevelBundle(
         errors.push(`Duplicate bundled site base path: ${duplicate}.`);
     }
 
+    const baseEntityIds = new Set((world?.entities ?? []).map((entity) => entity.id));
+    if (world === undefined) {
+        for (const entityId of level.world.entityIds) baseEntityIds.add(entityId);
+    }
+    const addedEntityIds = bundle.worldAdditions.entities.map((entity) => entity.id);
+    const addedFactIds = bundle.worldAdditions.facts.map((fact) => fact.id);
+    for (const duplicate of duplicateValues(addedEntityIds)) {
+        errors.push(`Duplicate proposed world-entity ID: ${duplicate}.`);
+    }
+    for (const duplicate of duplicateValues(addedFactIds)) {
+        errors.push(`Duplicate proposed world-fact ID: ${duplicate}.`);
+    }
+    for (const entityId of addedEntityIds) {
+        if (baseEntityIds.has(entityId)) errors.push(`Proposed world entity ${entityId} already exists.`);
+    }
+    const baseFactIds = new Set((world?.facts ?? []).map((fact) => fact.id));
+    for (const factId of addedFactIds) {
+        if (baseFactIds.has(factId)) errors.push(`Proposed world fact ${factId} already exists.`);
+    }
+    const availableWorldEntities = new Set([...baseEntityIds, ...addedEntityIds]);
+    for (const fact of bundle.worldAdditions.facts) {
+        if (!availableWorldEntities.has(fact.subjectId)) {
+            errors.push(`Proposed world fact ${fact.id} references missing subject ${fact.subjectId}.`);
+        }
+        if (fact.value.kind === "entity" && !availableWorldEntities.has(fact.value.entityId)) {
+            errors.push(`Proposed world fact ${fact.id} references missing entity ${fact.value.entityId}.`);
+        }
+    }
+
+    for (const duplicate of duplicateValues(bundle.mediaRequests.map((request) => request.id))) {
+        errors.push(`Duplicate supporting-media request ID: ${duplicate}.`);
+    }
+
     const fullPaths: string[] = [];
     const directAssetPaths: string[] = [];
     const routeByFullPath = new Map<string, BundleRoute>();
     const placedPuzzleIds: string[] = [];
     const terminalRoutes: Array<{ siteId: string; path: string }> = [];
     const levelPuzzleIds = new Set(level.puzzles.map((puzzle) => puzzle.id));
-    const selectedWorldEntities = new Set(level.world.entityIds);
+    const selectedWorldEntities = new Set([...level.world.entityIds, ...addedEntityIds]);
+    const mediaBlockLocations = new Map<string, Array<{ siteId: string; routePath: string }>>();
 
     for (const site of bundle.sites) {
         if (!safePublicPath(site.basePath)) {
@@ -192,6 +355,30 @@ export function validateLevelBundle(
             const publicPath = fullRoutePath(site.basePath, route.path);
             fullPaths.push(publicPath);
             routeByFullPath.set(publicPath, route);
+            for (const block of route.content.blocks) {
+                if (block.kind === "table") {
+                    for (const [index, row] of block.rows.entries()) {
+                        if (row.length !== block.columns.length) {
+                            errors.push(
+                                `Table row ${index + 1} on ${publicPath} has ${row.length} cells; `
+                                + `expected ${block.columns.length}.`
+                            );
+                        }
+                    }
+                }
+                if (block.kind === "cards") {
+                    for (const item of block.items) {
+                        if (item.href !== undefined && !safePublicPath(item.href)) {
+                            errors.push(`Card on ${publicPath} has unsafe link ${item.href}.`);
+                        }
+                    }
+                }
+                if (block.kind === "media") {
+                    const locations = mediaBlockLocations.get(block.mediaId) ?? [];
+                    locations.push({ siteId: site.id, routePath: route.path });
+                    mediaBlockLocations.set(block.mediaId, locations);
+                }
+            }
             if (route.role === "terminal") terminalRoutes.push({ siteId: site.id, path: route.path });
             if (route.role !== "puzzle") continue;
 
@@ -229,6 +416,43 @@ export function validateLevelBundle(
     }
     for (const assetPath of directAssetPaths) {
         if (fullPaths.includes(assetPath)) errors.push(`Direct asset path ${assetPath} conflicts with a public page route.`);
+    }
+
+    const sitesById = new Map(bundle.sites.map((site) => [site.id, site]));
+    const requestsById = new Map(bundle.mediaRequests.map((request) => [request.id, request]));
+    for (const request of bundle.mediaRequests) {
+        const site = sitesById.get(request.siteId);
+        if (site === undefined) {
+            errors.push(`Supporting-media request ${request.id} references missing site ${request.siteId}.`);
+        } else if (!site.routes.some((route) => route.path === request.routePath)) {
+            errors.push(
+                `Supporting-media request ${request.id} references missing route ${request.routePath} `
+                + `on site ${request.siteId}.`
+            );
+        }
+        for (const duplicate of duplicateValues(request.worldEntityIds)) {
+            errors.push(`Supporting-media request ${request.id} repeats world entity ${duplicate}.`);
+        }
+        for (const entityId of request.worldEntityIds) {
+            if (!availableWorldEntities.has(entityId)) {
+                errors.push(`Supporting-media request ${request.id} references missing world entity ${entityId}.`);
+            }
+        }
+        const locations = mediaBlockLocations.get(request.id) ?? [];
+        if (locations.length === 0) {
+            errors.push(`Supporting-media request ${request.id} is not placed in page content.`);
+        }
+        for (const location of locations) {
+            if (location.siteId !== request.siteId || location.routePath !== request.routePath) {
+                errors.push(
+                    `Supporting-media request ${request.id} is placed on ${location.siteId}${location.routePath}, `
+                    + `not its declared route ${request.siteId}${request.routePath}.`
+                );
+            }
+        }
+    }
+    for (const mediaId of mediaBlockLocations.keys()) {
+        if (!requestsById.has(mediaId)) errors.push(`Page content references missing supporting media ${mediaId}.`);
     }
 
     const startingSources = new Set(level.startingInputs.map((input) => `starting-input:${input.id}`));
@@ -288,8 +512,9 @@ export function validateLevelBundle(
 export function assertLevelBundle(
     value: unknown,
     level: LevelBlueprint,
-    catalog: PuzzleCatalog
+    catalog: PuzzleCatalog,
+    world?: GameWorld
 ): asserts value is LevelBundle {
-    const errors = validateLevelBundle(value, level, catalog);
+    const errors = validateLevelBundle(value, level, catalog, world);
     if (errors.length > 0) throw new Error(`Invalid level bundle:\n- ${errors.join("\n- ")}`);
 }

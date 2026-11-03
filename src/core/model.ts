@@ -8,6 +8,9 @@ export type ModelTask =
     | "level-design"
     | "level-review"
     | "level-bundle"
+    | "supporting-media-raster"
+    | "supporting-media-svg"
+    | "supporting-media-document"
     | { kind: "puzzle"; subtype: string };
 
 export interface ModelSelection {
@@ -58,7 +61,14 @@ export function parseModelConfigurationFile(value: unknown): ModelConfigurationF
     };
     if (value.tasks !== undefined) {
         if (!isRecord(value.tasks)) throw new Error("tasks must be an object.");
-        assertKnownKeys(value.tasks, ["level-design", "level-review", "level-bundle"], "tasks");
+        assertKnownKeys(value.tasks, [
+            "level-design",
+            "level-review",
+            "level-bundle",
+            "supporting-media-raster",
+            "supporting-media-svg",
+            "supporting-media-document"
+        ], "tasks");
         configuration.tasks = Object.fromEntries(
             Object.entries(value.tasks).map(([name, selection]) => [name, parseSelection(selection, `tasks.${name}`)])
         );

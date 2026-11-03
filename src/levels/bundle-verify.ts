@@ -5,7 +5,7 @@ import { isDeepStrictEqual } from "node:util";
 
 import type { PrivatePuzzleInstance } from "../core/types.js";
 import type { LevelBundleInputs } from "./bundle-inputs.js";
-import type { PublicBundleManifest } from "./bundle-build.js";
+import { selectBundleStartingRoutes, type PublicBundleManifest } from "./bundle-build.js";
 import type { BundleRoute, BundledSite, LevelBundle } from "./bundle.js";
 import { BUNDLE_SECURITY_HEADERS } from "./bundle-security.js";
 
@@ -123,19 +123,21 @@ export async function verifyLevelBundle(options: {
         ...manifest.routes.map((entry) => entry.path),
         ...manifest.assets.map((entry) => entry.path),
         "/bundle.manifest.json",
+        "/api/search",
         "/api/validate"
     ]);
 
     const minimum = options.supportingItemsMinimum ?? 10;
     const maximum = options.supportingItemsMaximum ?? 15;
-    for (const site of options.bundle.sites) {
-        const count = site.routes.filter((route) => route.role === "supporting").length;
-        if (count < minimum || count > maximum) {
-            issues.push({
-                code: "supporting-depth",
-                message: `Site ${site.id} has ${count} supporting items; expected ${minimum}-${maximum}.`
-            });
-        }
+    const supportingCount = options.bundle.sites.reduce(
+        (count, site) => count + site.routes.filter((route) => route.role === "supporting").length,
+        0
+    );
+    if (supportingCount < minimum || supportingCount > maximum) {
+        issues.push({
+            code: "supporting-depth",
+            message: `Level bundle has ${supportingCount} supporting items; expected ${minimum}-${maximum} in total.`
+        });
     }
 
     const routeSources = new Map<string, string>();
@@ -255,10 +257,16 @@ export async function verifyLevelBundle(options: {
     }
 
     const rootSource = routeSources.get("/") ?? "";
+    const startingDestinations = new Map(selectBundleStartingRoutes(
+        options.bundle,
+        options.inputs.level.startingInputs.map((input) => input.id)
+    ).map((entry) => [`starting-input:${entry.inputId}`, entry.publicPath]));
     for (const site of options.bundle.sites) {
         for (const route of site.routes) {
             const destination = fullRoutePath(site, route);
             for (const source of route.discovery?.from ?? []) {
+                if (source.startsWith("starting-input:")
+                    && startingDestinations.get(source) !== destination) continue;
                 const sourceHtml = source.startsWith("starting-input:") ? rootSource : routeSources.get(source) ?? "";
                 if (!sourceHtml.includes(destination)) {
                     issues.push({

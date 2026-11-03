@@ -7,8 +7,10 @@ import { describe, expect, it } from "vitest";
 import { createHtmlCommentPuzzle } from "../src/agents/html-comment/engine.js";
 import { createPageVersionPuzzle } from "../src/agents/page-version/engine.js";
 import { createQrCodePuzzle } from "../src/agents/qr-code/engine.js";
+import { generateRasterMedia } from "../src/agents/supporting-media/engine.js";
+import { writeWorldMediaAsset } from "../src/agents/supporting-media/library.js";
 import type { LevelBundleInputs } from "../src/levels/bundle-inputs.js";
-import { buildLevelBundle } from "../src/levels/bundle-build.js";
+import { buildLevelBundle, selectBundleStartingRoutes } from "../src/levels/bundle-build.js";
 import { createBundlePreviewServer, validateTerminalSubmission } from "../src/levels/bundle-server.js";
 import { BundleVerificationError, verifyLevelBundle } from "../src/levels/bundle-verify.js";
 import { LEVEL_BUNDLE_SCHEMA_VERSION, type LevelBundle } from "../src/levels/bundle.js";
@@ -21,6 +23,7 @@ function buildFixture(): { inputs: LevelBundleInputs; bundle: LevelBundle } {
     const node = structuredClone(levelFixture.puzzles[0]);
     const level = structuredClone(levelFixture) as LevelBlueprint;
     level.puzzles = [node];
+    level.startingInputs = [level.startingInputs[0]];
     level.terminalAction.fields = [{
         id: "project",
         label: "Project name",
@@ -65,7 +68,10 @@ function buildFixture(): { inputs: LevelBundleInputs; bundle: LevelBundle } {
         content: {
             title: `Community update ${index + 1}`,
             description: "A routine public community update.",
-            body: ["Staff shared schedules and general volunteer information with local residents."]
+            blocks: [{
+                kind: "prose" as const,
+                paragraphs: ["Staff shared schedules and general volunteer information with local residents."]
+            }]
         },
         discovery: rootDiscovery
     }));
@@ -74,11 +80,20 @@ function buildFixture(): { inputs: LevelBundleInputs; bundle: LevelBundle } {
         levelId: level.id,
         world: { id: level.world.id, revision: level.world.revision },
         seed: "builder-test",
+        worldAdditions: { entities: [], facts: [] },
+        mediaRequests: [],
         sites: [{
             id: "records",
             name: "Riverside Community Records",
             worldEntityId: "site:community-notices",
             archetype: "organization",
+            visualProfile: {
+                tone: "formal",
+                fontStyle: "sans",
+                density: "comfortable",
+                accentColor: "#315d72",
+                mediaStyle: "Natural civic documentary photography"
+            },
             basePath: "/records",
             routes: [{
                 path: "/",
@@ -86,7 +101,19 @@ function buildFixture(): { inputs: LevelBundleInputs; bundle: LevelBundle } {
                 content: {
                     title: "Community records",
                     description: "Public notices and community information.",
-                    body: ["Browse recent notices, reports, and public updates."]
+                    blocks: [
+                        { kind: "prose", paragraphs: ["Browse recent notices, reports, and public updates."] },
+                        {
+                            kind: "records",
+                            heading: "Office information",
+                            entries: [{ label: "Public desk", value: "Open weekdays" }]
+                        }
+                    ]
+                },
+                discovery: {
+                    kind: "stable-path",
+                    from: [`starting-input:${level.startingInputs[0].id}`],
+                    cue: "Open the supplied community records URL."
                 }
             }, ...supporting, {
                 path: "/notices/cleanup",
@@ -94,7 +121,7 @@ function buildFixture(): { inputs: LevelBundleInputs; bundle: LevelBundle } {
                 content: {
                     title: "Weekend volunteer notice",
                     description: "A notice about a recent volunteer event.",
-                    body: ["The archived notice is reproduced below."]
+                    blocks: [{ kind: "prose", paragraphs: ["The archived notice is reproduced below."] }]
                 },
                 puzzleId: node.id,
                 placement: "native-html",
@@ -105,7 +132,7 @@ function buildFixture(): { inputs: LevelBundleInputs; bundle: LevelBundle } {
                 content: {
                     title: "Submit the record finding",
                     description: "Send the identified project name.",
-                    body: ["Complete the field to finish the records request."]
+                    blocks: [{ kind: "prose", paragraphs: ["Complete the field to finish the records request."] }]
                 },
                 discovery: {
                     kind: "direct-link",
@@ -117,6 +144,26 @@ function buildFixture(): { inputs: LevelBundleInputs; bundle: LevelBundle } {
         terminal: { siteId: "records", routePath: "/submit", mode: "validation-api" }
     };
     return { inputs, bundle };
+}
+
+function supportingMediaFixture(): { inputs: LevelBundleInputs; bundle: LevelBundle } {
+    const fixture = buildFixture();
+    fixture.bundle.mediaRequests.push({
+        id: "records-building",
+        siteId: "records",
+        routePath: "/",
+        kind: "raster-image",
+        purpose: "Establish the records office",
+        brief: "A documentary exterior view of the community records office",
+        accessibilityText: "Exterior of the community records office",
+        worldEntityIds: ["site:community-notices"]
+    });
+    fixture.bundle.sites[0].routes[0].content.blocks.push({
+        kind: "media",
+        mediaId: "records-building",
+        caption: "Community records office"
+    });
+    return fixture;
 }
 
 function qrFixture(): { inputs: LevelBundleInputs; bundle: LevelBundle; svg: string } {
@@ -190,10 +237,56 @@ function versionFixture(): { inputs: LevelBundleInputs; bundle: LevelBundle; cur
 }
 
 describe("level bundle builder", () => {
+    it("opens the first setting's homepage when a legacy bundle maps one input to several routes", () => {
+        const fixture = buildFixture();
+        const source = `starting-input:${fixture.inputs.level.startingInputs[0].id}`;
+        fixture.bundle.sites.push({
+            id: "later-site",
+            name: "Later Site",
+            archetype: "blog",
+            visualProfile: {
+                tone: "artistic",
+                fontStyle: "serif",
+                density: "comfortable",
+                accentColor: "#694f70",
+                mediaStyle: "Informal editorial photography"
+            },
+            basePath: "/later",
+            routes: [{
+                path: "/",
+                role: "structural",
+                content: {
+                    title: "Later homepage",
+                    description: "A downstream site.",
+                    blocks: [{ kind: "prose", paragraphs: ["Downstream information."] }]
+                },
+                discovery: {
+                    kind: "stable-path",
+                    from: [source],
+                    cue: "Open the downstream site."
+                }
+            }]
+        });
+
+        expect(selectBundleStartingRoutes(fixture.bundle, [fixture.inputs.level.startingInputs[0].id]))
+            .toEqual([expect.objectContaining({ publicPath: "/records" })]);
+    });
+
     it("builds a deterministic public site while keeping private mappings separate", async () => {
         const root = await mkdtemp(path.join(os.tmpdir(), "bundle-build-"));
         try {
             const fixture = buildFixture();
+            const contextualRoute = fixture.bundle.sites[0].routes.find(
+                (route) => route.path === "/news/update-1"
+            );
+            const footerRoute = fixture.bundle.sites[0].routes.find(
+                (route) => route.path === "/news/update-2"
+            );
+            if (contextualRoute === undefined || footerRoute === undefined) {
+                throw new Error("Missing navigation-classification fixtures.");
+            }
+            contextualRoute.navigation = "contextual";
+            footerRoute.navigation = "footer";
             const first = await buildLevelBundle({
                 ...fixture,
                 catalog: repositoryPuzzleCatalog,
@@ -202,11 +295,43 @@ describe("level bundle builder", () => {
             const puzzlePage = path.join(first.publicDirectory, "records", "notices", "cleanup", "index.html");
             const terminalPage = path.join(first.publicDirectory, "records", "submit", "index.html");
             const puzzleSource = await readFile(puzzlePage, "utf8");
+            const homeSource = await readFile(
+                path.join(first.publicDirectory, "records", "index.html"),
+                "utf8"
+            );
+            const indexSource = await readFile(path.join(first.publicDirectory, "index.html"), "utf8");
+            const sharedStyles = await readFile(
+                path.join(first.publicDirectory, "assets", "site.css"),
+                "utf8"
+            );
             const manifestSource = await readFile(first.manifestPath, "utf8");
             const reportSource = await readFile(first.reportPath, "utf8");
 
             expect(puzzleSource).toContain("RIVER CLEANUP");
             expect(puzzleSource).toContain("<!--");
+            expect(puzzleSource).not.toContain(">puzzle<");
+            expect(homeSource).toContain("<dl>");
+            expect(homeSource).not.toContain("Open the linked public record.");
+            expect(homeSource).toContain('data-archetype="organization"');
+            expect(homeSource).toContain('class="breadcrumbs"');
+            expect(homeSource).toContain('class="skip-link"');
+            expect(homeSource).not.toContain("Submit findings");
+            const primaryNavigation = homeSource.match(
+                /<nav class="primary-nav"[\s\S]*?<\/nav>/
+            )?.[0];
+            expect(primaryNavigation).toBeDefined();
+            expect(primaryNavigation).not.toContain("Community update 1");
+            expect(primaryNavigation).not.toContain("Community update 2");
+            expect(homeSource).toContain('<nav aria-label="Footer"><a href="/records/news/update-2">');
+            expect(homeSource).toContain('href="/assets/site-1.css"');
+            expect(homeSource).not.toContain('style="--site-accent:');
+            expect(await readFile(path.join(first.publicDirectory, "assets", "site-1.css"), "utf8"))
+                .toContain(`--site-accent:${fixture.bundle.sites[0].visualProfile.accentColor}`);
+            expect(indexSource).toContain('target="_blank" rel="noopener"');
+            expect(indexSource).toContain("Begin investigation");
+            expect(indexSource).not.toContain('class="bundle-site-grid"');
+            expect(sharedStyles).toContain('body[data-archetype="blog"]');
+            expect(sharedStyles).toContain('body[data-archetype="gallery"]');
             expect(await readFile(terminalPage, "utf8")).toContain('action="/api/validate"');
             expect(manifestSource).not.toContain("find-project-name");
             expect(manifestSource).not.toContain("RIVER CLEANUP");
@@ -293,6 +418,69 @@ describe("level bundle builder", () => {
         }
     });
 
+    it("materializes reusable supporting media from the world library", async () => {
+        const root = await mkdtemp(path.join(os.tmpdir(), "bundle-supporting-media-"));
+        try {
+            const fixture = supportingMediaFixture();
+            const mediaRoot = path.join(root, "world-media");
+            const generated = generateRasterMedia({
+                backgroundColor: "#c9d8df",
+                elements: [
+                    "rect|90|90|460|220|#d9d1c2|1|8",
+                    "rect|130|130|90|180|#617985|1|2",
+                    "rect|270|130|90|80|#8aa6b2|1|2",
+                    "rect|400|130|90|80|#8aa6b2|1|2"
+                ]
+            });
+            await writeWorldMediaAsset({
+                worldId: fixture.inputs.world.id,
+                rootDirectory: mediaRoot,
+                generated,
+                asset: {
+                    id: "records-building",
+                    kind: "raster-image",
+                    mediaType: "image/png",
+                    worldEntityIds: ["site:community-notices"],
+                    purpose: "Establish the records office",
+                    accessibilityText: "Exterior of the community records office",
+                    source: {
+                        levelId: fixture.inputs.level.id,
+                        siteId: "records",
+                        routePath: "/"
+                    },
+                    generator: {
+                        task: "supporting-media-raster",
+                        modelId: "test-model",
+                        providerId: "test-provider"
+                    }
+                }
+            });
+
+            const result = await buildLevelBundle({
+                ...fixture,
+                catalog: repositoryPuzzleCatalog,
+                outputDirectory: path.join(root, "bundle"),
+                worldMediaDirectory: mediaRoot
+            });
+            const mediaPath = path.join(
+                result.publicDirectory,
+                "assets",
+                "supporting",
+                "records-building.png"
+            );
+            expect((await readFile(mediaPath)).subarray(1, 4).toString("ascii")).toBe("PNG");
+            const home = await readFile(path.join(result.publicDirectory, "records", "index.html"), "utf8");
+            expect(home).toContain('src="/assets/supporting/records-building.png"');
+            expect(home).toContain('alt="Exterior of the community records office"');
+            expect(result.manifest.assets).toContainEqual(expect.objectContaining({
+                path: "/assets/supporting/records-building.png",
+                mediaType: "image/png"
+            }));
+        } finally {
+            await rm(root, { recursive: true, force: true });
+        }
+    });
+
     it("preserves every version file and links it from the contextual page", async () => {
         const root = await mkdtemp(path.join(os.tmpdir(), "bundle-versions-"));
         try {
@@ -349,13 +537,49 @@ describe("level bundle preview and terminal validation", () => {
             catalog: repositoryPuzzleCatalog,
             outputDirectory: root
         });
-        const server = createBundlePreviewServer({ publicDirectory: build.publicDirectory, inputs: fixture.inputs });
+        const server = createBundlePreviewServer({
+            publicDirectory: build.publicDirectory,
+            inputs: fixture.inputs,
+            bundle: fixture.bundle
+        });
         try {
             expect(server.listening).toBe(false);
             expect(typeof server.listen).toBe("function");
             await expect(readFile(path.join(build.publicDirectory, "records", "index.html"), "utf8"))
                 .resolves.toContain("Riverside Community Records");
+            await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+            const address = server.address();
+            if (address === null || typeof address === "string") throw new Error("Missing preview-server port.");
+            const origin = `http://127.0.0.1:${address.port}`;
+            const target = "/records/notices/cleanup";
+            const wrongSearch = await fetch(
+                `${origin}/api/search?target=${encodeURIComponent(target)}&q=wrong`,
+                { redirect: "manual" }
+            );
+            expect(wrongSearch.status).toBe(200);
+            expect(await wrongSearch.text()).toContain("No matching results");
+            const correctQuery = String(fixture.inputs.level.startingInputs[0].value);
+            const correctSearch = await fetch(
+                `${origin}/api/search?target=${encodeURIComponent(target)}&q=${encodeURIComponent(correctQuery)}`,
+                { redirect: "manual" }
+            );
+            expect(correctSearch.status).toBe(303);
+            expect(correctSearch.headers.get("location")).toBe(target);
+            const completion = await fetch(`${origin}/api/validate`, {
+                method: "POST",
+                headers: { "content-type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({
+                    levelId: fixture.inputs.level.id,
+                    project: "RIVER CLEANUP",
+                    returnPath: "/records/submit"
+                })
+            });
+            const completionSource = await completion.text();
+            expect(completion.status).toBe(200);
+            expect(completionSource).toContain("Investigation Complete");
+            expect(completionSource).toContain('href="/assets/site.css"');
         } finally {
+            if (server.listening) await new Promise<void>((resolve) => server.close(() => resolve()));
             await rm(root, { recursive: true, force: true });
         }
     });

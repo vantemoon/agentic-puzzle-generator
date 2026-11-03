@@ -20,7 +20,12 @@ async function main(): Promise<void> {
     }
     const inputs = await loadLevelBundleInputs({ levelFile, catalog: repositoryPuzzleCatalog });
     const planPath = levelBundlePlanPath(inputs.level.id);
-    const bundle = await readLevelBundleFile({ filePath: planPath, level: inputs.level, catalog: repositoryPuzzleCatalog });
+    const bundle = await readLevelBundleFile({
+        filePath: planPath,
+        level: inputs.level,
+        catalog: repositoryPuzzleCatalog,
+        world: inputs.world
+    });
     const rootDirectory = path.dirname(planPath);
     const report = await verifyLevelBundle({
         bundle,

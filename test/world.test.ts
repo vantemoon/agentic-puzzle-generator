@@ -1,11 +1,15 @@
-import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { readGameWorldFile, writeGameWorldFile } from "../src/world/io.js";
-import type { GameWorld } from "../src/world/types.js";
-import { assertGameWorld, validateGameWorld } from "../src/world/validator.js";
+import type { GameWorld, GameWorldFile, WorldRevisionAdditions } from "../src/world/types.js";
+import {
+    assertGameWorld,
+    validateGameWorld,
+    validateGameWorldFile
+} from "../src/world/validator.js";
 
 const WORLD_FIXTURE: GameWorld = {
     schemaVersion: "1.0.0",
@@ -123,6 +127,122 @@ describe("game-world metadata", () => {
         expect(outputPath).toBe(path.join(outputDirectory, "test-world.world.json"));
         expect(JSON.parse(await readFile(outputPath, "utf8"))).toEqual(WORLD_FIXTURE);
         await expect(readGameWorldFile(outputPath)).resolves.toEqual(WORLD_FIXTURE);
+    });
+
+    it("resolves immutable addition files through a requested revision", async () => {
+        const outputDirectory = await mkdtemp(path.join(os.tmpdir(), "versioned-game-world-"));
+        const revisionsDirectory = path.join(outputDirectory, "test-world", "revisions");
+        await mkdir(revisionsDirectory, { recursive: true });
+        const root: GameWorldFile = {
+            ...copyWorld(),
+            revisionPointers: [
+                {
+                    revision: "2",
+                    parentRevision: "1",
+                    file: "test-world/revisions/revision-2.additions.json"
+                },
+                {
+                    revision: "3",
+                    parentRevision: "2",
+                    file: "test-world/revisions/revision-3.additions.json"
+                }
+            ]
+        };
+        const revision2: WorldRevisionAdditions = {
+            schemaVersion: "1.0.0",
+            worldId: "test-world",
+            revision: "2",
+            parentRevision: "1",
+            introducedBy: "level:archive-annex",
+            entities: [{ id: "place:annex", type: "place", name: "Archive Annex" }],
+            facts: [{
+                id: "fact:annex-owner",
+                subjectId: "place:annex",
+                relation: "operated-by",
+                value: { kind: "entity", entityId: "organization:archive" }
+            }]
+        };
+        const revision3: WorldRevisionAdditions = {
+            schemaVersion: "1.0.0",
+            worldId: "test-world",
+            revision: "3",
+            parentRevision: "2",
+            introducedBy: "level:annex-opening",
+            entities: [],
+            facts: [{
+                id: "fact:annex-opened",
+                subjectId: "place:annex",
+                relation: "opened-on",
+                value: { kind: "literal", value: "2026-06-14" }
+            }]
+        };
+        const rootPath = await writeGameWorldFile({ world: root, outputDirectory });
+        await writeFile(
+            path.join(revisionsDirectory, "revision-2.additions.json"),
+            JSON.stringify(revision2),
+            "utf8"
+        );
+        await writeFile(
+            path.join(revisionsDirectory, "revision-3.additions.json"),
+            JSON.stringify(revision3),
+            "utf8"
+        );
+
+        await expect(readGameWorldFile(rootPath)).resolves.toEqual(WORLD_FIXTURE);
+        const resolved = await readGameWorldFile(rootPath, { revision: "3" });
+        expect(resolved.revision).toBe("3");
+        expect(resolved.entities.at(-1)?.id).toBe("place:annex");
+        expect(resolved.facts.slice(-2).map((fact) => fact.id)).toEqual([
+            "fact:annex-owner",
+            "fact:annex-opened"
+        ]);
+    });
+
+    it("rejects broken revision chains and unsafe pointers", () => {
+        expect(validateGameWorldFile({
+            ...copyWorld(),
+            revisionPointers: [{
+                revision: "2",
+                parentRevision: "missing",
+                file: "../outside.json"
+            }]
+        })).toEqual(expect.arrayContaining([
+            "World revision 2 has parent missing; expected 1.",
+            "World revision 2 has unsafe file pointer ../outside.json."
+        ]));
+    });
+
+    it("rejects missing revisions and additions that redefine canon", async () => {
+        const outputDirectory = await mkdtemp(path.join(os.tmpdir(), "invalid-world-revision-"));
+        const revisionDirectory = path.join(outputDirectory, "revisions");
+        await mkdir(revisionDirectory);
+        const rootPath = await writeGameWorldFile({
+            world: {
+                ...copyWorld(),
+                revisionPointers: [{
+                    revision: "2",
+                    parentRevision: "1",
+                    file: "revisions/revision-2.additions.json"
+                }]
+            },
+            outputDirectory
+        });
+        await writeFile(path.join(revisionDirectory, "revision-2.additions.json"), JSON.stringify({
+            schemaVersion: "1.0.0",
+            worldId: "test-world",
+            revision: "2",
+            parentRevision: "1",
+            introducedBy: "level:duplicate-rowan",
+            entities: [{ id: "person:rowan", type: "person", name: "Different Rowan" }],
+            facts: []
+        }), "utf8");
+
+        await expect(readGameWorldFile(rootPath, { revision: "missing" })).rejects.toThrow(
+            "has no revision missing"
+        );
+        await expect(readGameWorldFile(rootPath, { revision: "2" })).rejects.toThrow(
+            "redefines entity person:rowan"
+        );
     });
 
     it("refuses to read or write invalid worlds", async () => {

@@ -55,8 +55,36 @@ export const GameWorldSchema = Type.Object({
     facts: Type.Array(WorldFactSchema)
 }, closed);
 
+export const WorldRevisionPointerSchema = Type.Object({
+    revision: Type.String({ minLength: 1 }),
+    parentRevision: Type.String({ minLength: 1 }),
+    file: Type.String({ minLength: 1 })
+}, closed);
+
+export const GameWorldFileSchema = Type.Object({
+    schemaVersion: Type.String({ minLength: 1 }),
+    id: Type.String({ minLength: 1 }),
+    revision: Type.String({ minLength: 1 }),
+    entities: Type.Array(WorldEntitySchema),
+    facts: Type.Array(WorldFactSchema),
+    revisionPointers: Type.Optional(Type.Array(WorldRevisionPointerSchema))
+}, closed);
+
+export const WorldRevisionAdditionsSchema = Type.Object({
+    schemaVersion: Type.String({ minLength: 1 }),
+    worldId: Type.String({ minLength: 1 }),
+    revision: Type.String({ minLength: 1 }),
+    parentRevision: Type.String({ minLength: 1 }),
+    introducedBy: Type.String({ minLength: 1 }),
+    entities: Type.Array(WorldEntitySchema),
+    facts: Type.Array(WorldFactSchema)
+}, closed);
+
 export type WorldEntityType = Static<typeof WorldEntityTypeSchema>;
 export type WorldEntity = Static<typeof WorldEntitySchema>;
 export type WorldFactValue = Static<typeof WorldFactValueSchema>;
 export type WorldFact = Static<typeof WorldFactSchema>;
 export type GameWorld = Static<typeof GameWorldSchema>;
+export type WorldRevisionPointer = Static<typeof WorldRevisionPointerSchema>;
+export type GameWorldFile = Static<typeof GameWorldFileSchema>;
+export type WorldRevisionAdditions = Static<typeof WorldRevisionAdditionsSchema>;

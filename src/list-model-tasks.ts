@@ -1,7 +1,14 @@
 import { repositoryPuzzleCatalog } from "./levels/catalog.js";
 
-process.stdout.write("Level tasks:\n");
-for (const task of ["level-design", "level-review", "level-bundle"]) {
+process.stdout.write("Agent tasks:\n");
+for (const task of [
+    "level-design",
+    "level-review",
+    "level-bundle",
+    "supporting-media-raster",
+    "supporting-media-svg",
+    "supporting-media-document"
+]) {
     process.stdout.write(`  ${task}\n`);
 }
 

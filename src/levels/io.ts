@@ -32,7 +32,7 @@ export async function loadLevelDesignInputs(options: {
     const request = await readLevelDesignRequestFile(path.resolve(options.requestFile));
     const worldDirectory = path.resolve(options.worldDirectory ?? "worlds");
     const worldFile = path.join(worldDirectory, `${safeFileStem(request.world.id)}.world.json`);
-    const world = await readGameWorldFile(worldFile);
+    const world = await readGameWorldFile(worldFile, { revision: request.world.revision });
     const context = resolveLevelWorld(request.world, world);
     return { request, world, context, worldFile };
 }

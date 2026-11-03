@@ -106,4 +106,48 @@ describe("level world references", () => {
         expect(loaded.context.facts).toEqual(WORLD.facts);
         expect(loaded.worldFile).toBe(path.join(worldDirectory, "test-world.world.json"));
     });
+
+    it("loads the world revision pinned by the request", async () => {
+        const root = await mkdtemp(path.join(os.tmpdir(), "level-world-revision-"));
+        const worldDirectory = path.join(root, "worlds");
+        const revisionDirectory = path.join(worldDirectory, "test-world", "revisions");
+        await mkdir(revisionDirectory, { recursive: true });
+        const requestFile = path.join(root, "level.request.json");
+        const revisedRequest = request();
+        revisedRequest.world = {
+            id: "test-world",
+            revision: "2",
+            entityIds: ["object:photo-album", "place:history-room", "site:album-catalog"],
+            factIds: ["fact:album-location", "fact:catalog-lists-album"],
+            asOf: "2026-04-12"
+        };
+        await writeFile(requestFile, JSON.stringify(revisedRequest), "utf8");
+        await writeFile(path.join(worldDirectory, "test-world.world.json"), JSON.stringify({
+            ...WORLD,
+            revisionPointers: [{
+                revision: "2",
+                parentRevision: "1",
+                file: "test-world/revisions/revision-2.additions.json"
+            }]
+        }), "utf8");
+        await writeFile(path.join(revisionDirectory, "revision-2.additions.json"), JSON.stringify({
+            schemaVersion: "1.0.0",
+            worldId: "test-world",
+            revision: "2",
+            parentRevision: "1",
+            introducedBy: "level:catalog-launch",
+            entities: [{ id: "site:album-catalog", type: "site", name: "Album Catalog" }],
+            facts: [{
+                id: "fact:catalog-lists-album",
+                subjectId: "site:album-catalog",
+                relation: "lists",
+                value: { kind: "entity", entityId: "object:photo-album" }
+            }]
+        }), "utf8");
+
+        const loaded = await loadLevelDesignInputs({ requestFile, worldDirectory });
+        expect(loaded.world.revision).toBe("2");
+        expect(loaded.context.entities.map((entity) => entity.id)).toContain("site:album-catalog");
+        expect(loaded.context.facts.map((fact) => fact.id)).toContain("fact:catalog-lists-album");
+    });
 });

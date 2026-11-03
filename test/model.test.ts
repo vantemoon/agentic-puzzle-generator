@@ -7,7 +7,7 @@ import {
 } from "../src/core/model.js";
 
 describe("resolveModelConfiguration", () => {
-    it("uses Qwen Flash for visual composition and the default for deterministic images", () => {
+    it("uses the configured visual-composition model and the default for deterministic images", () => {
         const configuration = loadModelConfigurationFile();
         const deterministicImageSubtypes = [
             "alpha-channel",
@@ -16,14 +16,13 @@ describe("resolveModelConfiguration", () => {
             "steganography",
         ];
 
-        expect(resolveModelConfiguration({ kind: "puzzle", subtype: "visual-clue" }, configuration)).toEqual({
-            modelId: "humin/Qwen3.8-Flash-Next-oQ4e-mtp",
-            providerId: "kadi",
-        });
-        expect(resolveModelConfiguration({ kind: "puzzle", subtype: "alt-text" }, configuration)).toEqual({
-            modelId: "humin/Qwen3.8-Flash-Next-oQ4e-mtp",
-            providerId: "kadi",
-        });
+        const visualModel = configuration.puzzles?.["visual-composition"];
+        expect(visualModel?.modelId).toBeDefined();
+        expect(visualModel?.providerId).toBeDefined();
+        expect(resolveModelConfiguration({ kind: "puzzle", subtype: "visual-clue" }, configuration))
+            .toEqual(visualModel);
+        expect(resolveModelConfiguration({ kind: "puzzle", subtype: "alt-text" }, configuration))
+            .toEqual(visualModel);
         for (const subtype of deterministicImageSubtypes) {
             expect(resolveModelConfiguration({ kind: "puzzle", subtype }, configuration), subtype).toEqual({
                 modelId: "moonshot/kimi-k3",
@@ -37,6 +36,20 @@ describe("resolveModelConfiguration", () => {
             default: { modelId: "global-model", providerId: "provider" },
             tasks: { "level-design": { modelId: "complex-model" } },
         })).toEqual({ modelId: "complex-model", providerId: "provider" });
+    });
+
+    it("configures each supporting-media mode independently", () => {
+        const configuration = loadModelConfigurationFile();
+        for (const task of [
+            "supporting-media-raster",
+            "supporting-media-svg",
+            "supporting-media-document"
+        ] as const) {
+            const configured = configuration.tasks?.[task];
+            expect(configured?.modelId, task).toBeDefined();
+            expect(configured?.providerId, task).toBeDefined();
+            expect(resolveModelConfiguration(task, configuration), task).toEqual(configured);
+        }
     });
 
     it("uses a subtype model before the puzzle and global defaults", () => {

@@ -17,7 +17,8 @@ async function main(): Promise<void> {
     const bundle = await readLevelBundleFile({
         filePath: levelBundlePlanPath(inputs.level.id),
         level: inputs.level,
-        catalog: repositoryPuzzleCatalog
+        catalog: repositoryPuzzleCatalog,
+        world: inputs.world
     });
     const build = await buildLevelBundle({ bundle, inputs, catalog: repositoryPuzzleCatalog });
     await verifyLevelBundle({
@@ -26,7 +27,18 @@ async function main(): Promise<void> {
         publicDirectory: build.publicDirectory,
         privateDirectory: build.privateDirectory
     });
-    const server = createBundlePreviewServer({ publicDirectory: build.publicDirectory, inputs });
+    const server = createBundlePreviewServer({ publicDirectory: build.publicDirectory, inputs, bundle });
+    server.once("error", (error: NodeJS.ErrnoException) => {
+        if (error.code === "EADDRINUSE") {
+            process.stderr.write(
+                `Preview port ${port} is already in use. Stop the existing preview or choose another port:\n`
+                + `npm run level:preview-bundle -- ${levelFile} ${port + 1}\n`
+            );
+        } else {
+            process.stderr.write(`Could not start the level bundle preview: ${error.message}\n`);
+        }
+        process.exitCode = 1;
+    });
     server.listen(port, "127.0.0.1", () => {
         process.stdout.write(`Level bundle preview: http://127.0.0.1:${port}/\n`);
     });

@@ -4,6 +4,7 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import path from "node:path";
 
 import type { LevelBundleInputs } from "./bundle-inputs.js";
+import type { BundleRoute, BundledSite, LevelBundle } from "./bundle.js";
 import { BUNDLE_SECURITY_HEADERS } from "./bundle-security.js";
 import { resolvePuzzleOutput } from "./validator.js";
 
@@ -48,13 +49,73 @@ function escapeHtml(value: string): string {
     return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 }
 
-function responseHtml(result: TerminalValidationResult): string {
+function safeReturnPath(value: unknown): string {
+    const path = scalarSubmission(value);
+    return path !== undefined && /^\/(?!\/)/.test(path) ? path : "/";
+}
+
+function responseHtml(result: TerminalValidationResult, returnPath: string): string {
     const success = result.status === "success";
-    const title = success ? "Submission accepted" : "Check your findings";
+    const title = success ? "Investigation Complete" : "Check Your Findings";
     const message = success
         ? result.outcome ?? "The investigation is complete."
         : "One or more fields do not match the public records. Review the investigation and try again.";
-    return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${title}</title></head><body><main><h1>${title}</h1><p>${escapeHtml(message)}</p><p><a href="/">Return to the investigation</a></p></main></body></html>`;
+    const action = success
+        ? '<a class="begin-link" href="/">Return to the investigation</a>'
+        : `<a class="begin-link" href="${escapeHtml(returnPath)}">Try again</a>`;
+    return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${title}</title><link rel="stylesheet" href="/assets/site.css"></head><body class="bundle-index completion-page"><main><p class="site-kicker">${success ? "Case closed" : "Submission not accepted"}</p><h1>${title}</h1><p class="summary">${escapeHtml(message)}</p><p>${action}</p></main></body></html>`;
+}
+
+function fullRoutePath(site: BundledSite, route: BundleRoute): string {
+    if (site.basePath === "/") return route.path;
+    if (route.path === "/") return site.basePath;
+    return `${site.basePath}${route.path}`;
+}
+
+function searchTarget(bundle: LevelBundle, targetPath: string): {
+    site: BundledSite;
+    route: BundleRoute;
+    siteIndex: number;
+} | undefined {
+    for (const [siteIndex, site] of bundle.sites.entries()) {
+        const route = site.routes.find((candidate) => fullRoutePath(site, candidate) === targetPath);
+        if (route !== undefined) return { site, route, siteIndex };
+    }
+    return undefined;
+}
+
+function normalizedSearch(value: string): string {
+    return value.trim().replace(/\s+/g, " ").toLocaleLowerCase();
+}
+
+function expectedSearchTerms(inputs: LevelBundleInputs, route: BundleRoute): string[] {
+    if (route.role !== "puzzle") return [route.content.title];
+    const node = inputs.level.puzzles.find((candidate) => candidate.id === route.puzzleId);
+    if (node === undefined) return [];
+    return node.design.inputs.flatMap((input) => {
+        if (input.source.kind === "puzzle-output") {
+            const output = resolvePuzzleOutput(
+                inputs.level,
+                input.source.puzzleId,
+                input.source.outputId
+            );
+            return output === undefined ? [] : [String(output.value)];
+        }
+        const inputId = input.source.inputId;
+        const startingInput = inputs.level.startingInputs.find(
+            (candidate) => candidate.id === inputId
+        );
+        return startingInput === undefined ? [] : [String(startingInput.value)];
+    });
+}
+
+function searchResponseHtml(options: {
+    site: BundledSite;
+    siteIndex: number;
+    targetPath: string;
+    query: string;
+}): string {
+    return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>No matching results | ${escapeHtml(options.site.name)}</title><link rel="stylesheet" href="/assets/site.css"><link rel="stylesheet" href="/assets/site-${options.siteIndex + 1}.css"></head><body data-archetype="${escapeHtml(options.site.archetype)}" data-tone="${escapeHtml(options.site.visualProfile.tone)}" data-font-style="${escapeHtml(options.site.visualProfile.fontStyle)}" data-density="${escapeHtml(options.site.visualProfile.density)}"><header><div class="masthead"><p class="site-kicker">Search results</p><div class="brand-row"><a class="brand" href="${escapeHtml(options.site.basePath)}">${escapeHtml(options.site.name)}</a></div></div></header><div class="layout no-sidebar"><main class="content"><h1>No matching results</h1><p class="summary">No public record matched “${escapeHtml(options.query)}”. Check the spelling or try another search.</p><form class="site-search" method="get" action="/api/search" role="search"><input type="hidden" name="target" value="${escapeHtml(options.targetPath)}"><label>Search this site<input name="q" type="search" required></label><button type="submit">Search</button></form></main></div></body></html>`;
 }
 
 async function requestBody(request: IncomingMessage): Promise<Buffer> {
@@ -128,11 +189,43 @@ async function servePublicFile(
 export function createBundlePreviewServer(options: {
     publicDirectory: string;
     inputs: LevelBundleInputs;
+    bundle: LevelBundle;
 }): Server {
     const publicDirectory = path.resolve(options.publicDirectory);
     return createServer(async (request, response) => {
         try {
             const pathname = new URL(request.url ?? "/", "http://localhost").pathname;
+            if (pathname === "/api/search") {
+                if (request.method !== "GET") {
+                    response.writeHead(405, { ...BUNDLE_SECURITY_HEADERS, allow: "GET" }).end();
+                    return;
+                }
+                const url = new URL(request.url ?? "/", "http://localhost");
+                const targetPath = url.searchParams.get("target") ?? "";
+                const query = url.searchParams.get("q") ?? "";
+                const target = searchTarget(options.bundle, targetPath);
+                if (target === undefined) {
+                    response.writeHead(404, { ...BUNDLE_SECURITY_HEADERS, "content-type": "text/plain; charset=utf-8" }).end("Unknown search target");
+                    return;
+                }
+                const expected = expectedSearchTerms(options.inputs, target.route).map(normalizedSearch);
+                if (query.trim().length > 0 && expected.includes(normalizedSearch(query))) {
+                    response.writeHead(303, { ...BUNDLE_SECURITY_HEADERS, location: targetPath }).end();
+                    return;
+                }
+                const source = searchResponseHtml({
+                    site: target.site,
+                    siteIndex: target.siteIndex,
+                    targetPath,
+                    query
+                });
+                response.writeHead(200, {
+                    ...BUNDLE_SECURITY_HEADERS,
+                    "content-type": "text/html; charset=utf-8",
+                    "cache-control": "no-store"
+                }).end(source);
+                return;
+            }
             if (pathname === "/api/validate") {
                 if (request.method !== "POST") {
                     response.writeHead(405, { ...BUNDLE_SECURITY_HEADERS, allow: "POST" }).end();
@@ -153,7 +246,7 @@ export function createBundlePreviewServer(options: {
                         ...BUNDLE_SECURITY_HEADERS,
                         "content-type": "text/html; charset=utf-8",
                         "cache-control": "no-store"
-                    }).end(responseHtml(result));
+                    }).end(responseHtml(result, safeReturnPath(submission.returnPath)));
                 }
                 return;
             }

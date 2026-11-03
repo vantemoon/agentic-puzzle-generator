@@ -31,6 +31,7 @@
     "level:design": "node src/run-level-design.ts",
     "level:generate-puzzle": "tsx src/generate-level-puzzle.ts",
     "level:bundle": "tsx src/run-level-bundle.ts",
+    "level:generate-media": "tsx src/generate-level-media.ts",
     "level:build-bundle": "tsx src/build-level-bundle.ts",
     "level:preview-bundle": "tsx src/preview-level-bundle.ts",
     "level:verify-bundle": "tsx src/verify-level-bundle.ts",
