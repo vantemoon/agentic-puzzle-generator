@@ -13,8 +13,11 @@ import { buildLevelBundle } from "./levels/bundle-build.js";
 import { verifyLevelBundle } from "./levels/bundle-verify.js";
 import { repositoryPuzzleCatalog } from "./levels/catalog.js";
 import { resolveModelConfiguration } from "./core/model.js";
+import { createProgressReporter, toolResultText } from "./core/progress.js";
 import { scaledSupportingItemRange } from "./agents/level-bundle/limits.js";
 import { generateSupportingMedia } from "./agents/supporting-media/coordinator.js";
+
+const progress = createProgressReporter();
 
 function safeFileStem(id: string): string {
     const stem = id.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "");
@@ -37,14 +40,15 @@ function integerEnvironment(name: string, fallback: number): number {
     return value;
 }
 
-function toolResultText(result: { content?: Array<{ type: string; text?: string }> }): string | undefined {
-    const text = result.content
-        ?.filter((item) => item.type === "text" && typeof item.text === "string")
-        .map((item) => item.text)
-        .join("\n")
-        .trim();
-    return text === undefined || text.length === 0 ? undefined : text;
-}
+const bundleToolProgress: Record<string, string> = {
+    submit_bundle_structure: "Validating bundle structure",
+    add_bundle_routes: "Adding required bundle routes",
+    add_supporting_routes: "Adding supporting content routes",
+    replace_bundle_route: "Revising a bundle route",
+    add_supporting_media_requests: "Planning supporting media",
+    replace_supporting_media_request: "Revising a supporting-media request",
+    finalize_level_bundle: "Finalizing the bundle plan"
+};
 
 async function main(): Promise<void> {
     const [levelFile, ...extraArguments] = process.argv.slice(2);
@@ -106,15 +110,16 @@ async function main(): Promise<void> {
         model: modelSelection,
         options
     });
-    process.stderr.write(`Using ${modelSelection.providerId}/${modelSelection.modelId}.\n`);
-    process.stderr.write(`Generation log: ${logPath}\n`);
+    progress.start("Loading the level-bundle agent");
     const agent = await createLevelBundleAgent(inputs, repositoryPuzzleCatalog, options);
+    progress.complete("Loaded the level-bundle agent");
     let submission: LevelBundleSubmission | undefined;
     let lastSubmissionError: string | undefined;
     agent.subscribe((event: AgentEvent) => {
         if (event.type !== "message_update") record("agent-event", event);
         if (event.type === "tool_execution_start") {
-            process.stderr.write(`Agent is validating ${event.toolName} after ${Math.round((Date.now() - startedAt) / 1000)}s...\n`);
+            const message = bundleToolProgress[event.toolName];
+            if (message !== undefined) progress.start(message);
         }
         if (event.type === "tool_execution_end" && event.toolName === "finalize_level_bundle" && !event.isError) {
             submission = event.result.details as LevelBundleSubmission;
@@ -124,12 +129,7 @@ async function main(): Promise<void> {
         }
     });
 
-    process.stderr.write(`Planning bundle for ${inputs.level.title}...\n`);
-    const heartbeat = setInterval(() => {
-        const elapsedSeconds = Math.round((Date.now() - startedAt) / 1000);
-        process.stderr.write(`Still waiting for the bundle agent (${elapsedSeconds}s)...\n`);
-        record("heartbeat", { elapsedSeconds });
-    }, 15_000);
+    progress.start(`Planning level bundle: ${inputs.level.title}`);
     try {
         await agent.prompt("Create and submit the validated level bundle now.");
         if (submission === undefined) {
@@ -139,10 +139,13 @@ async function main(): Promise<void> {
                 || "The Level Bundle Agent did not submit a bundle."
             );
         }
+        progress.complete("Completed bundle planning");
         const mediaResults = await generateSupportingMedia({
             bundle: submission.bundle,
             inputs,
-            onStatus: (message) => process.stderr.write(`${message}\n`),
+            onStatus: (status) => status.state === "start"
+                ? progress.start(status.message)
+                : progress.complete(status.message),
             onEvent: (event, request) => {
                 if (event.type !== "message_update") {
                     record("supporting-media-agent-event", { requestId: request.id, event });
@@ -154,12 +157,15 @@ async function main(): Promise<void> {
             reused: mediaResults.filter((result) => result.status === "reused").length,
             assets: mediaResults.map((result) => result.asset.id)
         });
+        progress.start("Building the public level bundle");
         const build = await buildLevelBundle({
             bundle: submission.bundle,
             inputs,
             catalog: repositoryPuzzleCatalog
         });
         record("bundle-built", { publicDirectory: build.publicDirectory, reportPath: build.reportPath });
+        progress.complete("Built the public level bundle");
+        progress.start("Verifying the level bundle");
         const verification = await verifyLevelBundle({
             bundle: submission.bundle,
             inputs,
@@ -169,6 +175,8 @@ async function main(): Promise<void> {
             supportingItemsMaximum: options.supportingItemsMaximum
         });
         record("bundle-complete", { verification: verification.status });
+        progress.complete("Verified the level bundle");
+        progress.complete("Completed level-bundle generation");
         process.stdout.write(`Level bundle plan: ${submission.outputPath}\n`);
         process.stdout.write(`Public level bundle: ${build.publicDirectory}\n`);
         process.stdout.write(`Private build report: ${build.reportPath}\n`);
@@ -178,12 +186,11 @@ async function main(): Promise<void> {
         record("bundle-error", { message: error instanceof Error ? error.message : String(error) });
         throw error;
     } finally {
-        clearInterval(heartbeat);
         await closeLog(log);
     }
 }
 
 main().catch((error) => {
-    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+    progress.fail("Level-bundle generation", error);
     process.exitCode = 1;
 });

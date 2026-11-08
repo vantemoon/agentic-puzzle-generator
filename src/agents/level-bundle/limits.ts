@@ -1,4 +1,5 @@
 export const LEVEL_BUNDLE_STRUCTURAL_ROUTE_ALLOWANCE = 4;
+export const LEVEL_BUNDLE_TERMINAL_ROUTE_ALLOWANCE = 1;
 export const LEVEL_BUNDLE_TRUNCATED_SUBMISSION_LIMIT = 2;
 export const LEVEL_BUNDLE_REPEATED_FAILURE_LIMIT = 3;
 
@@ -26,5 +27,11 @@ export function levelBundleRouteMaximum(
     puzzleCount: number,
     supportingItemsMaximum: number
 ): number {
-    return puzzleCount + supportingItemsMaximum + LEVEL_BUNDLE_STRUCTURAL_ROUTE_ALLOWANCE;
+    return levelBundleCoreRouteMaximum(puzzleCount) + supportingItemsMaximum;
+}
+
+export function levelBundleCoreRouteMaximum(puzzleCount: number): number {
+    return puzzleCount
+        + LEVEL_BUNDLE_STRUCTURAL_ROUTE_ALLOWANCE
+        + LEVEL_BUNDLE_TERMINAL_ROUTE_ALLOWANCE;
 }

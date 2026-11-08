@@ -149,20 +149,33 @@ export async function generatePuzzleFromHandoff(
     const agent = await factory();
     stopAfterSuccessfulTool(agent, handoff.generatorTool);
     let generated: unknown;
+    let lastToolError: string | undefined;
 
     agent.subscribe((event: AgentEvent) => {
         if (
             event.type === "tool_execution_end" &&
-            event.toolName === handoff.generatorTool &&
-            !event.isError
+            event.toolName === handoff.generatorTool
         ) {
-            generated = event.result.details;
+            if (event.isError) {
+                const text = event.result.content
+                    .filter((item: { type: string; text?: string }) => item.type === "text")
+                    .map((item: { type: string; text?: string }) => item.text ?? "")
+                    .join("\n")
+                    .trim();
+                lastToolError = text.length === 0 ? undefined : text;
+            } else {
+                generated = event.result.details;
+            }
         }
     });
 
     await agent.prompt(buildPuzzleGenerationPrompt(handoff));
     if (generated === undefined) {
-        throw new Error(agent.state.errorMessage || `The ${handoff.subtype} agent did not generate a puzzle.`);
+        throw new Error(
+            lastToolError
+            || agent.state.errorMessage
+            || `The ${handoff.subtype} agent did not generate a puzzle.`
+        );
     }
     return validateGeneratedPuzzle(handoff, generated);
 }

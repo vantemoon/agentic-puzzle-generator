@@ -10,6 +10,7 @@ import { createPageVersionPuzzle } from "./engine.js";
 const changeKindSchema = Type.Union([
     Type.Literal("added-section"),
     Type.Literal("changed-field"),
+    Type.Literal("removed-content"),
     Type.Literal("removed-redaction")
 ], { description: "The kind of static difference that reveals the payload in the current page version." });
 
@@ -25,11 +26,35 @@ const acceptedAlternativesSchema = Type.Array(
 const baseFields = {
     intendedSolution: Type.String({ minLength: 1, maxLength: 300 }),
     pageTitle: Type.String({ minLength: 1, maxLength: 120 }),
-    baselineBody: Type.String({ minLength: 1, maxLength: 1000 }),
-    currentBody: Type.String({ minLength: 1, maxLength: 1000 }),
+    baselineBody: Type.String({
+        minLength: 1,
+        maxLength: 1000,
+        description: "Complete visible prose for the older snapshot. For removed-content it must contain the intended solution once; for other change kinds it must not contain the solution."
+    }),
+    currentBody: Type.String({
+        minLength: 1,
+        maxLength: 1000,
+        description: "Complete visible prose for the newer snapshot. For removed-content it must not contain the intended solution. For other change kinds it may contain the solution once; otherwise the engine adds a change-specific payload element."
+    }),
     changeKind: changeKindSchema,
-    baselineLabel: Type.Optional(Type.String({ minLength: 1, maxLength: 60 })),
-    currentLabel: Type.Optional(Type.String({ minLength: 1, maxLength: 60 })),
+    baselineDate: Type.String({
+        pattern: "^\\d{4}-\\d{2}-\\d{2}$",
+        description: "Publication date of the older snapshot in YYYY-MM-DD format."
+    }),
+    currentDate: Type.String({
+        pattern: "^\\d{4}-\\d{2}-\\d{2}$",
+        description: "Publication date of the newer snapshot in YYYY-MM-DD format; it must be later than baselineDate."
+    }),
+    baselineLabel: Type.Optional(Type.String({
+        minLength: 1,
+        maxLength: 60,
+        description: "Optional site-native description of the older snapshot; do not use Baseline."
+    })),
+    currentLabel: Type.Optional(Type.String({
+        minLength: 1,
+        maxLength: 60,
+        description: "Optional site-native description of the newer snapshot; do not use Current."
+    })),
     acceptedAlternatives: Type.Optional(acceptedAlternativesSchema)
 } as const;
 
@@ -61,7 +86,7 @@ AgentTool<typeof parameters, PrivatePuzzleInstance> = {
     label: "Create a page version puzzle",
     description: [
         "Validate an upstream puzzle ID, hidden payload, page-version text, and change kind;",
-        "construct a safe static multi-file HTML artifact with baseline and current page versions;",
+        "construct a safe static history of dated snapshots of the same webpage;",
         "and return the finished private puzzle instance."
     ].join(" "),
     parameters,
@@ -74,6 +99,8 @@ AgentTool<typeof parameters, PrivatePuzzleInstance> = {
             baselineBody: params.baselineBody,
             currentBody: params.currentBody,
             changeKind: params.changeKind,
+            baselineDate: params.baselineDate,
+            currentDate: params.currentDate,
             baselineLabel: params.baselineLabel,
             currentLabel: params.currentLabel,
             acceptedAlternatives: params.acceptedAlternatives

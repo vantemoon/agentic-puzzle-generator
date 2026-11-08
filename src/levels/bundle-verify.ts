@@ -8,6 +8,7 @@ import type { LevelBundleInputs } from "./bundle-inputs.js";
 import { selectBundleStartingRoutes, type PublicBundleManifest } from "./bundle-build.js";
 import type { BundleRoute, BundledSite, LevelBundle } from "./bundle.js";
 import { BUNDLE_SECURITY_HEADERS } from "./bundle-security.js";
+import { composableHtmlArtifactFragments } from "./html-composition.js";
 
 export interface BundleVerificationIssue {
     code: string;
@@ -60,10 +61,6 @@ function normalized(value: string): string {
 
 function escapeHtml(value: string): string {
     return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
-}
-
-function bodyFragment(source: string): string | undefined {
-    return source.match(/<body(?:\s[^>]*)?>([\s\S]*?)<\/body>/i)?.[1];
 }
 
 function loadedPuzzle(inputs: LevelBundleInputs, puzzleId: string): PrivatePuzzleInstance | undefined {
@@ -170,8 +167,15 @@ export async function verifyLevelBundle(options: {
                 const entry = artifact.kind === "html"
                     ? artifact.files.find((file) => file.path === artifact.entryPath)
                     : undefined;
-                const fragment = entry === undefined ? undefined : bodyFragment(entry.source);
-                if (fragment === undefined || !routeSources.get(publicPath)?.includes(fragment)) {
+                const fragments = entry === undefined
+                    ? undefined
+                    : composableHtmlArtifactFragments(entry.source);
+                const publicSource = routeSources.get(publicPath);
+                const headSurvived = fragments !== undefined
+                    && (fragments.head.length === 0 || publicSource?.includes(fragments.head) === true);
+                const bodySurvived = fragments !== undefined
+                    && publicSource?.includes(fragments.body) === true;
+                if (!headSurvived || !bodySurvived) {
                     issues.push({ code: "artifact-integrity", message: "Native HTML clue markup did not survive composition.", path: publicPath });
                 }
             } else if (route.placement === "page-body") {
@@ -257,6 +261,26 @@ export async function verifyLevelBundle(options: {
     }
 
     const rootSource = routeSources.get("/") ?? "";
+    const routeLocations = new Map(options.bundle.sites.flatMap((site) => site.routes.map((route) => [
+        fullRoutePath(site, route),
+        { site, route }
+    ] as const)));
+    const discoveryEvidence = (sourcePath: string): string => {
+        const source = routeLocations.get(sourcePath);
+        const routeSource = routeSources.get(sourcePath) ?? "";
+        if (source?.route.role !== "puzzle" || source.route.placement !== "version-set") return routeSource;
+        const puzzle = loadedPuzzle(options.inputs, source.route.puzzleId);
+        return puzzle?.artifact.kind === "html"
+            ? `${routeSource}\n${puzzle.artifact.files.map((file) => file.source).join("\n")}`
+            : routeSource;
+    };
+    const hasHref = (source: string, destination: string): boolean =>
+        source.includes(`href="${destination}"`) || source.includes(`href='${destination}'`);
+    const exposesStablePath = (source: string, destination: string): boolean => {
+        const segments = destination.split("/").filter(Boolean);
+        const candidates = [destination, ...segments.reverse()].filter((candidate) => candidate.length >= 4);
+        return candidates.some((candidate) => source.includes(candidate));
+    };
     const startingDestinations = new Map(selectBundleStartingRoutes(
         options.bundle,
         options.inputs.level.startingInputs.map((input) => input.id)
@@ -267,11 +291,19 @@ export async function verifyLevelBundle(options: {
             for (const source of route.discovery?.from ?? []) {
                 if (source.startsWith("starting-input:")
                     && startingDestinations.get(source) !== destination) continue;
-                const sourceHtml = source.startsWith("starting-input:") ? rootSource : routeSources.get(source) ?? "";
-                if (!sourceHtml.includes(destination)) {
+                const sourceHtml = source.startsWith("starting-input:") ? rootSource : discoveryEvidence(source);
+                const kind = route.discovery?.kind;
+                const exposesDestination = source.startsWith("starting-input:")
+                    ? hasHref(sourceHtml, destination)
+                    : kind === "stable-path"
+                        ? exposesStablePath(sourceHtml, destination)
+                        : kind === "lookup" || kind === "search"
+                            ? sourceHtml.includes(`name="target" value="${destination}"`)
+                            : hasHref(sourceHtml, destination);
+                if (!exposesDestination) {
                     issues.push({
                         code: "journey-link",
-                        message: `Discovery source ${source} does not expose destination ${destination}.`,
+                        message: `Discovery source ${source} does not satisfy ${kind ?? "unknown"} discovery for ${destination}.`,
                         path: source.startsWith("starting-input:") ? "/" : source
                     });
                 }

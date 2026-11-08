@@ -5,6 +5,8 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { createHtmlCommentPuzzle } from "../src/agents/html-comment/engine.js";
+import { createDomElementPuzzle } from "../src/agents/dom-element/engine.js";
+import { createSourceCodePuzzle } from "../src/agents/html-source-inspection/engine.js";
 import { createPageVersionPuzzle } from "../src/agents/page-version/engine.js";
 import { createQrCodePuzzle } from "../src/agents/qr-code/engine.js";
 import { generateRasterMedia } from "../src/agents/supporting-media/engine.js";
@@ -121,7 +123,17 @@ function buildFixture(): { inputs: LevelBundleInputs; bundle: LevelBundle } {
                 content: {
                     title: "Weekend volunteer notice",
                     description: "A notice about a recent volunteer event.",
-                    blocks: [{ kind: "prose", paragraphs: ["The archived notice is reproduced below."] }]
+                    blocks: [
+                        { kind: "prose", paragraphs: ["The archived notice is reproduced below."] },
+                        {
+                            kind: "cards",
+                            items: [{
+                                title: "Submit the record finding",
+                                summary: "Open the findings submission form.",
+                                href: "/records/submit"
+                            }]
+                        }
+                    ]
                 },
                 puzzleId: node.id,
                 placement: "native-html",
@@ -230,7 +242,7 @@ function versionFixture(): { inputs: LevelBundleInputs; bundle: LevelBundle; cur
     route.placement = "version-set";
     delete route.directAssetPath;
     const current = puzzle.artifact.kind === "html"
-        ? puzzle.artifact.files.find((file) => file.path === "/versions/current.html")
+        ? puzzle.artifact.files.find((file) => file.path === "/versions/2026-03-05.html")
         : undefined;
     if (current === undefined) throw new Error("Missing current version file.");
     return { ...fixture, currentSource: current.source };
@@ -328,7 +340,11 @@ describe("level bundle builder", () => {
             expect(await readFile(path.join(first.publicDirectory, "assets", "site-1.css"), "utf8"))
                 .toContain(`--site-accent:${fixture.bundle.sites[0].visualProfile.accentColor}`);
             expect(indexSource).toContain('target="_blank" rel="noopener"');
-            expect(indexSource).toContain("Begin investigation");
+            expect(indexSource).toContain("Open starting page");
+            expect(indexSource).toContain("Starting point");
+            expect(indexSource).not.toMatch(/investigation/i);
+            expect(puzzleSource).not.toContain("Related resources");
+            expect(puzzleSource).not.toContain("investigation resource");
             expect(indexSource).not.toContain('class="bundle-site-grid"');
             expect(sharedStyles).toContain('body[data-archetype="blog"]');
             expect(sharedStyles).toContain('body[data-archetype="gallery"]');
@@ -353,6 +369,121 @@ describe("level bundle builder", () => {
             });
             expect(second.manifest).toEqual(first.manifest);
             expect(await readFile(second.manifestPath, "utf8")).toBe(manifestSource);
+        } finally {
+            await rm(root, { recursive: true, force: true });
+        }
+    });
+
+    it("preserves puzzle-authored head clues and styles in native HTML routes", async () => {
+        const root = await mkdtemp(path.join(os.tmpdir(), "bundle-native-html-head-"));
+        try {
+            const cases = [
+                {
+                    name: "source",
+                    subtype: "html-source-inspection",
+                    puzzle: createSourceCodePuzzle({
+                        id: "find-project-name",
+                        intendedSolution: "RIVER CLEANUP",
+                        visibleTitle: "Weekend Volunteer Notice",
+                        visibleBody: "The project name was removed during an update.",
+                        carrier: "css-custom-property"
+                    }),
+                    expectedHeadMarkup: "data-puzzle-role=\"source-code-payload\""
+                },
+                {
+                    name: "dom",
+                    subtype: "dom-element",
+                    puzzle: createDomElementPuzzle({
+                        id: "find-project-name",
+                        intendedSolution: "RIVER CLEANUP",
+                        visibleTitle: "Weekend Volunteer Notice",
+                        visibleBody: "The project name was removed during an update.",
+                        hideStrategy: "display-none"
+                    }),
+                    expectedHeadMarkup: ".hidden-payload { display: none; }"
+                }
+            ];
+
+            for (const testCase of cases) {
+                const fixture = buildFixture();
+                fixture.inputs.level.puzzles[0].design.subtype = testCase.subtype;
+                fixture.inputs.puzzles[0].puzzle = testCase.puzzle;
+                const result = await buildLevelBundle({
+                    ...fixture,
+                    catalog: repositoryPuzzleCatalog,
+                    outputDirectory: path.join(root, testCase.name)
+                });
+                const puzzlePage = path.join(
+                    result.publicDirectory,
+                    "records",
+                    "notices",
+                    "cleanup",
+                    "index.html"
+                );
+                expect(await readFile(puzzlePage, "utf8")).toContain(testCase.expectedHeadMarkup);
+                await expect(verifyLevelBundle({
+                    bundle: fixture.bundle,
+                    inputs: fixture.inputs,
+                    publicDirectory: result.publicDirectory,
+                    privateDirectory: result.privateDirectory
+                })).resolves.toMatchObject({ status: "passed", issues: [] });
+            }
+        } finally {
+            await rm(root, { recursive: true, force: true });
+        }
+    });
+
+    it("renders declared lookup controls and keeps puzzle answers out of terminal breadcrumbs", async () => {
+        const root = await mkdtemp(path.join(os.tmpdir(), "bundle-discovery-controls-"));
+        try {
+            const fixture = buildFixture();
+            const puzzleRoute = fixture.bundle.sites[0].routes.find(
+                (route) => route.role === "puzzle"
+            );
+            const lookupSource = fixture.bundle.sites[0].routes.find(
+                (route) => route.path === "/news/update-1"
+            );
+            const lookupDestination = fixture.bundle.sites[0].routes.find(
+                (route) => route.path === "/news/update-2"
+            );
+            if (puzzleRoute === undefined || lookupSource === undefined || lookupDestination === undefined) {
+                throw new Error("Missing discovery-control fixtures.");
+            }
+            puzzleRoute.content.title = "RIVER CLEANUP";
+            lookupDestination.discovery = {
+                kind: "lookup",
+                from: ["/records/news/update-1"],
+                cue: "Search the first update for the second update."
+            };
+
+            const result = await buildLevelBundle({
+                ...fixture,
+                catalog: repositoryPuzzleCatalog,
+                outputDirectory: root
+            });
+            const sourceHtml = await readFile(path.join(
+                result.publicDirectory,
+                "records",
+                "news",
+                "update-1",
+                "index.html"
+            ), "utf8");
+            const terminalHtml = await readFile(path.join(
+                result.publicDirectory,
+                "records",
+                "submit",
+                "index.html"
+            ), "utf8");
+
+            expect(sourceHtml).toContain('action="/api/search"');
+            expect(sourceHtml).toContain('value="/records/news/update-2"');
+            expect(terminalHtml).not.toContain("RIVER CLEANUP");
+            await expect(verifyLevelBundle({
+                bundle: fixture.bundle,
+                inputs: fixture.inputs,
+                publicDirectory: result.publicDirectory,
+                privateDirectory: result.privateDirectory
+            })).resolves.toMatchObject({ status: "passed", issues: [] });
         } finally {
             await rm(root, { recursive: true, force: true });
         }
@@ -498,15 +629,98 @@ describe("level bundle builder", () => {
                 "cleanup",
                 "_artifact",
                 "versions",
-                "current.html"
+                "2026-03-05.html"
             );
             expect(await readFile(currentPath, "utf8")).toBe(fixture.currentSource);
             const contextualPage = await readFile(
                 path.join(result.publicDirectory, "records", "notices", "cleanup", "index.html"),
                 "utf8"
             );
-            expect(contextualPage).toContain("Available page versions");
-            expect(contextualPage).toContain("_artifact/versions/current.html");
+            expect(contextualPage).toContain("Page history");
+            expect(contextualPage).toContain("March 5, 2026");
+            expect(contextualPage).toContain("March 2, 2026");
+            expect(contextualPage).not.toContain("baseline");
+            expect(contextualPage).not.toContain("current.html");
+            expect(contextualPage).not.toContain("Version overview");
+            expect(contextualPage).toContain("_artifact/versions/2026-03-05.html");
+        } finally {
+            await rm(root, { recursive: true, force: true });
+        }
+    });
+
+    it("does not manufacture a next-puzzle link when a dated snapshot reveals a stable path", async () => {
+        const root = await mkdtemp(path.join(os.tmpdir(), "bundle-version-stable-path-"));
+        try {
+            const fixture = versionFixture();
+            const sourceNode = fixture.inputs.level.puzzles[0];
+            const sourceSpec = {
+                ...sourceNode.design.generationSpec,
+                currentBody: "The updated notice identifies follow-up-record.html as the related record."
+            } as unknown as Parameters<typeof createPageVersionPuzzle>[0];
+            fixture.inputs.puzzles[0].puzzle = createPageVersionPuzzle(sourceSpec);
+
+            const destinationNode = structuredClone(sourceNode);
+            destinationNode.id = "follow-up-record";
+            destinationNode.design.subtype = "html-comment";
+            destinationNode.design.generationSpec = {
+                mode: "production",
+                id: destinationNode.id,
+                intendedSolution: "FOLLOW-UP",
+                visibleTitle: "Follow-up record",
+                visibleBody: "A routine follow-up record."
+            };
+            destinationNode.design.verification = {
+                prompt: "Enter the follow-up code.",
+                dataType: "string",
+                expectedValue: "FOLLOW-UP"
+            };
+            const destinationPuzzle = createHtmlCommentPuzzle(
+                destinationNode.design.generationSpec as unknown as Parameters<typeof createHtmlCommentPuzzle>[0]
+            );
+            fixture.inputs.level.puzzles.push(destinationNode);
+            fixture.inputs.puzzles.push({
+                puzzle: destinationPuzzle,
+                metadataFile: "/test/follow-up-record.puzzle.json",
+                artifactDirectory: "/test/follow-up-record",
+                artifactEntryFile: "/test/follow-up-record/index.html"
+            });
+            fixture.bundle.sites[0].routes.splice(-1, 0, {
+                path: "/notices/follow-up-record.html",
+                role: "puzzle",
+                navigation: "hidden",
+                content: {
+                    title: "Follow-up record",
+                    description: "A related public record.",
+                    blocks: [{ kind: "prose", paragraphs: ["The public record is reproduced below."] }]
+                },
+                puzzleId: destinationNode.id,
+                placement: "native-html",
+                discovery: {
+                    kind: "stable-path",
+                    from: ["/records/notices/cleanup"],
+                    cue: "A dated snapshot discloses the sibling filename."
+                }
+            });
+
+            const result = await buildLevelBundle({
+                ...fixture,
+                catalog: repositoryPuzzleCatalog,
+                outputDirectory: root
+            });
+            const sourceHtml = await readFile(path.join(
+                result.publicDirectory,
+                "records",
+                "notices",
+                "cleanup",
+                "index.html"
+            ), "utf8");
+            expect(sourceHtml).not.toContain('href="/records/notices/follow-up-record.html"');
+            await expect(verifyLevelBundle({
+                bundle: fixture.bundle,
+                inputs: fixture.inputs,
+                publicDirectory: result.publicDirectory,
+                privateDirectory: result.privateDirectory
+            })).resolves.toMatchObject({ status: "passed", issues: [] });
         } finally {
             await rm(root, { recursive: true, force: true });
         }
@@ -558,7 +772,7 @@ describe("level bundle preview and terminal validation", () => {
             );
             expect(wrongSearch.status).toBe(200);
             expect(await wrongSearch.text()).toContain("No matching results");
-            const correctQuery = String(fixture.inputs.level.startingInputs[0].value);
+            const correctQuery = "Weekend volunteer notice";
             const correctSearch = await fetch(
                 `${origin}/api/search?target=${encodeURIComponent(target)}&q=${encodeURIComponent(correctQuery)}`,
                 { redirect: "manual" }
@@ -576,7 +790,7 @@ describe("level bundle preview and terminal validation", () => {
             });
             const completionSource = await completion.text();
             expect(completion.status).toBe(200);
-            expect(completionSource).toContain("Investigation Complete");
+            expect(completionSource).toContain("Submission Complete");
             expect(completionSource).toContain('href="/assets/site.css"');
         } finally {
             if (server.listening) await new Promise<void>((resolve) => server.close(() => resolve()));

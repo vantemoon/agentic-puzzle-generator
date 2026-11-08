@@ -2,9 +2,14 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import type { ModelRuntime as ModelRuntimeType } from "@earendil-works/pi-coding-agent";
-import { authoredContentForPuzzle } from "./authored-content.js";
+import type { CredentialStore } from "@earendil-works/pi-ai";
+import {
+    authoredContentForPuzzle,
+    puzzleModelGroupForSubtype
+} from "./authored-content.js";
 
 export type ModelTask =
+    | "game-design"
     | "level-design"
     | "level-review"
     | "level-bundle"
@@ -22,6 +27,11 @@ export interface ModelConfigurationFile {
     default: Required<ModelSelection>;
     tasks?: Partial<Record<Extract<ModelTask, string>, ModelSelection>>;
     puzzles?: Record<string, ModelSelection | undefined> & { default?: ModelSelection };
+}
+
+export function isRetryableModelError(error: unknown): boolean {
+    const message = error instanceof Error ? error.message : String(error);
+    return /\bmodel_not_found\b|No such model|API error \((?:429|5\d\d)\)/iu.test(message);
 }
 
 function assertKnownKeys(value: Record<string, unknown>, keys: string[], context: string): void {
@@ -62,6 +72,7 @@ export function parseModelConfigurationFile(value: unknown): ModelConfigurationF
     if (value.tasks !== undefined) {
         if (!isRecord(value.tasks)) throw new Error("tasks must be an object.");
         assertKnownKeys(value.tasks, [
+            "game-design",
             "level-design",
             "level-review",
             "level-bundle",
@@ -106,6 +117,7 @@ export function resolveModelConfiguration(
             ? [configuration.tasks?.[task]]
             : [
                 configuration.puzzles?.[task.subtype],
+                configuration.puzzles?.[puzzleModelGroupForSubtype(task.subtype) ?? ""],
                 configuration.puzzles?.[authoredContentForPuzzle(task.subtype)?.mode ?? ""],
                 configuration.puzzles?.default
             ];
@@ -182,10 +194,17 @@ function configureKadiCompatibility(modelRuntime: ModelRuntimeType): void {
 async function createModelRuntime(): Promise<ModelRuntimeType> {
     const packageEntry = import.meta.resolve("@earendil-works/pi-coding-agent");
     const runtimeModuleUrl = new URL("./core/model-runtime.js", packageEntry).href;
+    const authStorageModuleUrl = new URL("./core/auth-storage.js", packageEntry).href;
     const { ModelRuntime } = await import(runtimeModuleUrl) as {
         ModelRuntime: typeof ModelRuntimeType;
     };
-    const modelRuntime = await ModelRuntime.create({ refreshOnCreate: false });
+    const { ReadOnlyAuthStorage } = await import(authStorageModuleUrl) as {
+        ReadOnlyAuthStorage: new () => CredentialStore;
+    };
+    const modelRuntime = await ModelRuntime.create({
+        credentials: new ReadOnlyAuthStorage(),
+        refreshOnCreate: false
+    });
     configureKadiCompatibility(modelRuntime);
     return modelRuntime;
 }

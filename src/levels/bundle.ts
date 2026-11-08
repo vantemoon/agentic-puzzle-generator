@@ -337,10 +337,14 @@ export function validateLevelBundle(
     const levelPuzzleIds = new Set(level.puzzles.map((puzzle) => puzzle.id));
     const selectedWorldEntities = new Set([...level.world.entityIds, ...addedEntityIds]);
     const mediaBlockLocations = new Map<string, Array<{ siteId: string; routePath: string }>>();
+    const cardLinks: Array<{ sourcePath: string; targetPath: string }> = [];
 
     for (const site of bundle.sites) {
         if (!safePublicPath(site.basePath)) {
             errors.push(`Bundled site ${site.id} has unsafe base path ${site.basePath}.`);
+        }
+        if (site.basePath === "/") {
+            errors.push(`Bundled site ${site.id} cannot use base path /; the public root is reserved for the level entry page.`);
         }
         if (site.worldEntityId !== undefined && !selectedWorldEntities.has(site.worldEntityId)) {
             errors.push(`Bundled site ${site.id} references world entity ${site.worldEntityId} outside the level context.`);
@@ -370,6 +374,8 @@ export function validateLevelBundle(
                     for (const item of block.items) {
                         if (item.href !== undefined && !safePublicPath(item.href)) {
                             errors.push(`Card on ${publicPath} has unsafe link ${item.href}.`);
+                        } else if (item.href !== undefined) {
+                            cardLinks.push({ sourcePath: publicPath, targetPath: item.href });
                         }
                     }
                 }
@@ -381,6 +387,12 @@ export function validateLevelBundle(
             }
             if (route.role === "terminal") terminalRoutes.push({ siteId: site.id, path: route.path });
             if (route.role !== "puzzle") continue;
+
+            if (route.navigation !== undefined
+                && route.navigation !== "contextual"
+                && route.navigation !== "hidden") {
+                errors.push(`Puzzle route ${publicPath} must use contextual or hidden navigation.`);
+            }
 
             placedPuzzleIds.push(route.puzzleId);
             const puzzle = level.puzzles.find((candidate) => candidate.id === route.puzzleId);
@@ -410,6 +422,25 @@ export function validateLevelBundle(
 
     for (const duplicate of duplicateValues(fullPaths)) {
         errors.push(`Duplicate public route path: ${duplicate}.`);
+    }
+    const knownRoutePaths = new Set(fullPaths);
+    for (const link of cardLinks) {
+        if (!knownRoutePaths.has(link.targetPath)) {
+            errors.push(`Card on ${link.sourcePath} links to missing route ${link.targetPath}.`);
+        }
+    }
+    const cardLinkKeys = new Set(cardLinks.map((link) => `${link.sourcePath}\0${link.targetPath}`));
+    for (const [destinationPath, route] of routeByFullPath) {
+        if (route.discovery?.kind !== "direct-link") continue;
+        for (const source of route.discovery.from) {
+            if (source.startsWith("starting-input:")) continue;
+            if (!cardLinkKeys.has(`${source}\0${destinationPath}`)) {
+                errors.push(
+                    `Direct-link discovery from ${source} to ${destinationPath} requires a cards item `
+                    + `on ${source} whose href is exactly ${destinationPath}.`
+                );
+            }
+        }
     }
     for (const duplicate of duplicateValues(directAssetPaths)) {
         errors.push(`Duplicate direct asset path: ${duplicate}.`);

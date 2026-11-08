@@ -2,6 +2,9 @@ import { generateSupportingMedia } from "./agents/supporting-media/coordinator.j
 import { loadLevelBundleInputs } from "./levels/bundle-inputs.js";
 import { levelBundlePlanPath, readLevelBundleFile } from "./levels/bundle-io.js";
 import { repositoryPuzzleCatalog } from "./levels/catalog.js";
+import { createProgressReporter } from "./core/progress.js";
+
+const progress = createProgressReporter();
 
 async function main(): Promise<void> {
     const [levelFile, ...extraArguments] = process.argv.slice(2);
@@ -21,8 +24,11 @@ async function main(): Promise<void> {
     const results = await generateSupportingMedia({
         bundle,
         inputs,
-        onStatus: (message) => process.stderr.write(`${message}\n`)
+        onStatus: (status) => status.state === "start"
+            ? progress.start(status.message)
+            : progress.complete(status.message)
     });
+    progress.complete("Completed supporting-media generation");
     process.stdout.write(
         `Supporting media: ${results.filter((result) => result.status === "generated").length} generated, `
         + `${results.filter((result) => result.status === "reused").length} reused.\n`
@@ -30,6 +36,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((error) => {
-    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+    progress.fail("Supporting-media generation", error);
     process.exitCode = 1;
 });

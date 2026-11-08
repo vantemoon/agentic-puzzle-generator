@@ -13,7 +13,7 @@ import {
     TerminalRouteSchema
 } from "../../levels/bundle.js";
 import type { PuzzleCatalog } from "../../levels/catalog.js";
-import { LEVEL_BUNDLE_STRUCTURAL_ROUTE_ALLOWANCE } from "./limits.js";
+import { levelBundleCoreRouteMaximum } from "./limits.js";
 import {
     createSubmitLevelBundleTool,
     type LevelBundleAgentOptions,
@@ -122,7 +122,7 @@ export function createStagedLevelBundleTools(
     const coreRoutes = new Map<string, CoreRoute[]>();
     const supportingRoutes = new Map<string, SupportingRoute[]>();
     const mediaRequests: SupportingMediaRequest[] = [];
-    const maximumCoreRoutesPerSite = inputs.puzzles.length + LEVEL_BUNDLE_STRUCTURAL_ROUTE_ALLOWANCE;
+    const maximumCoreRoutesPerSite = levelBundleCoreRouteMaximum(inputs.puzzles.length);
     const finalTool = createSubmitLevelBundleTool(inputs, catalog, options, outputDirectory);
 
     const siteFor = (siteId: string) => structure?.sites.find((site) => site.id === siteId);
@@ -159,6 +159,12 @@ export function createStagedLevelBundleTools(
         description: "Save site identities, visual profiles, proposed world additions, and the terminal reference before adding routes in batches.",
         parameters: StructureParameters,
         async execute(_toolCallId, params) {
+            const rootSite = params.sites.find((site) => site.basePath === "/");
+            if (rootSite !== undefined) {
+                throw new Error(
+                    `Site ${rootSite.id} cannot use basePath /; the public root is reserved for the level entry page.`
+                );
+            }
             const duplicateIds = duplicateValues(params.sites.map((site) => site.id));
             const duplicateBasePaths = duplicateValues(params.sites.map((site) => site.basePath));
             if (duplicateIds.length > 0 || duplicateBasePaths.length > 0) {

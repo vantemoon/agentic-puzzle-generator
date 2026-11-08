@@ -10,7 +10,11 @@ import { createSourceCodePuzzle } from "../src/agents/html-source-inspection/eng
 import { createPageVersionPuzzle } from "../src/agents/page-version/engine.js";
 import { buildLevelBundlePrompt } from "../src/agents/level-bundle/prompt.js";
 import { stopAfterRepeatedTruncatedBundleSubmissions } from "../src/agents/level-bundle/agent.js";
-import { scaledSupportingItemRange } from "../src/agents/level-bundle/limits.js";
+import {
+    levelBundleCoreRouteMaximum,
+    levelBundleRouteMaximum,
+    scaledSupportingItemRange
+} from "../src/agents/level-bundle/limits.js";
 import { createStagedLevelBundleTools } from "../src/agents/level-bundle/staged-tool.js";
 import { createSubmitLevelBundleTool } from "../src/agents/level-bundle/tool.js";
 import {
@@ -125,7 +129,20 @@ function validBundle(): LevelBundle {
                 {
                     path: "/directory/coordinator",
                     role: "puzzle",
-                    content: page("Coordinator profile"),
+                    content: {
+                        ...page("Coordinator profile"),
+                        blocks: [
+                            ...page("Coordinator profile").blocks,
+                            {
+                                kind: "cards",
+                                items: [{
+                                    title: "Submit findings",
+                                    summary: "Open the findings submission form.",
+                                    href: "/community-records/submit"
+                                }]
+                            }
+                        ]
+                    },
                     puzzleId: "identify-coordinator",
                     placement: "native-html",
                     discovery: fromRecordsHome("Open the coordinator directory entry.")
@@ -296,6 +313,9 @@ describe("level bundle contracts", () => {
                     ...site,
                     routes: site.routes.map((route) => ({
                         ...route,
+                        discovery: route.discovery?.kind === "direct-link"
+                            ? { ...route.discovery, kind: "stable-path" as const }
+                            : route.discovery,
                         content: {
                             title: route.content.title,
                             description: route.content.description,
@@ -348,6 +368,41 @@ describe("level bundle contracts", () => {
             "Puzzle find-project-name is placed more than once.",
             "Puzzle find-meeting-place is not placed in the bundle."
         ]));
+    });
+
+    it("reserves the public root and rejects card links to undeclared routes", () => {
+        const bundle = validBundle();
+        bundle.sites[0].basePath = "/";
+        const home = bundle.sites[0].routes.find((route) => route.path === "/");
+        if (home === undefined) throw new Error("Missing home route fixture.");
+        home.content.blocks.push({
+            kind: "cards",
+            items: [{
+                title: "Missing service",
+                summary: "This card points to a route that was not submitted.",
+                href: "/services/missing"
+            }]
+        });
+
+        expect(validateLevelBundle(bundle, levelFixture, repositoryPuzzleCatalog)).toEqual(
+            expect.arrayContaining([
+                "Bundled site community-records cannot use base path /; the public root is reserved for the level entry page.",
+                "Card on / links to missing route /services/missing."
+            ])
+        );
+    });
+
+    it("requires direct-link discovery to have a matching clickable card", () => {
+        const bundle = validBundle();
+        const source = bundle.sites[0].routes.find((route) => route.path === "/directory/coordinator");
+        if (source === undefined) throw new Error("Missing coordinator route fixture.");
+        source.content.blocks = source.content.blocks.filter((block) => block.kind !== "cards");
+
+        expect(validateLevelBundle(bundle, levelFixture, repositoryPuzzleCatalog)).toContain(
+            "Direct-link discovery from /community-records/directory/coordinator to "
+            + "/community-records/submit requires a cards item on "
+            + "/community-records/directory/coordinator whose href is exactly /community-records/submit."
+        );
     });
 });
 
@@ -440,7 +495,8 @@ describe("level bundle agent boundary", () => {
             expect(prompt).toContain("between 10 and 15 routes");
             expect(prompt).toContain("across the entire bundle");
             expect(prompt).toContain("never create routes for artifact filenames");
-            expect(prompt).toContain("No site may contain more than 23 total routes");
+            expect(prompt).toContain("visible title and body");
+            expect(prompt).toContain("No site may contain more than 24 total routes");
             expect(prompt).toContain("submit_bundle_structure");
             expect(prompt).toContain("add_bundle_routes");
             expect(prompt).toContain("add_supporting_routes");
@@ -519,7 +575,7 @@ describe("level bundle agent boundary", () => {
             expect(result.details.bundle.levelId).toBe(levelFixture.id);
             expect(result.details.bundle.seed).toBe("tool-seed");
             expect(result.details.bundle.terminal.mode).toBe("validation-api");
-            expect(parameters.properties.bundle.properties.sites.items.properties.routes.maxItems).toBe(23);
+            expect(parameters.properties.bundle.properties.sites.items.properties.routes.maxItems).toBe(24);
             await expect(readFile(result.details.outputPath, "utf8")).resolves.toContain('"seed": "tool-seed"');
         } finally {
             await rm(root, { recursive: true, force: true });
@@ -594,6 +650,11 @@ describe("level bundle agent boundary", () => {
         expect(range(50)).toEqual({ minimum: 100, maximum: 150 });
     });
 
+    it("includes the mandatory terminal route in core and total route limits", () => {
+        expect(levelBundleCoreRouteMaximum(4)).toBe(9);
+        expect(levelBundleRouteMaximum(4, 15)).toBe(24);
+    });
+
     it("assembles a complete bundle from structure and supporting-page batches", async () => {
         const root = await mkdtemp(path.join(os.tmpdir(), "level-bundle-staged-"));
         try {
@@ -635,6 +696,14 @@ describe("level bundle agent boundary", () => {
                 .map((route) => route.role === "puzzle"
                     ? { ...route, directAssetPath: `${complete.sites[0].basePath}${route.path}` }
                     : route);
+            for (let index = 1; index <= 3; index += 1) {
+                required.push({
+                    role: "structural",
+                    path: `${complete.sites[0].basePath}/research/tool-${index}`,
+                    content: page(`Research tool ${index}`),
+                    discovery: fromRecordsHome(`Open research tool ${index}.`)
+                });
+            }
             const fullSupporting = supporting.map(withFullPath);
             const tools = createStagedLevelBundleTools(inputs, repositoryPuzzleCatalog, {
                 seed: "staged-seed",
@@ -655,6 +724,12 @@ describe("level bundle agent boundary", () => {
                 throw new Error("Expected all staged level-bundle tools.");
             }
 
+            await expect(structureTool.execute("root-structure", {
+                ...structure,
+                sites: structure.sites.map((site, index) => index === 0
+                    ? { ...site, basePath: "/" }
+                    : site)
+            })).rejects.toThrow("public root is reserved for the level entry page");
             await structureTool.execute("structure", structure);
             await routeTool.execute("routes-1", {
                 siteId: complete.sites[0].id,
@@ -689,7 +764,7 @@ describe("level bundle agent boundary", () => {
             const result = await finalizeTool.execute("finalize", {});
 
             const assembled = (result.details as { bundle: LevelBundle }).bundle;
-            expect(assembled.sites[0].routes).toHaveLength(complete.sites[0].routes.length);
+            expect(assembled.sites[0].routes).toHaveLength(complete.sites[0].routes.length + 3);
             expect(assembled.sites[0].routes[0].path).toBe("/");
             expect(assembled.sites[0].routes[0].content.title).toBe("Corrected home page");
             expect(assembled.mediaRequests[0].purpose)

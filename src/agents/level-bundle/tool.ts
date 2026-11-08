@@ -108,7 +108,7 @@ function validateSupportingContent(
         if (!bundle.mediaRequests.some((request) => request.siteId === site.id)) {
             errors.push(`Bundled site ${site.id} must plan at least one supporting-media asset.`);
         }
-        for (const route of site.routes.filter((candidate) => candidate.role === "supporting" || candidate.role === "structural")) {
+        for (const route of site.routes.filter((candidate) => candidate.role !== "puzzle")) {
             const publicText = normalized([
                 route.content.title,
                 route.content.description,

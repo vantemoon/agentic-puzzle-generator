@@ -1,0 +1,1229 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "game-afterlight-ledger",
+  "title": "The Afterlight Ledger",
+  "premise": "Hours before a civic-tech nonprofit unveils a grant-tracking platform, its auditor Mara Voss disappears and a crucial evidence package vanishes. Investigators must follow public project pages, event records, a press archive, and a mirrored storage portal to prove that the nonprofit's operations director diverted restoration funds and staged a server failure to erase the audit trail.",
+  "experienceGoals": [
+    "Follow a clear chain of public online evidence from an accessible missing-person lead to a financial conspiracy.",
+    "Resolve contradictions among schedules, access records, procurement notices, and public statements.",
+    "Experience escalating stakes while using believable archives, databases, mailboxes, and evidence-report interfaces.",
+    "Reach a decisive, non-graphic conclusion grounded entirely in fictional project-hosted content."
+  ],
+  "world": {
+    "id": "world-afterlight-ledger-r1",
+    "entities": [
+      {
+        "id": "person-mara-voss",
+        "type": "person",
+        "name": "Mara Voss",
+        "subtype": "forensic auditor",
+        "description": "Independent auditor hired to review the Harbor Renewal Fund."
+      },
+      {
+        "id": "person-eli-hart",
+        "type": "person",
+        "name": "Eli Hart",
+        "subtype": "operations director",
+        "description": "Operations director at Civic Lantern and architect of the diversion scheme."
+      },
+      {
+        "id": "person-nina-cho",
+        "type": "person",
+        "name": "Nina Cho",
+        "subtype": "program director",
+        "description": "Program director who commissions the audit and provides investigators lawful access to project archives."
+      },
+      {
+        "id": "person-daniel-ruiz",
+        "type": "person",
+        "name": "Daniel Ruiz",
+        "subtype": "journalist",
+        "description": "Local journalist who received a scheduled tip from Mara."
+      },
+      {
+        "id": "org-civic-lantern",
+        "type": "organization",
+        "name": "Civic Lantern",
+        "subtype": "civic technology nonprofit",
+        "description": "Nonprofit responsible for the Harbor Renewal Fund transparency portal."
+      },
+      {
+        "id": "org-harbor-renewal-fund",
+        "type": "organization",
+        "name": "Harbor Renewal Fund",
+        "subtype": "public restoration program",
+        "description": "Grant program financing restoration work along Bellweather Harbor."
+      },
+      {
+        "id": "org-northline-facilities",
+        "type": "organization",
+        "name": "Northline Facilities",
+        "subtype": "shell vendor",
+        "description": "Vendor secretly controlled by Eli Hart and used for false invoices."
+      },
+      {
+        "id": "place-bellweather-harbor",
+        "type": "place",
+        "name": "Bellweather Harbor",
+        "subtype": "harbor district",
+        "description": "District where the restoration grants were intended to be spent."
+      },
+      {
+        "id": "place-lantern-office",
+        "type": "place",
+        "name": "Civic Lantern Office",
+        "subtype": "office",
+        "description": "Civic Lantern's main office and server room."
+      },
+      {
+        "id": "place-east-quay-lockers",
+        "type": "place",
+        "name": "East Quay Lockers",
+        "subtype": "secure locker facility",
+        "description": "Publicly accessible locker facility where Mara placed a backup evidence package."
+      },
+      {
+        "id": "object-mara-phone",
+        "type": "object",
+        "name": "Mara's Work Phone",
+        "subtype": "mobile phone",
+        "description": "Work phone recovered from Mara's desk after her disappearance."
+      },
+      {
+        "id": "object-blue-notebook",
+        "type": "object",
+        "name": "Blue Audit Notebook",
+        "subtype": "notebook",
+        "description": "Mara's notebook containing vendor and schedule annotations."
+      },
+      {
+        "id": "object-afterlight-archive",
+        "type": "object",
+        "name": "Afterlight Evidence Archive",
+        "subtype": "protected archive",
+        "description": "Encrypted evidence package assembled by Mara."
+      },
+      {
+        "id": "object-harbor-ledger",
+        "type": "object",
+        "name": "Harbor Disbursement Ledger",
+        "subtype": "spreadsheet",
+        "description": "Export showing legitimate grants and diverted payments."
+      },
+      {
+        "id": "object-server-log",
+        "type": "object",
+        "name": "Portal Server Access Log",
+        "subtype": "log file",
+        "description": "Access record showing the destructive maintenance session."
+      },
+      {
+        "id": "event-platform-preview",
+        "type": "event",
+        "name": "Lantern Platform Preview",
+        "subtype": "public event",
+        "description": "Public demonstration held shortly before Mara disappeared."
+      },
+      {
+        "id": "event-mara-disappearance",
+        "type": "event",
+        "name": "Mara Voss Disappearance",
+        "subtype": "disappearance",
+        "description": "Mara ceased contact after leaving a warning for Nina."
+      },
+      {
+        "id": "event-staged-outage",
+        "type": "event",
+        "name": "Staged Portal Outage",
+        "subtype": "sabotage",
+        "description": "Deliberate service interruption used to conceal deletion of audit records."
+      },
+      {
+        "id": "event-fund-diversion",
+        "type": "event",
+        "name": "Harbor Fund Diversion",
+        "subtype": "fraud",
+        "description": "Diversion of restoration funds through Northline Facilities."
+      },
+      {
+        "id": "site-lantern-public",
+        "type": "site",
+        "name": "Civic Lantern Public Site",
+        "subtype": "project-hosted website",
+        "description": "Project pages, staff bios, event notices, and public statements."
+      },
+      {
+        "id": "site-city-events",
+        "type": "site",
+        "name": "Bellweather Events Archive",
+        "subtype": "project-hosted database",
+        "description": "Searchable public event and venue record database."
+      },
+      {
+        "id": "site-press-archive",
+        "type": "site",
+        "name": "Bellweather Press Archive",
+        "subtype": "project-hosted message archive",
+        "description": "Authorized archive containing Daniel Ruiz's newsroom messages and scheduled tips."
+      },
+      {
+        "id": "site-lantern-storage",
+        "type": "site",
+        "name": "Civic Lantern Evidence Storage",
+        "subtype": "project-hosted storage portal",
+        "description": "Authorized mirrored storage containing logs and audit exports."
+      },
+      {
+        "id": "site-case-portal",
+        "type": "site",
+        "name": "Bellweather Case Portal",
+        "subtype": "project-hosted investigation interface",
+        "description": "Fictional portal for submitting findings to the assigned case team."
+      }
+    ],
+    "facts": [
+      {
+        "id": "fact-mara-employed-auditor",
+        "subjectId": "person-mara-voss",
+        "relation": "audits",
+        "value": {
+          "kind": "entity",
+          "entityId": "org-harbor-renewal-fund"
+        }
+      },
+      {
+        "id": "fact-nina-works-for-lantern",
+        "subjectId": "person-nina-cho",
+        "relation": "works_for",
+        "value": {
+          "kind": "entity",
+          "entityId": "org-civic-lantern"
+        }
+      },
+      {
+        "id": "fact-eli-works-for-lantern",
+        "subjectId": "person-eli-hart",
+        "relation": "works_for",
+        "value": {
+          "kind": "entity",
+          "entityId": "org-civic-lantern"
+        }
+      },
+      {
+        "id": "fact-eli-controls-northline",
+        "subjectId": "person-eli-hart",
+        "relation": "secretly_controls",
+        "value": {
+          "kind": "entity",
+          "entityId": "org-northline-facilities"
+        }
+      },
+      {
+        "id": "fact-northline-received-diverted-funds",
+        "subjectId": "org-northline-facilities",
+        "relation": "received_funds_in",
+        "value": {
+          "kind": "entity",
+          "entityId": "event-fund-diversion"
+        }
+      },
+      {
+        "id": "fact-preview-date",
+        "subjectId": "event-platform-preview",
+        "relation": "date",
+        "value": {
+          "kind": "literal",
+          "value": "2028-10-14"
+        }
+      },
+      {
+        "id": "fact-preview-location",
+        "subjectId": "event-platform-preview",
+        "relation": "location",
+        "value": {
+          "kind": "entity",
+          "entityId": "place-bellweather-harbor"
+        }
+      },
+      {
+        "id": "fact-preview-record-id",
+        "subjectId": "event-platform-preview",
+        "relation": "record_identifier",
+        "value": {
+          "kind": "literal",
+          "value": "BWE-281014-47"
+        }
+      },
+      {
+        "id": "fact-mara-last-public-appearance",
+        "subjectId": "person-mara-voss",
+        "relation": "last_public_appearance",
+        "value": {
+          "kind": "entity",
+          "entityId": "event-platform-preview"
+        }
+      },
+      {
+        "id": "fact-disappearance-date",
+        "subjectId": "event-mara-disappearance",
+        "relation": "date",
+        "value": {
+          "kind": "literal",
+          "value": "2028-10-15"
+        }
+      },
+      {
+        "id": "fact-notebook-locker-location",
+        "subjectId": "object-blue-notebook",
+        "relation": "points_to",
+        "value": {
+          "kind": "entity",
+          "entityId": "place-east-quay-lockers"
+        }
+      },
+      {
+        "id": "fact-locker-number",
+        "subjectId": "object-afterlight-archive",
+        "relation": "stored_in_locker",
+        "value": {
+          "kind": "literal",
+          "value": "EQ-314"
+        }
+      },
+      {
+        "id": "fact-archive-resource-id",
+        "subjectId": "object-afterlight-archive",
+        "relation": "resource_identifier",
+        "value": {
+          "kind": "literal",
+          "value": "afterlight-evidence.zip"
+        }
+      },
+      {
+        "id": "fact-archive-secret",
+        "subjectId": "object-afterlight-archive",
+        "relation": "authentication_secret",
+        "value": {
+          "kind": "literal",
+          "value": "lowtide-314"
+        }
+      },
+      {
+        "id": "fact-tip-message-id",
+        "subjectId": "person-daniel-ruiz",
+        "relation": "received_message_identifier",
+        "value": {
+          "kind": "literal",
+          "value": "PRESS-8841"
+        }
+      },
+      {
+        "id": "fact-tip-sender",
+        "subjectId": "person-daniel-ruiz",
+        "relation": "tip_sender",
+        "value": {
+          "kind": "entity",
+          "entityId": "person-mara-voss"
+        }
+      },
+      {
+        "id": "fact-tip-keyword",
+        "subjectId": "person-daniel-ruiz",
+        "relation": "tip_keyword",
+        "value": {
+          "kind": "literal",
+          "value": "afterlight"
+        }
+      },
+      {
+        "id": "fact-outage-date",
+        "subjectId": "event-staged-outage",
+        "relation": "date",
+        "value": {
+          "kind": "literal",
+          "value": "2028-10-15"
+        }
+      },
+      {
+        "id": "fact-outage-location",
+        "subjectId": "event-staged-outage",
+        "relation": "location",
+        "value": {
+          "kind": "entity",
+          "entityId": "place-lantern-office"
+        }
+      },
+      {
+        "id": "fact-server-log-filename",
+        "subjectId": "object-server-log",
+        "relation": "filename",
+        "value": {
+          "kind": "literal",
+          "value": "portal-access-2028-10-15.log"
+        }
+      },
+      {
+        "id": "fact-server-log-path",
+        "subjectId": "object-server-log",
+        "relation": "storage_path",
+        "value": {
+          "kind": "literal",
+          "value": "/mirrors/ops/october/"
+        }
+      },
+      {
+        "id": "fact-eli-badge-id",
+        "subjectId": "person-eli-hart",
+        "relation": "badge_identifier",
+        "value": {
+          "kind": "literal",
+          "value": "CL-OPS-204"
+        }
+      },
+      {
+        "id": "fact-destructive-session-time",
+        "subjectId": "event-staged-outage",
+        "relation": "destructive_session_time",
+        "value": {
+          "kind": "literal",
+          "value": "2028-10-15 22:17"
+        }
+      },
+      {
+        "id": "fact-ledger-filename",
+        "subjectId": "object-harbor-ledger",
+        "relation": "filename",
+        "value": {
+          "kind": "literal",
+          "value": "harbor-disbursements-final.xlsx"
+        }
+      },
+      {
+        "id": "fact-ledger-path",
+        "subjectId": "object-harbor-ledger",
+        "relation": "storage_path",
+        "value": {
+          "kind": "literal",
+          "value": "/audits/afterlight/"
+        }
+      },
+      {
+        "id": "fact-diverted-amount",
+        "subjectId": "event-fund-diversion",
+        "relation": "amount",
+        "value": {
+          "kind": "literal",
+          "value": 486000
+        }
+      },
+      {
+        "id": "fact-false-vendor-code",
+        "subjectId": "org-northline-facilities",
+        "relation": "vendor_code",
+        "value": {
+          "kind": "literal",
+          "value": "NF-7719"
+        }
+      },
+      {
+        "id": "fact-mara-safe-status",
+        "subjectId": "person-mara-voss",
+        "relation": "status",
+        "value": {
+          "kind": "literal",
+          "value": "safe in protective accommodation"
+        }
+      },
+      {
+        "id": "fact-mara-left-voluntarily",
+        "subjectId": "event-mara-disappearance",
+        "relation": "explanation",
+        "value": {
+          "kind": "literal",
+          "value": "Mara withdrew after receiving threats and left evidence for Nina"
+        }
+      },
+      {
+        "id": "fact-case-primary-finding",
+        "subjectId": "event-fund-diversion",
+        "relation": "primary_finding",
+        "value": {
+          "kind": "literal",
+          "value": "Eli Hart diverted 486000 through Northline Facilities"
+        }
+      },
+      {
+        "id": "fact-case-resource",
+        "subjectId": "event-fund-diversion",
+        "relation": "decisive_resource",
+        "value": {
+          "kind": "literal",
+          "value": "harbor-disbursements-final.xlsx"
+        }
+      },
+      {
+        "id": "fact-case-location",
+        "subjectId": "event-fund-diversion",
+        "relation": "affected_location",
+        "value": {
+          "kind": "entity",
+          "entityId": "place-bellweather-harbor"
+        }
+      },
+      {
+        "id": "fact-public-statement-claim",
+        "subjectId": "org-civic-lantern",
+        "relation": "public_claim",
+        "value": {
+          "kind": "literal",
+          "value": "The outage began before any staff entered the server room"
+        }
+      },
+      {
+        "id": "fact-log-contradiction",
+        "subjectId": "object-server-log",
+        "relation": "contradicts_claim_with",
+        "value": {
+          "kind": "literal",
+          "value": "Eli Hart entered the server room before the outage"
+        }
+      }
+    ],
+    "schemaVersion": "1.0.0",
+    "revision": "1"
+  },
+  "levels": [
+    {
+      "prerequisiteLevelIds": [],
+      "request": {
+        "levelId": "level-1-last-appearance",
+        "titleHint": "The Empty Chair",
+        "genre": "online-investigation",
+        "theme": "A missing auditor's last public trail",
+        "setting": "Civic Lantern's public site and the Bellweather Events Archive",
+        "startingSituation": "Nina Cho reports that auditor Mara Voss missed the morning briefing. Mara's recovered work phone contains a saved screenshot from the Lantern Platform Preview, but the screenshot lacks the event record number needed to request venue materials.",
+        "playerRole": "Authorized digital investigator assisting Civic Lantern and the Bellweather case team.",
+        "playerCapabilities": [
+          "Browse project-hosted public pages and archives.",
+          "Cross-reference staff biographies, event notices, and venue records.",
+          "Submit exact search filters to the fictional event database."
+        ],
+        "playerConstraints": [
+          "Do not contact real people or access private systems.",
+          "Use only the supplied project-hosted evidence.",
+          "Treat all names and organizations as fictional."
+        ],
+        "environment": {
+          "mode": "self-contained"
+        },
+        "narrativeContext": [
+          "Mara was auditing the Harbor Renewal Fund before she disappeared.",
+          "Nina Cho has authorized review of public project materials.",
+          "The event record will reveal which follow-up evidence package the case team may release."
+        ],
+        "startingInputs": [
+          {
+            "id": "input-l1-phone-bundle",
+            "semanticRole": "initial-evidence",
+            "description": "Export of bookmarks, screenshots, and notes from Mara's recovered work phone.",
+            "kind": "bundle-entry",
+            "resourceKind": "mobile-device-export"
+          }
+        ],
+        "externalContentRequirements": [],
+        "requiredDiscoveries": [
+          {
+            "id": "discovery-l1-event-date",
+            "semanticRole": "date",
+            "description": "Date of Mara's last public appearance.",
+            "dataType": "string",
+            "value": "2028-10-14"
+          },
+          {
+            "id": "discovery-l1-event-location",
+            "semanticRole": "location",
+            "description": "Location associated with the platform preview.",
+            "dataType": "string",
+            "value": "Bellweather Harbor"
+          },
+          {
+            "id": "discovery-l1-event-record",
+            "semanticRole": "record-selector",
+            "description": "Exact event archive record identifier.",
+            "dataType": "string",
+            "value": "BWE-281014-47"
+          }
+        ],
+        "terminalAction": {
+          "actionType": "database-search",
+          "description": "Search the Bellweather Events Archive for the exact preview record so the case team can release its attached materials.",
+          "requiredOutputs": [
+            {
+              "id": "output-l1-record",
+              "semanticRole": "record-selector",
+              "dataType": "string",
+              "requiredValue": "BWE-281014-47"
+            },
+            {
+              "id": "output-l1-date",
+              "semanticRole": "date",
+              "dataType": "string",
+              "requiredValue": "2028-10-14"
+            },
+            {
+              "id": "output-l1-location",
+              "semanticRole": "location",
+              "dataType": "string",
+              "requiredValue": "Bellweather Harbor"
+            }
+          ]
+        },
+        "config": {
+          "structuralDifficulty": {
+            "preset": "easy",
+            "puzzleCount": {
+              "minimum": 2,
+              "maximum": 3
+            },
+            "phaseCount": {
+              "minimum": 2,
+              "maximum": 2
+            },
+            "linearity": 0.9,
+            "maxParallelPuzzles": 1
+          },
+          "puzzleDifficulty": {
+            "preset": "easy"
+          },
+          "transformationPolicy": {
+            "enabled": true,
+            "maxCount": 1,
+            "maxDifficulty": "easy"
+          },
+          "reviewRetryLimit": 3,
+          "concealUnreachedContent": true,
+          "encourageSubtypeVariety": true
+        },
+        "world": {
+          "entityIds": [
+            "person-mara-voss",
+            "person-nina-cho",
+            "org-civic-lantern",
+            "org-harbor-renewal-fund",
+            "place-bellweather-harbor",
+            "object-mara-phone",
+            "event-platform-preview",
+            "event-mara-disappearance",
+            "site-lantern-public",
+            "site-city-events"
+          ],
+          "factIds": [
+            "fact-mara-employed-auditor",
+            "fact-nina-works-for-lantern",
+            "fact-preview-date",
+            "fact-preview-location",
+            "fact-preview-record-id",
+            "fact-mara-last-public-appearance",
+            "fact-disappearance-date"
+          ],
+          "id": "world-afterlight-ledger-r1",
+          "revision": "1"
+        },
+        "catalogVersion": "repository-puzzles-2.0.0"
+      }
+    },
+    {
+      "parentLevelId": "level-1-last-appearance",
+      "prerequisiteLevelIds": [
+        "level-1-last-appearance"
+      ],
+      "request": {
+        "levelId": "level-2-scheduled-warning",
+        "titleHint": "The Scheduled Warning",
+        "genre": "online-investigation",
+        "theme": "A journalist's unopened tip",
+        "setting": "Bellweather Press Archive",
+        "startingSituation": "Materials attached to the event record show Mara speaking privately with journalist Daniel Ruiz and note that she scheduled a warning in the press archive. The case team grants read-only access to Daniel's archived tip mailbox.",
+        "playerRole": "Authorized investigator locating Mara's scheduled warning.",
+        "playerCapabilities": [
+          "Browse a fictional mailbox and press archive.",
+          "Correlate sender, event date, and a recurring keyword.",
+          "Open one exact archived message."
+        ],
+        "playerConstraints": [
+          "Read-only access; no sending or modifying messages.",
+          "Use only supplied project-hosted content.",
+          "Do not infer credentials or contact anyone."
+        ],
+        "environment": {
+          "mode": "self-contained"
+        },
+        "narrativeContext": [
+          "Mara expected someone to interfere with the audit.",
+          "Daniel Ruiz did not see the scheduled tip before Mara disappeared.",
+          "The message identifies where Mara placed a protected evidence package."
+        ],
+        "startingInputs": [
+          {
+            "id": "input-l2-event-materials",
+            "semanticRole": "released-evidence",
+            "description": "Photographs, attendee notes, and interview snippets attached to event record BWE-281014-47.",
+            "kind": "bundle-entry",
+            "resourceKind": "event-evidence-package"
+          }
+        ],
+        "externalContentRequirements": [],
+        "requiredDiscoveries": [
+          {
+            "id": "discovery-l2-message-id",
+            "semanticRole": "message-identifier",
+            "description": "Identifier of Mara's scheduled press tip.",
+            "dataType": "string",
+            "value": "PRESS-8841"
+          },
+          {
+            "id": "discovery-l2-sender",
+            "semanticRole": "sender",
+            "description": "Sender of the scheduled warning.",
+            "dataType": "string",
+            "value": "Mara Voss"
+          },
+          {
+            "id": "discovery-l2-keyword",
+            "semanticRole": "keyword",
+            "description": "Keyword used to distinguish the relevant tip.",
+            "dataType": "string",
+            "value": "afterlight"
+          },
+          {
+            "id": "discovery-l2-locker",
+            "semanticRole": "finding",
+            "description": "Locker holding Mara's protected evidence package.",
+            "dataType": "string",
+            "value": "EQ-314"
+          }
+        ],
+        "terminalAction": {
+          "actionType": "message-open",
+          "description": "Open Mara's exact scheduled warning in the authorized press archive.",
+          "requiredOutputs": [
+            {
+              "id": "output-l2-message",
+              "semanticRole": "message-identifier",
+              "dataType": "string",
+              "requiredValue": "PRESS-8841"
+            },
+            {
+              "id": "output-l2-sender",
+              "semanticRole": "sender",
+              "dataType": "string",
+              "requiredValue": "Mara Voss"
+            },
+            {
+              "id": "output-l2-keyword",
+              "semanticRole": "keyword",
+              "dataType": "string",
+              "requiredValue": "afterlight"
+            }
+          ]
+        },
+        "config": {
+          "structuralDifficulty": {
+            "preset": "medium",
+            "puzzleCount": {
+              "minimum": 3,
+              "maximum": 4
+            },
+            "phaseCount": {
+              "minimum": 2,
+              "maximum": 3
+            },
+            "linearity": 0.75,
+            "maxParallelPuzzles": 2
+          },
+          "puzzleDifficulty": {
+            "preset": "easy"
+          },
+          "transformationPolicy": {
+            "enabled": true,
+            "maxCount": 2,
+            "maxDifficulty": "easy"
+          },
+          "reviewRetryLimit": 3,
+          "concealUnreachedContent": true,
+          "encourageSubtypeVariety": true
+        },
+        "world": {
+          "entityIds": [
+            "person-mara-voss",
+            "person-daniel-ruiz",
+            "place-east-quay-lockers",
+            "object-blue-notebook",
+            "object-afterlight-archive",
+            "event-platform-preview",
+            "site-press-archive"
+          ],
+          "factIds": [
+            "fact-notebook-locker-location",
+            "fact-locker-number",
+            "fact-tip-message-id",
+            "fact-tip-sender",
+            "fact-tip-keyword",
+            "fact-preview-date"
+          ],
+          "id": "world-afterlight-ledger-r1",
+          "revision": "1"
+        },
+        "catalogVersion": "repository-puzzles-2.0.0"
+      }
+    },
+    {
+      "parentLevelId": "level-2-scheduled-warning",
+      "prerequisiteLevelIds": [
+        "level-2-scheduled-warning"
+      ],
+      "request": {
+        "levelId": "level-3-afterlight-archive",
+        "titleHint": "Locker 314",
+        "genre": "online-investigation",
+        "theme": "Opening the auditor's protected package",
+        "setting": "A project-hosted digital twin of the East Quay locker intake and evidence archive interface",
+        "startingSituation": "Mara's scheduled warning identifies locker EQ-314. The case team legally retrieves its contents: a blue notebook and an encrypted archive copied into the investigation interface. Investigators must determine the exact archive filename and passphrase from Mara's annotations.",
+        "playerRole": "Evidence technician authorized to open Mara's recovered archive.",
+        "playerCapabilities": [
+          "Inspect the project-hosted locker inventory and notebook scans.",
+          "Correlate annotations with the archive manifest.",
+          "Enter an exact archive identifier and authentication secret."
+        ],
+        "playerConstraints": [
+          "Access only the recovered evidence package.",
+          "Do not attempt unrelated passwords or systems.",
+          "Use exact capitalization and punctuation shown in evidence."
+        ],
+        "environment": {
+          "mode": "self-contained"
+        },
+        "narrativeContext": [
+          "The archive is Mara's contingency copy of her audit.",
+          "Her notebook separates the locker number from the archive passphrase.",
+          "Opening the archive reveals the storage filenames needed to test Civic Lantern's outage story."
+        ],
+        "startingInputs": [
+          {
+            "id": "input-l3-locker-bundle",
+            "semanticRole": "recovered-materials",
+            "description": "Digitized inventory and notebook scans from East Quay locker EQ-314.",
+            "kind": "bundle-entry",
+            "resourceKind": "locker-evidence-bundle"
+          }
+        ],
+        "externalContentRequirements": [],
+        "requiredDiscoveries": [
+          {
+            "id": "discovery-l3-archive-id",
+            "semanticRole": "resource-identifier",
+            "description": "Filename of Mara's protected archive.",
+            "dataType": "string",
+            "value": "afterlight-evidence.zip"
+          },
+          {
+            "id": "discovery-l3-secret",
+            "semanticRole": "authentication-secret",
+            "description": "Passphrase for the protected archive.",
+            "dataType": "string",
+            "value": "lowtide-314"
+          }
+        ],
+        "terminalAction": {
+          "actionType": "archive-open",
+          "description": "Open Mara's protected evidence archive in the case interface.",
+          "requiredOutputs": [
+            {
+              "id": "output-l3-resource",
+              "semanticRole": "resource-identifier",
+              "dataType": "string",
+              "requiredValue": "afterlight-evidence.zip"
+            },
+            {
+              "id": "output-l3-secret",
+              "semanticRole": "authentication-secret",
+              "dataType": "string",
+              "requiredValue": "lowtide-314"
+            }
+          ]
+        },
+        "config": {
+          "structuralDifficulty": {
+            "preset": "medium",
+            "puzzleCount": {
+              "minimum": 3,
+              "maximum": 5
+            },
+            "phaseCount": {
+              "minimum": 3,
+              "maximum": 3
+            },
+            "linearity": 0.7,
+            "maxParallelPuzzles": 2
+          },
+          "puzzleDifficulty": {
+            "preset": "medium"
+          },
+          "transformationPolicy": {
+            "enabled": true,
+            "maxCount": 3,
+            "maxDifficulty": "medium"
+          },
+          "reviewRetryLimit": 3,
+          "concealUnreachedContent": true,
+          "encourageSubtypeVariety": true
+        },
+        "world": {
+          "entityIds": [
+            "person-mara-voss",
+            "place-east-quay-lockers",
+            "object-blue-notebook",
+            "object-afterlight-archive",
+            "site-case-portal"
+          ],
+          "factIds": [
+            "fact-locker-number",
+            "fact-archive-resource-id",
+            "fact-archive-secret"
+          ],
+          "id": "world-afterlight-ledger-r1",
+          "revision": "1"
+        },
+        "catalogVersion": "repository-puzzles-2.0.0"
+      }
+    },
+    {
+      "parentLevelId": "level-3-afterlight-archive",
+      "prerequisiteLevelIds": [
+        "level-3-afterlight-archive"
+      ],
+      "request": {
+        "levelId": "level-4-outage-truth",
+        "titleHint": "Before the Outage",
+        "genre": "online-investigation",
+        "theme": "Testing a public statement against access logs",
+        "setting": "Civic Lantern Evidence Storage",
+        "startingSituation": "The opened Afterlight archive includes a storage manifest and a copy of Civic Lantern's public statement claiming the outage began before staff entered the server room. Investigators have authorized read access to the mirrored evidence storage and must retrieve the exact access log.",
+        "playerRole": "Digital investigator verifying whether the outage was accidental or staged.",
+        "playerCapabilities": [
+          "Browse the archive manifest and mirrored storage index.",
+          "Resolve a filename and path from dated operational records.",
+          "Retrieve an exact file from authorized storage."
+        ],
+        "playerConstraints": [
+          "Read-only access to the evidence mirror.",
+          "Retrieve only case-relevant files.",
+          "Use no external services or real infrastructure."
+        ],
+        "environment": {
+          "mode": "self-contained"
+        },
+        "narrativeContext": [
+          "Civic Lantern claims no employee entered the server room before the outage.",
+          "Mara believed the outage concealed deliberate deletion.",
+          "The correct log identifies the staff badge and destructive-session time."
+        ],
+        "startingInputs": [
+          {
+            "id": "input-l4-archive-contents",
+            "semanticRole": "opened-archive",
+            "description": "Contents and manifest of afterlight-evidence.zip.",
+            "kind": "bundle-entry",
+            "resourceKind": "audit-archive-contents"
+          }
+        ],
+        "externalContentRequirements": [],
+        "requiredDiscoveries": [
+          {
+            "id": "discovery-l4-log-name",
+            "semanticRole": "resource-identifier",
+            "description": "Filename of the relevant portal access log.",
+            "dataType": "string",
+            "value": "portal-access-2028-10-15.log"
+          },
+          {
+            "id": "discovery-l4-log-path",
+            "semanticRole": "path",
+            "description": "Storage path containing the relevant log.",
+            "dataType": "string",
+            "value": "/mirrors/ops/october/"
+          },
+          {
+            "id": "discovery-l4-badge",
+            "semanticRole": "person-identifier",
+            "description": "Badge identifier present during the destructive session.",
+            "dataType": "string",
+            "value": "CL-OPS-204"
+          },
+          {
+            "id": "discovery-l4-session",
+            "semanticRole": "date",
+            "description": "Timestamp of the destructive session.",
+            "dataType": "string",
+            "value": "2028-10-15 22:17"
+          },
+          {
+            "id": "discovery-l4-contradiction",
+            "semanticRole": "finding",
+            "description": "Conclusion established by the log.",
+            "dataType": "string",
+            "value": "Eli Hart entered the server room before the outage"
+          }
+        ],
+        "terminalAction": {
+          "actionType": "file-retrieval",
+          "description": "Retrieve the exact portal access log from Civic Lantern's authorized evidence mirror.",
+          "requiredOutputs": [
+            {
+              "id": "output-l4-file",
+              "semanticRole": "resource-identifier",
+              "dataType": "string",
+              "requiredValue": "portal-access-2028-10-15.log"
+            },
+            {
+              "id": "output-l4-path",
+              "semanticRole": "path",
+              "dataType": "string",
+              "requiredValue": "/mirrors/ops/october/"
+            }
+          ]
+        },
+        "config": {
+          "structuralDifficulty": {
+            "preset": "hard",
+            "puzzleCount": {
+              "minimum": 4,
+              "maximum": 6
+            },
+            "phaseCount": {
+              "minimum": 3,
+              "maximum": 4
+            },
+            "linearity": 0.55,
+            "maxParallelPuzzles": 3
+          },
+          "puzzleDifficulty": {
+            "preset": "medium"
+          },
+          "transformationPolicy": {
+            "enabled": true,
+            "maxCount": 4,
+            "maxDifficulty": "medium"
+          },
+          "reviewRetryLimit": 4,
+          "concealUnreachedContent": true,
+          "encourageSubtypeVariety": true
+        },
+        "world": {
+          "entityIds": [
+            "person-mara-voss",
+            "person-eli-hart",
+            "org-civic-lantern",
+            "place-lantern-office",
+            "object-afterlight-archive",
+            "object-server-log",
+            "event-staged-outage",
+            "site-lantern-public",
+            "site-lantern-storage"
+          ],
+          "factIds": [
+            "fact-outage-date",
+            "fact-outage-location",
+            "fact-server-log-filename",
+            "fact-server-log-path",
+            "fact-eli-badge-id",
+            "fact-destructive-session-time",
+            "fact-public-statement-claim",
+            "fact-log-contradiction"
+          ],
+          "id": "world-afterlight-ledger-r1",
+          "revision": "1"
+        },
+        "catalogVersion": "repository-puzzles-2.0.0"
+      }
+    },
+    {
+      "parentLevelId": "level-4-outage-truth",
+      "prerequisiteLevelIds": [
+        "level-3-afterlight-archive",
+        "level-4-outage-truth"
+      ],
+      "request": {
+        "levelId": "level-5-ledger-verdict",
+        "titleHint": "The Afterlight Ledger",
+        "genre": "online-investigation",
+        "theme": "Proving the diversion and identifying its architect",
+        "setting": "Civic Lantern Evidence Storage and the Bellweather Case Portal",
+        "startingSituation": "The server log proves the outage was staged by the holder of badge CL-OPS-204. Its deletion list points to Mara's final disbursement ledger, preserved in the Afterlight archive's storage mirror. The case team asks for a concise submission naming the responsible person, decisive resource, amount, and affected location.",
+        "playerRole": "Lead investigator preparing the final evidence submission.",
+        "playerCapabilities": [
+          "Retrieve and inspect the preserved ledger from authorized storage.",
+          "Cross-reference staff identifiers, vendor records, and payment totals.",
+          "Submit exact findings to the fictional case portal."
+        ],
+        "playerConstraints": [
+          "Base every accusation on project-hosted evidence.",
+          "Do not contact real institutions or individuals.",
+          "Submit only the exact case fields requested."
+        ],
+        "environment": {
+          "mode": "self-contained"
+        },
+        "narrativeContext": [
+          "Badge CL-OPS-204 belongs to Civic Lantern operations director Eli Hart.",
+          "Northline Facilities received payments for work that was never performed.",
+          "Mara is safe in protective accommodation; the urgent task is preserving the proof before the platform launch."
+        ],
+        "startingInputs": [
+          {
+            "id": "input-l5-log-and-manifest",
+            "semanticRole": "converged-evidence",
+            "description": "Retrieved server log, archive manifest, and authorized vendor-record extracts.",
+            "kind": "bundle-entry",
+            "resourceKind": "case-evidence-bundle"
+          }
+        ],
+        "externalContentRequirements": [],
+        "requiredDiscoveries": [
+          {
+            "id": "discovery-l5-ledger-file",
+            "semanticRole": "resource-identifier",
+            "description": "Filename of Mara's decisive disbursement ledger.",
+            "dataType": "string",
+            "value": "harbor-disbursements-final.xlsx"
+          },
+          {
+            "id": "discovery-l5-ledger-path",
+            "semanticRole": "finding",
+            "description": "Storage path of the preserved ledger.",
+            "dataType": "string",
+            "value": "/audits/afterlight/"
+          },
+          {
+            "id": "discovery-l5-vendor-code",
+            "semanticRole": "finding",
+            "description": "Code of the shell vendor receiving diverted funds.",
+            "dataType": "string",
+            "value": "NF-7719"
+          },
+          {
+            "id": "discovery-l5-amount",
+            "semanticRole": "finding",
+            "description": "Total amount diverted through Northline Facilities.",
+            "dataType": "number",
+            "value": 486000
+          },
+          {
+            "id": "discovery-l5-culprit",
+            "semanticRole": "person-identifier",
+            "description": "Person responsible for the diversion and staged outage.",
+            "dataType": "string",
+            "value": "Eli Hart"
+          },
+          {
+            "id": "discovery-l5-status",
+            "semanticRole": "finding",
+            "description": "Mara's confirmed status.",
+            "dataType": "string",
+            "value": "safe in protective accommodation"
+          }
+        ],
+        "terminalAction": {
+          "actionType": "evidence-submission",
+          "description": "Submit the decisive fraud findings to the Bellweather Case Portal so funds can be frozen and the platform launch halted.",
+          "requiredOutputs": [
+            {
+              "id": "output-l5-finding",
+              "semanticRole": "finding",
+              "dataType": "string",
+              "requiredValue": "Eli Hart diverted 486000 through Northline Facilities"
+            },
+            {
+              "id": "output-l5-person",
+              "semanticRole": "person-identifier",
+              "dataType": "string",
+              "requiredValue": "Eli Hart"
+            },
+            {
+              "id": "output-l5-resource",
+              "semanticRole": "resource-identifier",
+              "dataType": "string",
+              "requiredValue": "harbor-disbursements-final.xlsx"
+            },
+            {
+              "id": "output-l5-location",
+              "semanticRole": "location",
+              "dataType": "string",
+              "requiredValue": "Bellweather Harbor"
+            }
+          ]
+        },
+        "config": {
+          "structuralDifficulty": {
+            "preset": "hard",
+            "puzzleCount": {
+              "minimum": 5,
+              "maximum": 7
+            },
+            "phaseCount": {
+              "minimum": 3,
+              "maximum": 5
+            },
+            "linearity": 0.45,
+            "maxParallelPuzzles": 3
+          },
+          "puzzleDifficulty": {
+            "preset": "hard"
+          },
+          "transformationPolicy": {
+            "enabled": true,
+            "maxCount": 5,
+            "maxDifficulty": "hard"
+          },
+          "reviewRetryLimit": 4,
+          "concealUnreachedContent": true,
+          "encourageSubtypeVariety": true
+        },
+        "world": {
+          "entityIds": [
+            "person-mara-voss",
+            "person-eli-hart",
+            "person-nina-cho",
+            "org-civic-lantern",
+            "org-harbor-renewal-fund",
+            "org-northline-facilities",
+            "place-bellweather-harbor",
+            "object-harbor-ledger",
+            "object-server-log",
+            "event-staged-outage",
+            "event-fund-diversion",
+            "site-lantern-storage",
+            "site-case-portal"
+          ],
+          "factIds": [
+            "fact-eli-works-for-lantern",
+            "fact-eli-controls-northline",
+            "fact-northline-received-diverted-funds",
+            "fact-eli-badge-id",
+            "fact-ledger-filename",
+            "fact-ledger-path",
+            "fact-diverted-amount",
+            "fact-false-vendor-code",
+            "fact-mara-safe-status",
+            "fact-case-primary-finding",
+            "fact-case-resource",
+            "fact-case-location"
+          ],
+          "id": "world-afterlight-ledger-r1",
+          "revision": "1"
+        },
+        "catalogVersion": "repository-puzzles-2.0.0"
+      }
+    }
+  ]
+}

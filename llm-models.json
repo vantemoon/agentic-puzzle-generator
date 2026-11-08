@@ -4,6 +4,10 @@
     "providerId": "kadi"
   },
   "tasks": {
+    "game-design": {
+      "modelId": "openai/gpt-5.6-sol",
+      "providerId": "kadi-openai"
+    },
     "level-design": {
       "modelId": "openai/gpt-5.6-sol",
       "providerId": "kadi-openai"
@@ -35,6 +39,10 @@
       "providerId": "kadi"
     },
     "visual-composition": {
+      "modelId": "openai/gpt-5.6-sol",
+      "providerId": "kadi-openai"
+    },
+    "webpage-composition": {
       "modelId": "openai/gpt-5.6-sol",
       "providerId": "kadi-openai"
     }

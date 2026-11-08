@@ -79,6 +79,11 @@ export const LevelGenerationConfigSchema = Type.Object({
 export const StartingInputSchema = Type.Union([
     Type.Object({
         id: Type.String({ minLength: 1 }), semanticRole: Type.String({ minLength: 1 }),
+        description: Type.String({ minLength: 1 }), kind: Type.Literal("bundle-entry"),
+        resourceKind: Type.String({ minLength: 1 })
+    }, closed),
+    Type.Object({
+        id: Type.String({ minLength: 1 }), semanticRole: Type.String({ minLength: 1 }),
         description: Type.String({ minLength: 1 }), dataType: Type.Literal("string"),
         value: Type.String({ minLength: 1 })
     }, closed),

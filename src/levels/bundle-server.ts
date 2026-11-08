@@ -56,14 +56,14 @@ function safeReturnPath(value: unknown): string {
 
 function responseHtml(result: TerminalValidationResult, returnPath: string): string {
     const success = result.status === "success";
-    const title = success ? "Investigation Complete" : "Check Your Findings";
+    const title = success ? "Submission Complete" : "Check Your Findings";
     const message = success
-        ? result.outcome ?? "The investigation is complete."
-        : "One or more fields do not match the public records. Review the investigation and try again.";
+        ? result.outcome ?? "Your submission has been accepted."
+        : "One or more fields do not match the public records. Review the referenced records and try again.";
     const action = success
-        ? '<a class="begin-link" href="/">Return to the investigation</a>'
+        ? '<a class="begin-link" href="/">Return to start</a>'
         : `<a class="begin-link" href="${escapeHtml(returnPath)}">Try again</a>`;
-    return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${title}</title><link rel="stylesheet" href="/assets/site.css"></head><body class="bundle-index completion-page"><main><p class="site-kicker">${success ? "Case closed" : "Submission not accepted"}</p><h1>${title}</h1><p class="summary">${escapeHtml(message)}</p><p>${action}</p></main></body></html>`;
+    return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${title}</title><link rel="stylesheet" href="/assets/site.css"></head><body class="bundle-index completion-page"><main><p class="site-kicker">${success ? "Complete" : "Submission not accepted"}</p><h1>${title}</h1><p class="summary">${escapeHtml(message)}</p><p>${action}</p></main></body></html>`;
 }
 
 function fullRoutePath(site: BundledSite, route: BundleRoute): string {
@@ -92,7 +92,7 @@ function expectedSearchTerms(inputs: LevelBundleInputs, route: BundleRoute): str
     if (route.role !== "puzzle") return [route.content.title];
     const node = inputs.level.puzzles.find((candidate) => candidate.id === route.puzzleId);
     if (node === undefined) return [];
-    return node.design.inputs.flatMap((input) => {
+    const terms = node.design.inputs.flatMap((input) => {
         if (input.source.kind === "puzzle-output") {
             const output = resolvePuzzleOutput(
                 inputs.level,
@@ -105,8 +105,11 @@ function expectedSearchTerms(inputs: LevelBundleInputs, route: BundleRoute): str
         const startingInput = inputs.level.startingInputs.find(
             (candidate) => candidate.id === inputId
         );
-        return startingInput === undefined ? [] : [String(startingInput.value)];
+        return startingInput === undefined || !("value" in startingInput)
+            ? []
+            : [String(startingInput.value)];
     });
+    return terms.length > 0 ? terms : [route.content.title];
 }
 
 function searchResponseHtml(options: {

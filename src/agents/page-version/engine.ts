@@ -8,13 +8,19 @@ import {
     type PuzzleGenerationSpec
 } from "../../core/types.js";
 
-export type PageVersionChangeKind = "added-section" | "changed-field" | "removed-redaction";
+export type PageVersionChangeKind =
+    | "added-section"
+    | "changed-field"
+    | "removed-content"
+    | "removed-redaction";
 
 export interface PageVersionPuzzleSpec extends PuzzleGenerationSpec {
     pageTitle: string;
     baselineBody: string;
     currentBody: string;
     changeKind: PageVersionChangeKind;
+    baselineDate: string;
+    currentDate: string;
     baselineLabel?: string;
     currentLabel?: string;
     acceptedAlternatives?: string[];
@@ -24,8 +30,14 @@ const MAX_SOLUTION_LENGTH = 300;
 const MAX_TITLE_LENGTH = 120;
 const MAX_BODY_LENGTH = 1_000;
 const MAX_LABEL_LENGTH = 60;
-const TEMPLATE_VERSION = "safe-static-page-version-v1";
-const CHANGE_KINDS: readonly PageVersionChangeKind[] = ["added-section", "changed-field", "removed-redaction"];
+const TEMPLATE_VERSION = "safe-static-page-version-v2";
+const CHANGE_KINDS: readonly PageVersionChangeKind[] = [
+    "added-section",
+    "changed-field",
+    "removed-content",
+    "removed-redaction"
+];
+const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 function normalizeInlineText(input: string, fieldName: string, maximumLength: number): string {
     const normalized = input.trim().replace(/\s+/g, " ");
@@ -51,7 +63,33 @@ export function normalizePageVersionBody(input: string, fieldName: string): stri
 
 
 export function normalizeVersionLabel(input: string | undefined, fallback: string): string {
-    return normalizeInlineText(input ?? fallback, "version label", MAX_LABEL_LENGTH);
+    const normalized = normalizeInlineText(input ?? fallback, "version label", MAX_LABEL_LENGTH);
+    if (/\b(?:baseline|current)\b/i.test(normalized)) {
+        throw new Error("Player-facing version labels must not use baseline or current terminology.");
+    }
+    return normalized;
+}
+
+export function normalizeVersionDate(input: string, fieldName: string): string {
+    const normalized = input.trim();
+    if (!ISO_DATE_PATTERN.test(normalized)) {
+        throw new Error(`The ${fieldName} must use YYYY-MM-DD format.`);
+    }
+    const [year, month, day] = normalized.split("-").map(Number);
+    const parsed = new Date(Date.UTC(year, month - 1, day));
+    if (parsed.getUTCFullYear() !== year
+        || parsed.getUTCMonth() !== month - 1
+        || parsed.getUTCDate() !== day) {
+        throw new Error(`The ${fieldName} must be a real calendar date.`);
+    }
+    return normalized;
+}
+
+function formatVersionDate(input: string): string {
+    return new Intl.DateTimeFormat("en-US", {
+        dateStyle: "long",
+        timeZone: "UTC"
+    }).format(new Date(`${input}T00:00:00Z`));
 }
 
 
@@ -104,6 +142,19 @@ function assertSolutionNotInStableText(solution: string, values: string[]): void
     }
 }
 
+function markedVersionBody(body: string, payload: string): string | undefined {
+    const firstIndex = body.indexOf(payload);
+    if (firstIndex < 0) return undefined;
+    if (body.indexOf(payload, firstIndex + payload.length) >= 0) {
+        throw new Error("A page-version body must contain the payload at most once.");
+    }
+    return [
+        escapeHtmlText(body.slice(0, firstIndex)),
+        `<span data-puzzle-role="page-version-payload">${escapeHtmlText(payload)}</span>`,
+        escapeHtmlText(body.slice(firstIndex + payload.length))
+    ].join("");
+}
+
 function buildVersionBody(options: {
     label: string;
     body: string;
@@ -111,7 +162,13 @@ function buildVersionBody(options: {
     changeKind: PageVersionChangeKind;
     isCurrent: boolean;
 }): string {
-    const bodyParagraph = `      <p>${escapeHtmlText(options.body)}</p>`;
+    const markedBody = options.payload !== undefined
+        ? markedVersionBody(options.body, options.payload)
+        : undefined;
+    const bodyParagraph = `      <p>${markedBody ?? escapeHtmlText(options.body)}</p>`;
+    if (options.changeKind === "removed-content") {
+        return bodyParagraph;
+    }
     if (!options.isCurrent) {
         if (options.changeKind === "changed-field") {
             return [bodyParagraph, "      <dl>", "        <dt>Release marker</dt>", "        <dd>Pending review</dd>", "      </dl>"].join("\n");
@@ -122,6 +179,11 @@ function buildVersionBody(options: {
         return bodyParagraph;
     }
 
+    // A level blueprint may describe the complete current page and naturally
+    // include the changed value. Mark that occurrence as the payload instead of
+    // adding a second copy of the answer elsewhere in the document.
+    if (markedBody !== undefined) return bodyParagraph;
+
     const payload = escapeHtmlText(options.payload ?? "");
     if (options.changeKind === "changed-field") {
         return [bodyParagraph, "      <dl>", "        <dt>Release marker</dt>", `        <dd data-puzzle-role=\"page-version-payload\">${payload}</dd>`, "      </dl>"].join("\n");
@@ -129,12 +191,13 @@ function buildVersionBody(options: {
     if (options.changeKind === "removed-redaction") {
         return [bodyParagraph, `      <p>Access note: <span data-puzzle-role=\"page-version-payload\">${payload}</span></p>`].join("\n");
     }
-    return [bodyParagraph, "      <section aria-label=\"Current version addition\">", "        <h2>Current update</h2>", `        <p data-puzzle-role=\"page-version-payload\">${payload}</p>`, "      </section>"].join("\n");
+    return [bodyParagraph, "      <section aria-label=\"Added content\">", "        <h2>Revision note</h2>", `        <p data-puzzle-role=\"page-version-payload\">${payload}</p>`, "      </section>"].join("\n");
 }
 
 export function buildVersionPage(options: {
     title: string;
     label: string;
+    date: string;
     body: string;
     payload?: string;
     changeKind: PageVersionChangeKind;
@@ -145,12 +208,12 @@ export function buildVersionPage(options: {
         "<html lang=\"en\">",
         "  <head>",
         "    <meta charset=\"utf-8\">",
-        `    <title>${escapeHtmlText(options.title)} — ${escapeHtmlText(options.label)}</title>`,
+        `    <title>${escapeHtmlText(options.title)} — ${escapeHtmlText(options.date)}</title>`,
         "  </head>",
         "  <body>",
         "    <main>",
         `      <h1>${escapeHtmlText(options.title)}</h1>`,
-        `      <p class=\"version-label\">Version: ${escapeHtmlText(options.label)}</p>`,
+        `      <p class=\"version-label\"><time datetime=\"${escapeHtmlText(options.date)}\">${escapeHtmlText(formatVersionDate(options.date))}</time> — ${escapeHtmlText(options.label)}</p>`,
         buildVersionBody(options),
         "    </main>",
         "  </body>",
@@ -164,20 +227,22 @@ export function buildIndexPage(options: {
     currentPath: string;
     baselineLabel: string;
     currentLabel: string;
+    baselineDate: string;
+    currentDate: string;
 }): string {
     return [
         "<!doctype html>",
         "<html lang=\"en\">",
         "  <head>",
         "    <meta charset=\"utf-8\">",
-        `    <title>${escapeHtmlText(options.title)} — version index</title>`,
+        `    <title>${escapeHtmlText(options.title)} — page history</title>`,
         "  </head>",
         "  <body>",
         "    <main>",
-        `      <h1>${escapeHtmlText(options.title)}</h1>`,
-        "      <p>This artifact contains two static HTML page versions.</p>",
-        `      <p>Baseline (${escapeHtmlText(options.baselineLabel)}): <code>${escapeHtmlText(options.baselinePath)}</code></p>`,
-        `      <p>Current (${escapeHtmlText(options.currentLabel)}): <code>${escapeHtmlText(options.currentPath)}</code></p>`,
+        `      <h1>${escapeHtmlText(options.title)} page history</h1>`,
+        "      <p>Two dated snapshots are available for comparison.</p>",
+        `      <p><time datetime=\"${escapeHtmlText(options.currentDate)}\">${escapeHtmlText(formatVersionDate(options.currentDate))}</time> — ${escapeHtmlText(options.currentLabel)}: <code>${escapeHtmlText(options.currentPath)}</code></p>`,
+        `      <p><time datetime=\"${escapeHtmlText(options.baselineDate)}\">${escapeHtmlText(formatVersionDate(options.baselineDate))}</time> — ${escapeHtmlText(options.baselineLabel)}: <code>${escapeHtmlText(options.baselinePath)}</code></p>`,
         "    </main>",
         "  </body>",
         "</html>"
@@ -198,21 +263,57 @@ export function createPageVersionPuzzle(spec: PageVersionPuzzleSpec): PrivatePuz
     const baselineBody = normalizePageVersionBody(spec.baselineBody, "baseline body");
     const currentBody = normalizePageVersionBody(spec.currentBody, "current body");
     const changeKind = normalizePageVersionChangeKind(spec.changeKind);
-    const baselineLabel = normalizeVersionLabel(spec.baselineLabel, "baseline");
-    const currentLabel = normalizeVersionLabel(spec.currentLabel, "current");
+    if (changeKind === "removed-content" && !baselineBody.includes(solution)) {
+        throw new Error("For removed-content, the older version body must contain the page-version payload exactly once.");
+    }
+    const baselineDate = normalizeVersionDate(spec.baselineDate, "older version date");
+    const currentDate = normalizeVersionDate(spec.currentDate, "newer version date");
+    if (baselineDate >= currentDate) {
+        throw new Error("The older version date must be earlier than the newer version date.");
+    }
+    const baselineLabel = normalizeVersionLabel(spec.baselineLabel, "Archived snapshot");
+    const currentLabel = normalizeVersionLabel(spec.currentLabel, "Updated snapshot");
     const acceptedAlternatives = normalizeAcceptedAlternatives(spec.acceptedAlternatives);
-    assertSolutionNotInStableText(solution, [title, baselineBody, currentBody, baselineLabel, currentLabel]);
+    assertSolutionNotInStableText(solution, [
+        title,
+        changeKind === "removed-content" ? currentBody : baselineBody,
+        baselineLabel,
+        currentLabel
+    ]);
 
-    const baselinePath = "/versions/baseline.html";
-    const currentPath = "/versions/current.html";
-    const indexSource = buildIndexPage({ title, baselinePath, currentPath, baselineLabel, currentLabel });
-    const baselineSource = buildVersionPage({ title, label: baselineLabel, body: baselineBody, changeKind, isCurrent: false });
-    const currentSource = buildVersionPage({ title, label: currentLabel, body: currentBody, payload: solution, changeKind, isCurrent: true });
+    const baselinePath = `/versions/${baselineDate}.html`;
+    const currentPath = `/versions/${currentDate}.html`;
+    const indexSource = buildIndexPage({
+        title, baselinePath, currentPath, baselineLabel, currentLabel, baselineDate, currentDate
+    });
+    const payloadWasRemoved = changeKind === "removed-content";
+    const baselineSource = buildVersionPage({
+        title,
+        label: baselineLabel,
+        date: baselineDate,
+        body: baselineBody,
+        ...(payloadWasRemoved ? { payload: solution } : {}),
+        changeKind,
+        isCurrent: false
+    });
+    const currentSource = buildVersionPage({
+        title,
+        label: currentLabel,
+        date: currentDate,
+        body: currentBody,
+        ...(payloadWasRemoved ? {} : { payload: solution }),
+        changeKind,
+        isCurrent: true
+    });
 
     for (const source of [indexSource, baselineSource, currentSource]) assertSafeStaticHtml(source);
     const payloads = extractPageVersionPayloads(currentSource);
-    if (payloads.length !== 1 || payloads[0] !== solution || extractPageVersionPayloads(baselineSource).length !== 0) {
-        throw new Error("Internal validation failed: current version must contain exactly one intended payload.");
+    const baselinePayloads = extractPageVersionPayloads(baselineSource);
+    const allPayloads = [...baselinePayloads, ...payloads];
+    if (allPayloads.length !== 1
+        || allPayloads[0] !== solution
+        || (payloadWasRemoved ? payloads.length !== 0 : baselinePayloads.length !== 0)) {
+        throw new Error("Internal validation failed: exactly one dated version must contain the intended payload.");
     }
 
     const files: HtmlPuzzleArtifactFile[] = [
@@ -234,7 +335,7 @@ export function createPageVersionPuzzle(spec: PageVersionPuzzleSpec): PrivatePuz
             valueType: "html-page-version-pair",
             description: "Two static HTML page versions that should be compared.",
             required: true,
-            value: { baselinePath, currentPath, baselineLabel, currentLabel }
+            value: { baselinePath, currentPath, baselineLabel, currentLabel, baselineDate, currentDate }
         },
         {
             key: "version_change_payload",

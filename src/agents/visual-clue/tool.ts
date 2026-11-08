@@ -22,7 +22,11 @@ const baseFields = {
     intendedSolution: Type.String({ minLength: 1, maxLength: 80 }),
     sceneTitle: Type.String({ minLength: 1, maxLength: 120 }),
     sceneTheme: Type.String({ minLength: 1, maxLength: 160 }),
-    sceneDescription: Type.String({ minLength: 1, maxLength: 1000 }),
+    sceneDescription: Type.String({
+        minLength: 1,
+        maxLength: 1000,
+        description: "General accessible scene description. Do not include the exact intendedSolution; clue-specific metadata carries that value."
+    }),
     backgroundElements: Type.Array(Type.String({ minLength: 1, maxLength: 700 }), {
         minItems: 1,
         maxItems: 250,
@@ -37,7 +41,11 @@ const baseFields = {
         description: "Whether the exact answer needs a visible scene-native text label because the artwork alone would be ambiguous."
     }),
     clueKind: clueKindSchema,
-    clueLabel: Type.String({ minLength: 1, maxLength: 80 }),
+    clueLabel: Type.String({
+        minLength: 1,
+        maxLength: 80,
+        description: "Exact clue label; after whitespace normalization this must equal intendedSolution."
+    }),
     imageCaption: Type.Optional(Type.String({ minLength: 1, maxLength: 300 })),
     acceptedAlternatives: Type.Optional(acceptedAlternativesSchema)
 } as const;

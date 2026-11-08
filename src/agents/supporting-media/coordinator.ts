@@ -75,14 +75,15 @@ export async function generateSupportingMedia(options: {
     inputs: LevelBundleInputs;
     rootDirectory?: string;
     onEvent?: (event: AgentEvent, request: SupportingMediaRequest) => void;
-    onStatus?: (message: string) => void;
+    onStatus?: (status: { state: "start" | "complete"; message: string }) => void;
 }): Promise<SupportingMediaGenerationResult[]> {
     const rootDirectory = options.rootDirectory ?? "generated-world-media";
     const results: SupportingMediaGenerationResult[] = [];
     const answers = privateAnswers(options.inputs);
     let library = await readWorldMediaLibrary(options.inputs.world.id, rootDirectory);
 
-    for (const request of options.bundle.mediaRequests) {
+    for (const [index, request] of options.bundle.mediaRequests.entries()) {
+        const prefix = `[${index + 1}/${options.bundle.mediaRequests.length}]`;
         const existing = library.assets.find((asset) => asset.id === request.id);
         if (existing !== undefined) {
             if (existing.kind !== request.kind || !sameValues(existing.worldEntityIds, request.worldEntityIds)) {
@@ -95,14 +96,14 @@ export async function generateSupportingMedia(options: {
                 asset: existing,
                 rootDirectory
             });
-            options.onStatus?.(`Reusing supporting media ${request.id}.`);
+            options.onStatus?.({ state: "complete", message: `${prefix} Reused supporting media: ${request.id}` });
             results.push({ requestId: request.id, status: "reused", asset: existing });
             continue;
         }
 
         const task = supportingMediaModelTask(request.kind);
         const model = resolveModelConfiguration(task);
-        options.onStatus?.(`Generating ${request.id} with ${model.providerId}/${model.modelId}.`);
+        options.onStatus?.({ state: "start", message: `${prefix} Generating supporting media: ${request.id}` });
         const agent = await createSupportingMediaAgent(request, answers);
         let generated: GeneratedSupportingMedia | undefined;
         let lastError: string | undefined;
@@ -148,6 +149,7 @@ export async function generateSupportingMedia(options: {
         });
         library = { ...library, assets: [...library.assets, asset] };
         results.push({ requestId: request.id, status: "generated", asset });
+        options.onStatus?.({ state: "complete", message: `${prefix} Completed supporting media: ${request.id}` });
     }
     return results;
 }

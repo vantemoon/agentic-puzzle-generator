@@ -55,11 +55,38 @@ function validateWorldReferenceShape(reference: LevelDesignRequest["world"]): st
     return errors;
 }
 
+function fictionalHostname(value: string): string | undefined {
+    const trimmed = value.trim();
+    const candidate = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)
+        ? trimmed
+        : /^(?:[a-z0-9-]+\.)+[a-z]{2,}(?:\/|$)/i.test(trimmed)
+            ? `https://${trimmed}`
+            : undefined;
+    if (candidate === undefined) return undefined;
+    try {
+        return new URL(candidate).hostname.toLowerCase();
+    } catch {
+        return undefined;
+    }
+}
+
 export function validateLevelDesignRequest(value: unknown): string[] {
     if (!Value.Check(LevelDesignRequestSchema, value)) {
         return ["Level-design request does not satisfy the canonical schema."];
     }
-    return validateWorldReferenceShape((value as LevelDesignRequest).world);
+    const request = value as LevelDesignRequest;
+    const errors = validateWorldReferenceShape(request.world);
+    for (const input of request.startingInputs) {
+        if (!("dataType" in input) || input.dataType !== "string") continue;
+        const hostname = fictionalHostname(input.value);
+        if (hostname?.split(".").includes("example")) {
+            errors.push(
+                `Starting input ${input.id} uses placeholder hostname ${hostname}; `
+                + "use a site-specific .test hostname until deployment."
+            );
+        }
+    }
+    return errors;
 }
 
 export function assertLevelDesignRequest(value: unknown): asserts value is LevelDesignRequest {
@@ -198,7 +225,12 @@ export function validateLevelBlueprint(value: unknown, catalog: PuzzleCatalog): 
             errors.push(`Puzzle ${puzzle.id} uses unknown subtype ${design.subtype}.`);
         } else {
             if (entry.puzzleType !== design.puzzleType) errors.push(`Puzzle ${puzzle.id} uses type ${design.puzzleType}, but subtype ${design.subtype} belongs to ${entry.puzzleType}.`);
-            if (!Value.Check(entry.generationSpecSchema, design.generationSpec)) errors.push(`Puzzle ${puzzle.id} has an invalid generationSpec for ${design.subtype}.`);
+            if (!Value.Check(entry.generationSpecSchema, design.generationSpec)) {
+                errors.push(`Puzzle ${puzzle.id} has an invalid generationSpec for ${design.subtype}.`);
+            } else if (entry.validateGenerationSpec !== undefined) {
+                errors.push(...entry.validateGenerationSpec(design.generationSpec)
+                    .map((issue) => `Puzzle ${puzzle.id} ${issue}`));
+            }
         }
         if (design.generationSpec.id !== puzzle.id) errors.push(`Puzzle ${puzzle.id} generationSpec must preserve the same ID.`);
         if (!isDeepStrictEqual(design.generationSpec.intendedSolution, design.verification.expectedValue)) {
@@ -228,8 +260,17 @@ export function validateLevelBlueprint(value: unknown, catalog: PuzzleCatalog): 
                 const source = startingInputMap.get(input.source.inputId);
                 if (source === undefined) errors.push(`Puzzle ${puzzle.id} input ${input.id} references missing starting input ${input.source.inputId}.`);
                 else {
-                    sourceValue = { dataType: source.dataType, value: source.value };
+                    if ("dataType" in source) {
+                        sourceValue = { dataType: source.dataType, value: source.value };
+                    }
                     consumedStartingInputs.add(source.id);
+                    if (input.expectedSemanticRoles !== undefined
+                        && !input.expectedSemanticRoles.includes(source.semanticRole)) {
+                        errors.push(
+                            `Puzzle ${puzzle.id} input ${input.id} expects one of roles ${input.expectedSemanticRoles.join(", ")}, `
+                            + `but starting input ${source.id} has role ${source.semanticRole}.`
+                        );
+                    }
                 }
             } else {
                 const sourcePuzzleId = input.source.puzzleId;
@@ -260,6 +301,12 @@ export function validateLevelBlueprint(value: unknown, catalog: PuzzleCatalog): 
 
             if (input.transform !== undefined) {
                 transformationCount += 1;
+                if (input.source.kind === "starting-input") {
+                    const source = startingInputMap.get(input.source.inputId);
+                    if (source !== undefined && !("dataType" in source)) {
+                        errors.push(`Puzzle ${puzzle.id} input ${input.id} cannot transform bundle-entry starting input ${source.id}.`);
+                    }
+                }
                 const transform = getTransformation(input.transform.type);
                 if (!level.generationConfig.transformationPolicy.enabled) errors.push(`Puzzle ${puzzle.id} uses a transformation while transformations are disabled.`);
                 if (transform === undefined) {

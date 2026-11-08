@@ -1,4 +1,5 @@
 export type AuthoredContentMode = "prose-composition" | "visual-composition";
+export type PuzzleModelGroup = "webpage-composition";
 
 export interface AuthoredContentDefinition {
     mode: AuthoredContentMode;
@@ -20,6 +21,18 @@ const authoredContentByPuzzleSubtype: Readonly<Record<string, AuthoredContentDef
     }
 };
 
+const modelGroupByPuzzleSubtype: Readonly<Record<string, PuzzleModelGroup>> = {
+    "alt-text": "webpage-composition",
+    "dom-element": "webpage-composition",
+    "html-comment": "webpage-composition",
+    "html-source-inspection": "webpage-composition",
+    "page-version": "webpage-composition"
+};
+
 export function authoredContentForPuzzle(subtype: string): AuthoredContentDefinition | undefined {
     return authoredContentByPuzzleSubtype[subtype];
+}
+
+export function puzzleModelGroupForSubtype(subtype: string): PuzzleModelGroup | undefined {
+    return modelGroupByPuzzleSubtype[subtype];
 }

@@ -1,5 +1,25 @@
 # agentic-puzzle-generator
 
+## Design a multi-level game
+
+Create a new fictional game world and a connected set of level-design requests from a short brief:
+
+```bash
+npm run game:design -- "Design a stolen-artifact investigation set around a university museum"
+```
+
+Omit the brief to let the game-design agent invent a high-stakes investigation autonomously:
+
+```bash
+npm run game:design
+```
+
+The command writes the canonical world under `worlds/`, a private campaign spec
+and level manifest under `game-designs/`, and one validated request per level
+under `level-requests/`. Each request can be passed directly to `level:design`.
+Event-driven progress milestones are written to stderr while the final
+game-design spec path remains the command's single stdout result.
+
 ## Generate a level from a world-aware request
 
 Create `worlds/<world-id>.world.json` and a matching
@@ -8,6 +28,9 @@ Create `worlds/<world-id>.world.json` and a matching
 ```bash
 npm run level:design -- level-requests/<level-id>.request.json
 ```
+
+The command starts the level-design agent immediately, writes the validated
+blueprint under `generated-levels/`, prints its absolute path, and exits.
 
 The request's `world.id` selects `worlds/<world-id>.world.json`. Both files are
 validated before the level-design agent starts.
@@ -32,6 +55,21 @@ Run the command without arguments to select a level and puzzle from numbered men
 npm run level:generate-puzzle
 ```
 
+Generate every supported production puzzle in a level sequentially:
+
+```bash
+npm run level:generate-puzzle -- generated-levels/<level-id>.level.json --all
+```
+
+Batch generation skips puzzles that already have generated metadata. Add `--force`
+to regenerate and overwrite every puzzle in the level:
+
+```bash
+npm run level:generate-puzzle -- generated-levels/<level-id>.level.json --all --force
+```
+
+Batch mode attempts every eligible puzzle and reports all failures in one summary.
+
 Configure agent models in the repository's `llm-models.json` file:
 
 ```json
@@ -47,6 +85,7 @@ Configure agent models in the repository's `llm-models.json` file:
   },
   "puzzles": {
     "default": { "modelId": "fast-model" },
+    "webpage-composition": { "modelId": "web-capable-model" },
     "visual-composition": { "modelId": "vision-capable-model" },
     "caesar-cipher": { "modelId": "fast-model" }
   }
@@ -54,14 +93,15 @@ Configure agent models in the repository's `llm-models.json` file:
 ```
 
 `puzzles.default` applies to every puzzle without a more specific entry.
-`prose-composition` and `visual-composition` configure puzzle agents that author
-those kinds of content, while a subtype entry can still override either group.
+`prose-composition`, `visual-composition`, and `webpage-composition` configure
+puzzle-agent groups that author those kinds of artifacts, while a subtype entry
+can still override its group.
 If either `modelId` or `providerId` is omitted from an entry, that field inherits
 through the normal fallback. Both fields under `default` are required. Resolution
-order is puzzle subtype, authored-content mode, puzzle default, then global
-default. Level and supporting-media tasks use their task entry, then the global default. Run
-`npm run models:list` to see the configurable task names, authored-content modes,
-and puzzle subtypes.
+order is puzzle subtype, webpage group, authored-content mode, puzzle default,
+then global default. Level and supporting-media tasks use their task entry, then the global default. Run
+`npm run models:list` to see the configurable task names, puzzle model groups,
+authored-content modes, and puzzle subtypes.
 
 Only puzzle subtypes that need a different model require their own entry. List
 every valid configurable task and puzzle subtype with:
@@ -107,7 +147,7 @@ Level Bundle Agent:
 npm run level:generate-media -- generated-levels/<level-id>.level.json
 ```
 
-Bundle runs print the selected model and write an incremental private JSONL trace under `generation-logs/<level-id>/`. A heartbeat is printed every 15 seconds while the agent submits site definitions, required routes, and supporting pages in bounded batches before deterministic final assembly.
+Bundle runs print event-driven planning and validation progress while writing an incremental private JSONL trace under `generation-logs/<level-id>/`. The agent submits site definitions, required routes, and supporting pages in bounded batches before deterministic final assembly.
 
 Development bundles use 10–15 supporting pages as a bundle-wide floor and scale to 2–3 supporting pages per puzzle for larger levels. Override the floors with `LEVEL_BUNDLE_SUPPORTING_MIN` and `LEVEL_BUNDLE_SUPPORTING_MAX`, the density with `LEVEL_BUNDLE_SUPPORTING_PER_PUZZLE_MIN` and `LEVEL_BUNDLE_SUPPORTING_PER_PUZZLE_MAX`, or set `LEVEL_BUNDLE_SEED` for a specific deterministic content seed.
 
@@ -129,10 +169,14 @@ The preview binds to `127.0.0.1:4173` by default. Pass a second argument to sele
 
 Open the printed `http://127.0.0.1:4173/` address in a browser. Do not open the generated `public/index.html` directly: the bundle uses site-root links and a server-backed answer-validation endpoint, so navigation and validation require the preview server (or a deployed web server).
 
-Re-run all deterministic checks without regenerating the plan or rebuilding:
+## Inspect game designs
+
+Launch the unified, read-only design inspector:
 
 ```bash
-npm run level:verify-bundle -- generated-levels/<level-id>.level.json
+npm run inspect
 ```
 
-Verification checks supporting-content depth, manifest hashes, clue artifact integrity, private-answer leakage outside puzzle resources, broken links, declared journey transitions, basic accessibility, and unsafe or external page dependencies. A failed report is still written under the bundle's `private/` directory.
+Open `http://127.0.0.1:4173/`, then load or drag in a JSON file. The inspector automatically recognizes complete game designs, standalone game worlds, level-design requests, and generated levels. Complete game designs provide Game Structure and Game World tabs; generated levels retain the puzzle data-flow view. Level-request details include their required discoveries, difficulty configuration, world scope, and complete terminal action.
+
+Bundle generation runs deterministic verification internally after building the public output. Verification checks supporting-content depth, manifest hashes, clue artifact integrity, private-answer leakage outside puzzle resources, broken links, declared journey transitions, basic accessibility, and unsafe or external page dependencies. A failed report is still written under the bundle's `private/` directory.

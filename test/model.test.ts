@@ -1,10 +1,21 @@
 import { describe, expect, it } from "vitest";
 import {
     loadModelConfigurationFile,
+    isRetryableModelError,
     normalizeKadiToolSchemas,
     parseModelConfigurationFile,
     resolveModelConfiguration,
 } from "../src/core/model.js";
+
+describe("model provider errors", () => {
+    it("retries temporary availability errors but not ordinary validation failures", () => {
+        expect(isRetryableModelError(new Error(
+            'kadi-openai API error (404): {"code":"model_not_found","message":"No such model"}'
+        ))).toBe(true);
+        expect(isRetryableModelError(new Error("kadi API error (503): unavailable"))).toBe(true);
+        expect(isRetryableModelError(new Error("Puzzle schema was rejected"))).toBe(false);
+    });
+});
 
 describe("resolveModelConfiguration", () => {
     it("uses the configured visual-composition model and the default for deterministic images", () => {
@@ -70,6 +81,24 @@ describe("resolveModelConfiguration", () => {
                 "visual-composition": { modelId: "visual-model" },
             },
         })).toEqual({ modelId: "visual-model", providerId: "provider" });
+    });
+
+    it("uses the webpage-composition model for HTML puzzle families", () => {
+        const configuration = {
+            default: { modelId: "global-model", providerId: "provider" },
+            puzzles: {
+                default: { modelId: "puzzle-model" },
+                "visual-composition": { modelId: "visual-model" },
+                "webpage-composition": { modelId: "webpage-model" }
+            }
+        };
+
+        expect(resolveModelConfiguration({ kind: "puzzle", subtype: "html-comment" }, configuration))
+            .toEqual({ modelId: "webpage-model", providerId: "provider" });
+        expect(resolveModelConfiguration({ kind: "puzzle", subtype: "alt-text" }, configuration))
+            .toEqual({ modelId: "webpage-model", providerId: "provider" });
+        expect(resolveModelConfiguration({ kind: "puzzle", subtype: "visual-clue" }, configuration))
+            .toEqual({ modelId: "visual-model", providerId: "provider" });
     });
 
     it("falls back independently for model and provider settings", () => {

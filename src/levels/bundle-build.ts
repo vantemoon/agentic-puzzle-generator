@@ -11,6 +11,7 @@ import type { LevelBundleInputs } from "./bundle-inputs.js";
 import { assertLevelBundle, type BundleRoute, type BundledSite, type LevelBundle } from "./bundle.js";
 import type { PuzzleCatalog } from "./catalog.js";
 import { BUNDLE_SECURITY_HEADERS } from "./bundle-security.js";
+import { composableHtmlArtifactFragments } from "./html-composition.js";
 
 const SITE_CSS = `:root{color-scheme:light;--paper:#f6f4ef;--ink:#20262d;--muted:#66717d;--line:#d6d1c7;--accent:var(--site-accent,#245b78);--card:#fff}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.6 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body[data-font-style="serif"]{font-family:Georgia,"Times New Roman",serif}body[data-font-style="mixed"] h1,body[data-font-style="mixed"] h2,body[data-font-style="mixed"] h3{font-family:Georgia,"Times New Roman",serif}a{color:var(--accent)}header{background:var(--card);border-bottom:1px solid var(--line)}.masthead,.layout,footer{max-width:1080px;margin:auto;padding:1rem 1.5rem}.brand{font-size:1.35rem;font-weight:750;text-decoration:none;color:var(--ink)}nav ul{display:flex;flex-wrap:wrap;gap:.4rem 1.1rem;padding:0;list-style:none}.layout{display:grid;grid-template-columns:minmax(0,1fr) 16rem;gap:2.5rem}.content,.sidebar{background:var(--card);border:1px solid var(--line);border-radius:.4rem;padding:1.5rem}.summary{font-size:1.08rem;color:#46515c}.route-list{padding-left:1.2rem}.table-scroll{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{padding:.6rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}dl{display:grid;grid-template-columns:minmax(8rem,auto) 1fr;gap:.35rem 1rem}dt{font-weight:700}dd{margin:0}.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:1rem}.card-grid article{padding:1rem;border:1px solid var(--line);border-radius:.35rem}.supporting-media img{display:block;width:100%;height:auto;border-radius:.35rem}.supporting-media figcaption{color:var(--muted);font-size:.9rem}.supporting-document a{display:inline-block;padding:.65rem 1rem;border:1px solid var(--accent);border-radius:.3rem;font-weight:700}.standalone-document{background:#ece9e2;font-family:Georgia,"Times New Roman",serif}.standalone-document>main{max-width:760px;margin:2rem auto;padding:3rem;background:#fff;box-shadow:0 1rem 3rem #0002;border-top:.55rem solid var(--accent)}.standalone-document .subtitle{font-size:1.2rem;color:var(--muted)}.standalone-document section{margin-top:2rem}.standalone-document section h2{font-size:1.15rem;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:.35rem}.puzzle-artifact{margin:1.75rem 0;padding:1rem;border:1px solid var(--line);background:#fbfbfa;overflow:auto}.terminal-form{display:grid;gap:1rem;max-width:34rem}.terminal-form label{font-weight:650}.terminal-form input{display:block;width:100%;margin-top:.35rem;padding:.65rem;border:1px solid #8a9299;border-radius:.25rem}.terminal-form button{width:max-content;padding:.65rem 1rem;background:var(--accent);color:#fff;border:0;border-radius:.25rem;font-weight:700}footer{color:var(--muted);font-size:.85rem}@media(max-width:760px){.layout{grid-template-columns:1fr}.sidebar{order:2}.standalone-document>main{margin:0;padding:1.5rem;box-shadow:none}}`;
 
@@ -54,10 +55,12 @@ function routeOutputPath(publicDirectory: string, publicPath: string): string {
     return path.join(publicDirectory, relative, "index.html");
 }
 
-function bodyFragment(source: string): string {
-    const match = source.match(/<body(?:\s[^>]*)?>([\s\S]*?)<\/body>/i);
-    if (match === null) throw new Error("Native HTML puzzle artifact has no body element.");
-    return match[1];
+function requiredHtmlArtifactFragments(source: string): { head: string; body: string } {
+    const fragments = composableHtmlArtifactFragments(source);
+    if (fragments === undefined) {
+        throw new Error("Native HTML puzzle artifact must contain head and body elements.");
+    }
+    return fragments;
 }
 
 function optionalHeading(heading: string | undefined): string {
@@ -141,7 +144,7 @@ function renderPuzzle(
         const artifact = puzzle.artifact;
         const entry = artifact.files.find((file) => file.path === artifact.entryPath);
         if (entry === undefined) throw new Error(`Puzzle ${puzzle.id} has no HTML entry file.`);
-        return `<section class="puzzle-artifact" aria-label="Investigation resource">${bodyFragment(entry.source)}</section>`;
+        return `<section class="puzzle-artifact" aria-label="Page content">${requiredHtmlArtifactFragments(entry.source).body}</section>`;
     }
     if (route.placement === "page-body") {
         if (puzzle.artifact.kind !== "text") throw new Error(`Puzzle ${puzzle.id} is not a text artifact.`);
@@ -164,11 +167,25 @@ function renderPuzzle(
     if (route.placement === "version-set") {
         if (puzzle.artifact.kind !== "html") throw new Error(`Puzzle ${puzzle.id} is not a versioned HTML artifact.`);
         const artifact = puzzle.artifact;
-        const links = artifact.files.map((file) => {
-            const label = file.path === artifact.entryPath ? "Version overview" : file.path.split("/").filter(Boolean).join(" / ");
-            return `<li><a href="${escapeHtml(versionAssetPath(site, route, file.path))}">${escapeHtml(label)}</a></li>`;
-        }).join("");
-        return `<section class="puzzle-artifact"><h2>Available page versions</h2><ul>${links}</ul></section>`;
+        const versions = artifact.files
+            .filter((file) => file.path !== artifact.entryPath)
+            .map((file) => {
+                const match = file.path.match(/\/versions\/(\d{4}-\d{2}-\d{2})\.html$/);
+                if (match === null) {
+                    throw new Error(`Page-version puzzle ${puzzle.id} must use dated version filenames.`);
+                }
+                const date = match[1];
+                const label = new Intl.DateTimeFormat("en-US", {
+                    dateStyle: "long",
+                    timeZone: "UTC"
+                }).format(new Date(`${date}T00:00:00Z`));
+                return { file, date, label };
+            })
+            .sort((left, right) => right.date.localeCompare(left.date));
+        const links = versions.map(({ file, date, label }) =>
+            `<li><a href="${escapeHtml(versionAssetPath(site, route, file.path))}"><time datetime="${date}">${escapeHtml(label)}</time></a></li>`
+        ).join("");
+        return `<section class="puzzle-artifact"><h2>Page history</h2><p>Select a saved version to view the page as it appeared on that date.</p><ol class="version-history">${links}</ol></section>`;
     }
     throw new Error(`Bundle builder does not yet support ${route.placement} placement for puzzle ${puzzle.id}.`);
 }
@@ -260,13 +277,19 @@ function renderDiscoveryDestinations(bundle: LevelBundle, sourcePath: string): s
         const discovery = route.discovery;
         if (discovery === undefined || contentLinks.has(publicPath)) return [];
         if (discovery.kind === "lookup" || discovery.kind === "search") {
-            if (source?.site.id === site.id) return [];
-            return [renderSearchForm(publicPath, `Search ${route.content.title}`)];
+            const label = route.role === "puzzle"
+                ? "Search this site"
+                : `Search ${route.content.title}`;
+            return [renderSearchForm(publicPath, label)];
         }
-        return [`<p><a href="${escapeHtml(publicPath)}">${escapeHtml(route.content.title)}</a></p>`];
+        if (source?.route.role === "puzzle" && route.role === "puzzle") {
+            return [];
+        }
+        const label = route.role === "puzzle" ? "View page" : route.content.title;
+        return [`<p><a href="${escapeHtml(publicPath)}">${escapeHtml(label)}</a></p>`];
     }).join("\n");
     if (controls.length === 0) return "";
-    return `<section class="discovery"><h2>Related resources</h2>${controls}</section>`;
+    return `<section class="discovery"><h2>More information</h2>${controls}</section>`;
 }
 
 function archetypePresentation(archetype: BundledSite["archetype"]): {
@@ -291,7 +314,9 @@ function breadcrumbParent(site: BundledSite, route: BundleRoute): BundleRoute | 
     }
     return route.discovery?.from
         .map((source) => site.routes.find((candidate) => fullRoutePath(site, candidate) === source))
-        .find((candidate) => candidate !== undefined && candidate.path !== "/");
+        .find((candidate) => candidate !== undefined
+            && candidate.path !== "/"
+            && (route.role === "puzzle" || candidate.role !== "puzzle"));
 }
 
 function renderBreadcrumbs(site: BundledSite, route: BundleRoute): string {
@@ -365,11 +390,20 @@ function renderSitePage(
     const embedded = route.role === "puzzle"
         ? renderPuzzle(site, route, inputs)
         : route.role === "terminal" ? renderTerminal(inputs, site, route) : "";
+    const puzzleHead = route.role === "puzzle" && route.placement === "native-html"
+        ? (() => {
+            const puzzle = loadedPuzzle(inputs, route.puzzleId);
+            const artifact = puzzle.artifact;
+            if (artifact.kind !== "html") return "";
+            const entry = artifact.files.find((file) => file.path === artifact.entryPath);
+            return entry === undefined ? "" : requiredHtmlArtifactFragments(entry.source).head;
+        })()
+        : "";
     const discovery = renderDiscoveryDestinations(bundle, fullRoutePath(site, route));
     return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="${escapeHtml(route.content.description)}"><meta name="robots" content="noindex,nofollow">
-<title>${escapeHtml(route.content.title)} | ${escapeHtml(site.name)}</title><link rel="stylesheet" href="/assets/site.css"><link rel="stylesheet" href="${escapeHtml(siteStylesheetPath)}"></head>
+<title>${escapeHtml(route.content.title)} | ${escapeHtml(site.name)}</title><link rel="stylesheet" href="/assets/site.css"><link rel="stylesheet" href="${escapeHtml(siteStylesheetPath)}">${puzzleHead}</head>
 <body data-archetype="${escapeHtml(site.archetype)}" data-tone="${escapeHtml(site.visualProfile.tone)}" data-font-style="${escapeHtml(site.visualProfile.fontStyle)}" data-density="${escapeHtml(site.visualProfile.density)}"><a class="skip-link" href="#main-content">Skip to content</a><header><div class="masthead"><p class="site-kicker">${escapeHtml(presentation.kicker)}</p><div class="brand-row"><a class="brand" href="${escapeHtml(site.basePath)}">${escapeHtml(site.name)}</a>${renderContextualSearch(site, route)}</div><nav class="primary-nav" aria-label="Primary"><ul>${navigation}</ul></nav>${secondaryNavigation.length === 0 ? "" : `<nav class="secondary-nav" aria-label="Secondary"><ul>${secondaryNavigation}</ul></nav>`}</div></header>
 ${renderBreadcrumbs(site, route)}<div class="layout${sidebar.length === 0 ? " no-sidebar" : ""}"><main class="content" id="main-content">${renderPageContent(route, bundle, supportingMediaPaths)}${embedded}${discovery}</main>${sidebar}</div>
 <footer class="site-footer"><span>${escapeHtml(site.name)} — ${escapeHtml(presentation.footer)}</span>${footerNavigation.length === 0 ? "" : `<nav aria-label="Footer">${footerNavigation}</nav>`}</footer></body></html>`;
@@ -538,12 +572,12 @@ export async function buildLevelBundle(options: {
         throw new Error("The level bundle has no route for its starting input.");
     }
     const entryControls = startingRoutes.length === 1
-        ? `<p><a class="begin-link" href="${escapeHtml(startingRoutes[0].publicPath)}" target="_blank" rel="noopener">Begin investigation</a></p>`
-        : `<section><h2>Starting resources</h2><div class="bundle-site-grid">${startingRoutes.map(({ inputId, route, publicPath }) => {
+        ? `<p><a class="begin-link" href="${escapeHtml(startingRoutes[0].publicPath)}" target="_blank" rel="noopener">Open starting page</a></p>`
+        : `<section><h2>Starting pages</h2><div class="bundle-site-grid">${startingRoutes.map(({ inputId, route, publicPath }) => {
             const input = options.inputs.level.startingInputs.find((candidate) => candidate.id === inputId);
             return `<a href="${escapeHtml(publicPath)}" target="_blank" rel="noopener"><strong>${escapeHtml(route.content.title)}</strong><span>${escapeHtml(input?.description ?? route.content.description)}</span></a>`;
         }).join("")}</div></section>`;
-    const indexSource = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${escapeHtml(options.inputs.level.title)}</title><link rel="stylesheet" href="/assets/site.css"></head><body class="bundle-index"><main><p class="site-kicker">Investigation briefing</p><h1>${escapeHtml(options.inputs.level.title)}</h1><p class="summary">${escapeHtml(options.inputs.level.summary)}</p>${entryControls}</main></body></html>`;
+    const indexSource = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${escapeHtml(options.inputs.level.title)}</title><link rel="stylesheet" href="/assets/site.css"></head><body class="bundle-index"><main><p class="site-kicker">Starting point</p><h1>${escapeHtml(options.inputs.level.title)}</h1><p class="summary">${escapeHtml(options.inputs.level.summary)}</p>${entryControls}</main></body></html>`;
     routeEntries.push({
         path: "/",
         mediaType: "text/html",

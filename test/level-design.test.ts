@@ -17,7 +17,12 @@ import { generateReviewedLevel } from "../src/levels/orchestration.js";
 import { validateLevelPatch } from "../src/levels/patch.js";
 import { availablePuzzleIds, toPublicLevelView } from "../src/levels/projection.js";
 import { LevelBlueprintSchema, type LevelBlueprint } from "../src/levels/types.js";
-import { validateGameLevelManifest, validateLevelAgainstRequest, validateLevelBlueprint } from "../src/levels/validator.js";
+import {
+    validateGameLevelManifest,
+    validateLevelAgainstRequest,
+    validateLevelBlueprint,
+    validateLevelDesignRequest
+} from "../src/levels/validator.js";
 
 function copyLevel(): LevelBlueprint {
     return structuredClone(levelFixture);
@@ -50,6 +55,26 @@ function copyLevelSubmission() {
 }
 
 describe("level metadata v5", () => {
+    it("rejects generic example hostnames in undeployed starting URLs", () => {
+        const request = structuredClone(levelRequestFixture);
+        const inputId = request.startingInputs[0].id;
+        request.startingInputs[0] = {
+            id: inputId,
+            semanticRole: "starting-url",
+            description: "A supplied public page.",
+            dataType: "string",
+            value: "https://library.example/archive"
+        };
+
+        expect(validateLevelDesignRequest(request)).toContain(
+            `Starting input ${inputId} uses placeholder hostname library.example; use a site-specific .test hostname until deployment.`
+        );
+        const literalInput = request.startingInputs[0];
+        if (!("value" in literalInput)) throw new Error("Expected a literal starting input.");
+        literalInput.value = "https://riverside-library.test/archive";
+        expect(validateLevelDesignRequest(request)).toEqual([]);
+    });
+
     it("requires readable causal transitions without forcing nonlinear structure", () => {
         expect(LEVEL_DESIGN_SYSTEM_PROMPT).toContain("A completely linear trail, a partly connected graph");
         expect(LEVEL_DESIGN_SYSTEM_PROMPT).toContain("There is no preferred graph shape");
@@ -58,6 +83,10 @@ describe("level metadata v5", () => {
         expect(LEVEL_DESIGN_SYSTEM_PROMPT).toContain("Avoid repetitive interaction rhythms");
         expect(LEVEL_DESIGN_SYSTEM_PROMPT).toContain("real-world information");
         expect(LEVEL_DESIGN_SYSTEM_PROMPT).toContain("Use requiredResources for the fictional webpages");
+        expect(LEVEL_DESIGN_SYSTEM_PROMPT).toContain("bundle-entry starting inputs");
+        expect(LEVEL_DESIGN_SYSTEM_PROMPT).toContain("Add revealContext if and only if");
+        expect(LEVEL_DESIGN_SYSTEM_PROMPT).toContain("Copy each required output's id and semanticRole exactly");
+        expect(LEVEL_DESIGN_SYSTEM_PROMPT).toContain("Make at most three submission attempts");
         expect(LEVEL_REVIEW_SYSTEM_PROMPT).toContain("Do not require branching or a synthesis puzzle");
         expect(LEVEL_REVIEW_SYSTEM_PROMPT).toContain("do not prefer linear, branching, or highly connected layouts by default");
         expect(LEVEL_REVIEW_SYSTEM_PROMPT).toContain("technically valid graph that a human reader cannot follow");
@@ -126,6 +155,60 @@ describe("level metadata v5", () => {
         expect(validateLevelAgainstRequest(levelFixture, levelRequestFixture, repositoryPuzzleCatalog)).toEqual([]);
     });
 
+    it("rejects visual-clue blueprints that mismatch or leak the intended answer", () => {
+        const level = copyLevel();
+        const puzzle = level.puzzles[0];
+        puzzle.design.subtype = "visual-clue";
+        puzzle.design.generationSpec = {
+            mode: "production",
+            id: puzzle.id,
+            intendedSolution: puzzle.design.verification.expectedValue,
+            sceneTitle: "Archive shelf diagram",
+            sceneTheme: "A public archive transfer diagram",
+            sceneDescription: `The diagram points to ${puzzle.design.verification.expectedValue}.`,
+            clueKind: "text",
+            clueLabel: `${puzzle.design.verification.expectedValue} shelf label`
+        };
+
+        const errors = validateLevelBlueprint(level, repositoryPuzzleCatalog);
+        expect(errors).toContain(
+            `Puzzle ${puzzle.id} visual-clue generationSpec.clueLabel must exactly match intendedSolution.`
+        );
+        expect(errors).toContain(
+            `Puzzle ${puzzle.id} visual-clue generationSpec.sceneDescription must not contain intendedSolution; place the exact answer only in clueLabel.`
+        );
+    });
+
+    it("teaches the level-design agent visual-clue semantic constraints", () => {
+        const prompt = buildLevelDesignPrompt(repositoryPuzzleCatalog);
+        expect(prompt).toContain("Obey every generationSpecConstraints rule");
+        expect(prompt).toContain("clueLabel must exactly equal intendedSolution");
+        expect(prompt).toContain("reserve it for the clue artwork and clue-specific metadata");
+    });
+
+    it("requires chronological dates and site-native labels for page-version puzzles", () => {
+        const level = copyLevel();
+        const puzzle = level.puzzles.find((candidate) => candidate.design.subtype === "page-version");
+        if (puzzle === undefined) throw new Error("Missing page-version fixture.");
+        puzzle.design.generationSpec.baselineDate = "2026-03-05";
+        puzzle.design.generationSpec.currentDate = "2026-03-02";
+        puzzle.design.generationSpec.currentLabel = "Current";
+
+        const errors = validateLevelBlueprint(level, repositoryPuzzleCatalog);
+        expect(errors).toContain(
+            `Puzzle ${puzzle.id} page-version generationSpec requires real chronological baselineDate and currentDate values in YYYY-MM-DD format.`
+        );
+        expect(errors).toContain(
+            `Puzzle ${puzzle.id} page-version generationSpec.currentLabel must use a site-native description, not Current.`
+        );
+
+        const prompt = buildLevelDesignPrompt(repositoryPuzzleCatalog);
+        expect(prompt).toContain("credible states of the same webpage");
+        expect(prompt).toContain("added, removed, revealed, or altered content");
+        expect(prompt).toContain("baselineDate and currentDate must be real YYYY-MM-DD publication dates");
+        expect(prompt).toContain("never use Baseline or Current as player-facing labels");
+    });
+
     it("requires and preserves the request's world reference", () => {
         const withoutWorld = copyLevel() as unknown as Record<string, unknown>;
         delete withoutWorld.world;
@@ -154,7 +237,7 @@ describe("level metadata v5", () => {
             platforms: ["project-hosted-web"],
             mode: "external-public"
         };
-        level.startingInputs = request.startingInputs.map((input) => input.dataType === "string"
+        level.startingInputs = request.startingInputs.map((input) => "dataType" in input && input.dataType === "string"
             ? {
                 value: input.value,
                 dataType: input.dataType,

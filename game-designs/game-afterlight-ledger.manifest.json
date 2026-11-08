@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "1.0.0",
+  "gameId": "game-afterlight-ledger",
+  "levels": [
+    {
+      "id": "level-1-last-appearance",
+      "prerequisiteLevelIds": [],
+      "levelFile": "generated-levels/level-1-last-appearance.level.json"
+    },
+    {
+      "id": "level-2-scheduled-warning",
+      "parentLevelId": "level-1-last-appearance",
+      "prerequisiteLevelIds": [
+        "level-1-last-appearance"
+      ],
+      "levelFile": "generated-levels/level-2-scheduled-warning.level.json"
+    },
+    {
+      "id": "level-3-afterlight-archive",
+      "parentLevelId": "level-2-scheduled-warning",
+      "prerequisiteLevelIds": [
+        "level-2-scheduled-warning"
+      ],
+      "levelFile": "generated-levels/level-3-afterlight-archive.level.json"
+    },
+    {
+      "id": "level-4-outage-truth",
+      "parentLevelId": "level-3-afterlight-archive",
+      "prerequisiteLevelIds": [
+        "level-3-afterlight-archive"
+      ],
+      "levelFile": "generated-levels/level-4-outage-truth.level.json"
+    },
+    {
+      "id": "level-5-ledger-verdict",
+      "parentLevelId": "level-4-outage-truth",
+      "prerequisiteLevelIds": [
+        "level-3-afterlight-archive",
+        "level-4-outage-truth"
+      ],
+      "levelFile": "generated-levels/level-5-ledger-verdict.level.json"
+    }
+  ]
+}

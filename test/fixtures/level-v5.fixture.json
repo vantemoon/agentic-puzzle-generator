@@ -38,17 +38,17 @@
     "startingInputs": [
         {
             "id": "notice-url",
-            "semanticRole": "starting-url",
+            "semanticRole": "starting-resource",
             "description": "The public notice page where the investigation begins.",
-            "dataType": "string",
-            "value": "https://notices.example/river-cleanup"
+            "kind": "bundle-entry",
+            "resourceKind": "webpage"
         },
         {
             "id": "photo-url",
-            "semanticRole": "starting-url",
+            "semanticRole": "starting-resource",
             "description": "A public community photo page linked in the reporter's notes.",
-            "dataType": "string",
-            "value": "https://photos.example/community-events"
+            "kind": "bundle-entry",
+            "resourceKind": "webpage"
         }
     ],
     "generationConfig": {
@@ -217,6 +217,8 @@
                     "baselineBody": "Volunteers should meet at the west parking lot before the cleanup.",
                     "currentBody": "Correction: volunteers should meet at the east pier before the cleanup.",
                     "changeKind": "changed-field",
+                    "baselineDate": "2026-03-02",
+                    "currentDate": "2026-03-05",
                     "baselineLabel": "Earlier notice",
                     "currentLabel": "Corrected notice"
                 },

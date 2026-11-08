@@ -72,6 +72,8 @@ export interface PuzzleCatalogEntry {
     narrativeTags: string[];
     difficultyControls: string[];
     authoredContent?: AuthoredContentDefinition;
+    generationSpecConstraints?: string[];
+    validateGenerationSpec?: (spec: Record<string, unknown>) => string[];
     bundle: PuzzleBundleCapabilities;
 }
 
@@ -124,6 +126,8 @@ function textPuzzleEntry(options: {
     displayName: string;
     narrativeTags: string[];
     difficultyControls?: string[];
+    generationSpecConstraints?: string[];
+    validateGenerationSpec?: (spec: Record<string, unknown>) => string[];
     bundle?: PuzzleBundleCapabilities;
 }): PuzzleCatalogEntry {
     const authoredContent = authoredContentForPuzzle(options.subtype);
@@ -153,11 +157,82 @@ function textPuzzleEntry(options: {
         narrativeTags: options.narrativeTags,
         difficultyControls: options.difficultyControls ?? [],
         ...(authoredContent === undefined ? {} : { authoredContent }),
+        ...(options.generationSpecConstraints === undefined
+            ? {}
+            : { generationSpecConstraints: options.generationSpecConstraints }),
+        ...(options.validateGenerationSpec === undefined
+            ? {}
+            : { validateGenerationSpec: options.validateGenerationSpec }),
         bundle: options.bundle ?? {
             placements: ["page-body", "downloadable-file"],
             integrity: "text-content"
         }
     };
+}
+
+const visualClueGenerationSpecConstraints = [
+    "clueLabel must exactly equal intendedSolution after whitespace normalization.",
+    "The exact intendedSolution must not appear in sceneTitle, sceneTheme, sceneDescription, or imageCaption; reserve it for the clue artwork and clue-specific metadata."
+];
+
+const pageVersionGenerationSpecConstraints = [
+    "Both dated snapshots must be credible states of the same webpage; the meaningful evidence must come from added, removed, revealed, or altered content.",
+    "Do not claim that a page changes after another puzzle is solved unless the runtime supplies an enforceable trigger.",
+    "For removed-content, baselineBody must contain intendedSolution exactly once and currentBody must omit it.",
+    "baselineDate and currentDate must be real YYYY-MM-DD publication dates, and baselineDate must be earlier than currentDate.",
+    "Optional baselineLabel and currentLabel must be site-native descriptions; never use Baseline or Current as player-facing labels."
+];
+
+function validatePageVersionGenerationSpec(spec: Record<string, unknown>): string[] {
+    const baselineDate = typeof spec.baselineDate === "string" ? spec.baselineDate : "";
+    const currentDate = typeof spec.currentDate === "string" ? spec.currentDate : "";
+    const validDate = (value: string): boolean => {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+        const [year, month, day] = value.split("-").map(Number);
+        const parsed = new Date(Date.UTC(year, month - 1, day));
+        return parsed.getUTCFullYear() === year
+            && parsed.getUTCMonth() === month - 1
+            && parsed.getUTCDate() === day;
+    };
+    const errors: string[] = [];
+    if (!validDate(baselineDate) || !validDate(currentDate) || baselineDate >= currentDate) {
+        errors.push("page-version generationSpec requires real chronological baselineDate and currentDate values in YYYY-MM-DD format.");
+    }
+    for (const field of ["baselineLabel", "currentLabel"] as const) {
+        const label = spec[field];
+        if (typeof label === "string" && /\b(?:baseline|current)\b/i.test(label.trim())) {
+            errors.push(`page-version generationSpec.${field} must use a site-native description, not ${label.trim()}.`);
+        }
+    }
+    if (spec.changeKind === "removed-content") {
+        const solution = typeof spec.intendedSolution === "string" ? spec.intendedSolution.trim() : "";
+        const baselineBody = typeof spec.baselineBody === "string" ? spec.baselineBody : "";
+        const currentBody = typeof spec.currentBody === "string" ? spec.currentBody : "";
+        const occurrences = solution.length === 0 ? 0 : baselineBody.split(solution).length - 1;
+        if (occurrences !== 1 || currentBody.includes(solution)) {
+            errors.push("page-version removed-content requires baselineBody to contain intendedSolution exactly once and currentBody to omit it.");
+        }
+    }
+    return errors;
+}
+
+function validateVisualClueGenerationSpec(spec: Record<string, unknown>): string[] {
+    const normalized = (value: unknown): string => typeof value === "string"
+        ? value.trim().replace(/\s+/g, " ")
+        : "";
+    const solution = normalized(spec.intendedSolution);
+    const clueLabel = normalized(spec.clueLabel);
+    const errors: string[] = [];
+    if (clueLabel !== solution) {
+        errors.push("visual-clue generationSpec.clueLabel must exactly match intendedSolution.");
+    }
+    for (const field of ["sceneTitle", "sceneTheme", "sceneDescription", "imageCaption"] as const) {
+        const value = normalized(spec[field]);
+        if (solution.length > 0 && value.includes(solution)) {
+            errors.push(`visual-clue generationSpec.${field} must not contain intendedSolution; place the exact answer only in clueLabel.`);
+        }
+    }
+    return errors;
 }
 
 export const repositoryPuzzleCatalog: PuzzleCatalog = {
@@ -180,7 +255,17 @@ export const repositoryPuzzleCatalog: PuzzleCatalog = {
         textPuzzleEntry({ tool: createMorsePuzzleTool, puzzleType: "encoding", subtype: "morse-code", displayName: "Morse code", narrativeTags: ["encoding", "message", "text"] }),
         textPuzzleEntry({ tool: createNthCharacterPuzzleTool, puzzleType: "hidden-information", subtype: "periodic-letter-extraction", displayName: "Periodic letter extraction", narrativeTags: ["document", "text", "hidden-data"], difficultyControls: ["step", "startIndex"] }),
         textPuzzleEntry({ tool: createNthWordPuzzleTool, puzzleType: "hidden-information", subtype: "periodic-word-extraction", displayName: "Periodic word extraction", narrativeTags: ["document", "text", "hidden-data"], difficultyControls: ["step", "startIndex"] }),
-        textPuzzleEntry({ tool: createPageVersionPuzzleTool, puzzleType: "hidden-information", subtype: "page-version", displayName: "Page version", narrativeTags: ["web", "comparison", "investigation"], difficultyControls: ["changeKind"], bundle: { placements: ["version-set"], integrity: "html-source" } }),
+        textPuzzleEntry({
+            tool: createPageVersionPuzzleTool,
+            puzzleType: "hidden-information",
+            subtype: "page-version",
+            displayName: "Page version",
+            narrativeTags: ["web", "comparison", "investigation"],
+            difficultyControls: ["changeKind"],
+            generationSpecConstraints: pageVersionGenerationSpecConstraints,
+            validateGenerationSpec: validatePageVersionGenerationSpec,
+            bundle: { placements: ["version-set"], integrity: "html-source" }
+        }),
         textPuzzleEntry({ tool: createQrCodePuzzleTool, puzzleType: "encoding", subtype: "qr-code", displayName: "QR code", narrativeTags: ["image", "encoding", "identifier"], bundle: { placements: ["media-viewer", "downloadable-file"], integrity: "exact-file" } }),
         textPuzzleEntry({ tool: createReverseAudioPuzzleTool, puzzleType: "hidden-information", subtype: "reverse-audio", displayName: "Reverse audio", narrativeTags: ["audio", "forensics", "message"], bundle: { placements: ["media-viewer", "downloadable-file"], integrity: "exact-file" } }),
         textPuzzleEntry({ tool: createSecureRelayPuzzleTool, puzzleType: "secure-communication", subtype: "asymmetric-sealed-relay", displayName: "Secure relay", narrativeTags: ["communication", "cryptography", "identity"] }),
@@ -190,7 +275,17 @@ export const repositoryPuzzleCatalog: PuzzleCatalog = {
         textPuzzleEntry({ tool: createSubstitutionPuzzleTool, puzzleType: "encoding", subtype: "monoalphabetic-substitution", displayName: "Substitution cipher", narrativeTags: ["cipher", "message", "text"] }),
         textPuzzleEntry({ tool: createTelestichPuzzleTool, puzzleType: "hidden-information", subtype: "cover-text-line-telestich", displayName: "Telestich", narrativeTags: ["document", "text", "hidden-data"] }),
         textPuzzleEntry({ tool: createVigenerePuzzleTool, puzzleType: "encoding", subtype: "vigenere-cipher", displayName: "Vigenere cipher", narrativeTags: ["cipher", "message", "text"], difficultyControls: ["key"] }),
-        textPuzzleEntry({ tool: createVisualCluePuzzleTool, puzzleType: "hidden-information", subtype: "visual-clue", displayName: "Visual clue", narrativeTags: ["image", "observation", "investigation"], difficultyControls: ["clueKind"], bundle: { placements: ["media-viewer", "downloadable-file"], integrity: "exact-file" } }),
+        textPuzzleEntry({
+            tool: createVisualCluePuzzleTool,
+            puzzleType: "hidden-information",
+            subtype: "visual-clue",
+            displayName: "Visual clue",
+            narrativeTags: ["image", "observation", "investigation"],
+            difficultyControls: ["clueKind"],
+            generationSpecConstraints: visualClueGenerationSpecConstraints,
+            validateGenerationSpec: validateVisualClueGenerationSpec,
+            bundle: { placements: ["media-viewer", "downloadable-file"], integrity: "exact-file" }
+        }),
         textPuzzleEntry({ tool: createWordIndexPuzzleTool, puzzleType: "hidden-information", subtype: "cover-text-word-index-cipher", displayName: "Word index", narrativeTags: ["document", "text", "hidden-data"] })
     ]
 };
@@ -229,7 +324,10 @@ export function catalogForPrompt(catalog: PuzzleCatalog): unknown {
             difficultyControls: entry.difficultyControls,
             ...(entry.authoredContent === undefined
                 ? {}
-                : { authoredContent: entry.authoredContent })
+                : { authoredContent: entry.authoredContent }),
+            ...(entry.generationSpecConstraints === undefined
+                ? {}
+                : { generationSpecConstraints: entry.generationSpecConstraints })
         }))
     };
 }
