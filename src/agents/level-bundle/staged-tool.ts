@@ -74,6 +74,10 @@ const ReplaceRouteParameters = Type.Object({
     ])
 }, { additionalProperties: false });
 
+const ReplaceSiteParameters = Type.Object({
+    site: SiteSchema
+}, { additionalProperties: false });
+
 const MediaBatchParameters = Type.Object({
     requests: Type.Array(SupportingMediaRequestSchema, {
         minItems: 1,
@@ -316,6 +320,34 @@ export function createStagedLevelBundleTools(
         }
     };
 
+    const replaceBundleSite: AgentTool<typeof ReplaceSiteParameters> = {
+        name: "replace_bundle_site",
+        label: "Replace a staged site",
+        description: "Replace one site's public identity or visual profile after validation reports a site-wide problem. The stable site ID and base path must not change.",
+        parameters: ReplaceSiteParameters,
+        async execute(_toolCallId, params) {
+            if (structure === undefined) throw new Error("Submit bundle site definitions before replacing a site.");
+            const index = structure.sites.findIndex((site) => site.id === params.site.id);
+            if (index < 0) throw new Error(`Bundle structure has no site named ${params.site.id}.`);
+            const existing = structure.sites[index];
+            if (params.site.basePath !== existing.basePath) {
+                throw new Error(
+                    `Replacement site ${params.site.id} must keep basePath ${existing.basePath}, not ${params.site.basePath}.`
+                );
+            }
+            const sites = [...structure.sites];
+            sites[index] = params.site;
+            structure = { ...structure, sites };
+            return {
+                content: [{
+                    type: "text",
+                    text: `Replaced site metadata for ${params.site.id}. Existing routes and media requests were preserved. Retry finalize_level_bundle after repairing every reported issue.`
+                }],
+                details: { siteId: params.site.id, basePath: params.site.basePath }
+            };
+        }
+    };
+
     const addMediaRequests: AgentTool<typeof MediaBatchParameters> = {
         name: "add_supporting_media_requests",
         label: "Add supporting media requests",
@@ -416,6 +448,7 @@ export function createStagedLevelBundleTools(
         submitStructure,
         addBundleRoutes,
         addSupportingRoutes,
+        replaceBundleSite,
         replaceBundleRoute,
         addMediaRequests,
         replaceMediaRequest,

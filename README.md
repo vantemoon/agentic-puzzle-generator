@@ -14,6 +14,13 @@ Omit the brief to let the game-design agent invent a high-stakes investigation a
 npm run game:design
 ```
 
+New designs select one primary story archetype from the repository's controlled
+catalog (for example, kidnapping, murder, conspiracy, fraud, sabotage, or stolen
+artifact). All writing stages share the same plain-language naming rules: use
+ordinary descriptive words and names, and do not coin evocative terms or poetic
+compound names. Existing version-1 design files without an explicit archetype
+remain readable.
+
 The command writes the canonical world under `worlds/`, a private campaign spec
 and level manifest under `game-designs/`, and one validated request per level
 under `level-requests/`. Each request can be passed directly to `level:design`.
@@ -118,7 +125,7 @@ Supplying only a level file skips the level menu and displays its puzzle menu. G
 
 Deploy the puzzle artifact directory, not the private `.puzzle.json` file.
 
-## Plan a level bundle
+## Generate a complete level bundle
 
 After every puzzle in a level has been generated, create and build a validated level bundle:
 
@@ -126,7 +133,11 @@ After every puzzle in a level has been generated, create and build a validated l
 npm run level:bundle -- generated-levels/<level-id>.level.json
 ```
 
-The command verifies the world reference, private puzzle records, and artifact files before starting the Level Bundle Agent. It writes the private plan to `generated-bundles/<level-id>/level.bundle.json` and builds the public site. Missing or modified puzzle artifacts stop the command with an actionable preflight report.
+This is the single bundle-generation command. It verifies the world reference,
+private puzzle records, and artifact files; creates the bundle plan; generates or
+reuses supporting media; builds the public site and private diagnostics; and runs
+deterministic verification. Missing or modified puzzle artifacts stop the command
+with an actionable preflight report.
 
 Bundle plans use structured page blocks for prose, lists, records, tables, cards,
 and supporting-media placements. Every site declares its own visual profile.
@@ -140,24 +151,18 @@ library records world-entity references, provenance, model selection, and conten
 hashes so later levels can reuse the same established asset. Each media mode has
 an independent entry in `llm-models.json`.
 
-To populate missing media for an existing version-2 bundle without rerunning the
-Level Bundle Agent:
-
-```bash
-npm run level:generate-media -- generated-levels/<level-id>.level.json
-```
-
 Bundle runs print event-driven planning and validation progress while writing an incremental private JSONL trace under `generation-logs/<level-id>/`. The agent submits site definitions, required routes, and supporting pages in bounded batches before deterministic final assembly.
 
 Development bundles use 10–15 supporting pages as a bundle-wide floor and scale to 2–3 supporting pages per puzzle for larger levels. Override the floors with `LEVEL_BUNDLE_SUPPORTING_MIN` and `LEVEL_BUNDLE_SUPPORTING_MAX`, the density with `LEVEL_BUNDLE_SUPPORTING_PER_PUZZLE_MIN` and `LEVEL_BUNDLE_SUPPORTING_PER_PUZZLE_MAX`, or set `LEVEL_BUNDLE_SEED` for a specific deterministic content seed.
 
-Build the validated plan into separated public and private output:
-
-```bash
-npm run level:build-bundle -- generated-levels/<level-id>.level.json
-```
-
 The deployable site is written to `generated-bundles/<level-id>/public/`. Puzzle mappings and build diagnostics remain under `private/` and must not be published.
+
+Bundle generation runs deterministic verification after building the public
+output. Verification checks supporting-content depth, manifest hashes, clue
+artifact integrity, private-answer leakage outside puzzle resources, broken links,
+declared journey transitions, basic accessibility, and unsafe or external page
+dependencies. A failed report is still written under the bundle's `private/`
+directory.
 
 Preview the site with authoritative local terminal validation:
 
@@ -169,14 +174,56 @@ The preview binds to `127.0.0.1:4173` by default. Pass a second argument to sele
 
 Open the printed `http://127.0.0.1:4173/` address in a browser. Do not open the generated `public/index.html` directly: the bundle uses site-root links and a server-backed answer-validation endpoint, so navigation and validation require the preview server (or a deployed web server).
 
+## Preview a connected game bundle
+
+After every level in a game design has generated puzzles and a verified level bundle,
+start the whole campaign with one command:
+
+```bash
+npm run game:preview-bundle -- game-designs/<game-id>.game-design.json
+```
+
+The command rebuilds and verifies every level before serving the campaign. Open the
+first printed URL. A successful terminal submission links directly to the next
+level; the final level ends on its accepted outcome. Each level uses one consecutive
+localhost port so its existing root-relative fictional sites continue to work.
+
+Build every website-based level bundle for a game, generating missing level
+blueprints, puzzle artifacts, bundle plans, supporting pages, and supporting
+media as needed:
+
+```bash
+npm run game:build-ready -- game_missing_reporter
+npm run game:serve-ready -- game_missing_reporter
+```
+
+The build parameter selects the game, not an individual level. It can be either
+the game ID or a path to a game-design JSON file. Existing valid puzzle artifacts,
+supporting media, and verified bundles are reused. Missing or invalid pieces are
+regenerated through the normal puzzle and level-bundle agents:
+
+```bash
+npm run game:build-ready -- game-designs/game_missing_reporter.game-design.json
+```
+
+Verify every completed level bundle without starting the preview server:
+
+```bash
+npm run game:verify-ready -- game_missing_reporter
+```
+
+Each deployable fictional website remains under
+`generated-bundles/<level-id>/public/`. Private mappings and verification reports
+remain beside it under `private/`. The game-level manifest is written to
+`generated-games/<game-id>/game.bundle.json`; it references those verified level
+bundles instead of flattening their puzzles into sequential pages.
+
 ## Inspect game designs
 
 Launch the unified, read-only design inspector:
 
 ```bash
-npm run inspect
+npm run level:inspect
 ```
 
 Open `http://127.0.0.1:4173/`, then load or drag in a JSON file. The inspector automatically recognizes complete game designs, standalone game worlds, level-design requests, and generated levels. Complete game designs provide Game Structure and Game World tabs; generated levels retain the puzzle data-flow view. Level-request details include their required discoveries, difficulty configuration, world scope, and complete terminal action.
-
-Bundle generation runs deterministic verification internally after building the public output. Verification checks supporting-content depth, manifest hashes, clue artifact integrity, private-answer leakage outside puzzle resources, broken links, declared journey transitions, basic accessibility, and unsafe or external page dependencies. A failed report is still written under the bundle's `private/` directory.

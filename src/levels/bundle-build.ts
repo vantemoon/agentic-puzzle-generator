@@ -7,6 +7,8 @@ import {
     readWorldMediaAsset,
     readWorldMediaLibrary
 } from "../agents/supporting-media/library.js";
+import { findSupportingMediaAsset, supportingMediaRequestContext } from "../agents/supporting-media/request.js";
+import { bundleAnswers, findBundleAnswer } from "./bundle-answers.js";
 import type { LevelBundleInputs } from "./bundle-inputs.js";
 import { assertLevelBundle, type BundleRoute, type BundledSite, type LevelBundle } from "./bundle.js";
 import type { PuzzleCatalog } from "./catalog.js";
@@ -15,7 +17,7 @@ import { composableHtmlArtifactFragments } from "./html-composition.js";
 
 const SITE_CSS = `:root{color-scheme:light;--paper:#f6f4ef;--ink:#20262d;--muted:#66717d;--line:#d6d1c7;--accent:var(--site-accent,#245b78);--card:#fff}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.6 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body[data-font-style="serif"]{font-family:Georgia,"Times New Roman",serif}body[data-font-style="mixed"] h1,body[data-font-style="mixed"] h2,body[data-font-style="mixed"] h3{font-family:Georgia,"Times New Roman",serif}a{color:var(--accent)}header{background:var(--card);border-bottom:1px solid var(--line)}.masthead,.layout,footer{max-width:1080px;margin:auto;padding:1rem 1.5rem}.brand{font-size:1.35rem;font-weight:750;text-decoration:none;color:var(--ink)}nav ul{display:flex;flex-wrap:wrap;gap:.4rem 1.1rem;padding:0;list-style:none}.layout{display:grid;grid-template-columns:minmax(0,1fr) 16rem;gap:2.5rem}.content,.sidebar{background:var(--card);border:1px solid var(--line);border-radius:.4rem;padding:1.5rem}.summary{font-size:1.08rem;color:#46515c}.route-list{padding-left:1.2rem}.table-scroll{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{padding:.6rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}dl{display:grid;grid-template-columns:minmax(8rem,auto) 1fr;gap:.35rem 1rem}dt{font-weight:700}dd{margin:0}.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:1rem}.card-grid article{padding:1rem;border:1px solid var(--line);border-radius:.35rem}.supporting-media img{display:block;width:100%;height:auto;border-radius:.35rem}.supporting-media figcaption{color:var(--muted);font-size:.9rem}.supporting-document a{display:inline-block;padding:.65rem 1rem;border:1px solid var(--accent);border-radius:.3rem;font-weight:700}.standalone-document{background:#ece9e2;font-family:Georgia,"Times New Roman",serif}.standalone-document>main{max-width:760px;margin:2rem auto;padding:3rem;background:#fff;box-shadow:0 1rem 3rem #0002;border-top:.55rem solid var(--accent)}.standalone-document .subtitle{font-size:1.2rem;color:var(--muted)}.standalone-document section{margin-top:2rem}.standalone-document section h2{font-size:1.15rem;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:.35rem}.puzzle-artifact{margin:1.75rem 0;padding:1rem;border:1px solid var(--line);background:#fbfbfa;overflow:auto}.terminal-form{display:grid;gap:1rem;max-width:34rem}.terminal-form label{font-weight:650}.terminal-form input{display:block;width:100%;margin-top:.35rem;padding:.65rem;border:1px solid #8a9299;border-radius:.25rem}.terminal-form button{width:max-content;padding:.65rem 1rem;background:var(--accent);color:#fff;border:0;border-radius:.25rem;font-weight:700}footer{color:var(--muted);font-size:.85rem}@media(max-width:760px){.layout{grid-template-columns:1fr}.sidebar{order:2}.standalone-document>main{margin:0;padding:1.5rem;box-shadow:none}}`;
 
-const REALISM_CSS = `.visually-hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.skip-link{position:absolute;left:-9999px;top:.5rem;z-index:20;background:#fff;padding:.6rem 1rem}.skip-link:focus{left:.5rem}.site-kicker{margin:0 0 .2rem;color:var(--muted);font-size:.74rem;font-weight:750;letter-spacing:.12em;text-transform:uppercase}.brand-row{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem}.site-search{display:flex;align-items:end;gap:.4rem}.site-search label{font-size:.78rem;font-weight:700}.site-search input[type="search"]{display:block;min-width:12rem;margin-top:.2rem;padding:.45rem .6rem;border:1px solid var(--line);background:var(--card);color:var(--ink)}.site-search button{padding:.45rem .7rem;border:0;background:var(--accent);color:#fff}.primary-nav{margin-top:.85rem;border-top:1px solid var(--line);padding-top:.7rem}.primary-nav a[aria-current="page"],.secondary-nav a[aria-current="page"]{font-weight:750;text-decoration-thickness:.15rem}.secondary-nav ul{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:.4rem 1rem;margin:.55rem 0 0;padding:0;list-style:none;font-size:.88rem}.breadcrumbs{max-width:1080px;margin:.9rem auto 0;padding:0 1.5rem;color:var(--muted);font-size:.84rem}.breadcrumbs ol{display:flex;gap:.45rem;margin:0;padding:0;list-style:none}.breadcrumbs li+li:before{content:"/";margin-right:.45rem;color:var(--line)}.layout.no-sidebar{grid-template-columns:minmax(0,52rem);justify-content:center}.content>h1{font-size:clamp(2rem,5vw,3.2rem);line-height:1.08;margin:.1rem 0 .65rem}.content-block{margin-top:2rem}.content-block>h2{font-size:1.22rem;line-height:1.25}.card-grid article{background:color-mix(in srgb,var(--card) 94%,var(--accent));box-shadow:0 .35rem 1rem #0000000a}.supporting-media{margin:0;padding-bottom:.5rem}.sidebar h2{margin-top:0;font-size:1rem}.route-list{display:grid;gap:.65rem}.route-list a{text-decoration-thickness:.06rem}.discovery{margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid var(--line)}.discovery form{display:flex;align-items:end;gap:.55rem;flex-wrap:wrap}.discovery label{font-weight:700}.discovery input{display:block;margin-top:.3rem;padding:.55rem;border:1px solid var(--line)}.discovery button{padding:.55rem .8rem;border:0;background:var(--accent);color:#fff}.site-footer{display:flex;justify-content:space-between;gap:1rem;border-top:1px solid var(--line)}.site-footer nav{display:flex;flex-wrap:wrap;gap:.4rem 1rem}body[data-tone="warm"]{--paper:#f8f2e8;--line:#ded2c2}body[data-tone="formal"]{--paper:#eef2f5;--line:#bbc6ce}body[data-tone="playful"] .card-grid article{border-radius:1rem}body[data-tone="artistic"] .supporting-media img{margin-bottom:.9rem;box-shadow:.7rem .7rem 0 color-mix(in srgb,var(--accent) 22%,transparent)}body[data-tone="artistic"] .supporting-media figcaption{position:relative}body[data-density="compact"] .content,body[data-density="compact"] .sidebar{padding:1rem}body[data-density="spacious"] .content,body[data-density="spacious"] .sidebar{padding:clamp(1.5rem,4vw,3rem)}body[data-font-style="mono-accent"] h1,body[data-font-style="mono-accent"] h2,body[data-font-style="mono-accent"] .site-kicker{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}body[data-archetype="blog"]{--paper:#faf8f3;--line:#ddd6c8}body[data-archetype="blog"] header{text-align:center;border-top:.4rem solid var(--accent)}body[data-archetype="blog"] .brand-row{display:block}body[data-archetype="blog"] .brand{font:700 clamp(2rem,6vw,3.4rem)/1 Georgia,serif}body[data-archetype="blog"] .primary-nav ul{justify-content:center}body[data-archetype="blog"] .layout{grid-template-columns:minmax(0,46rem) 14rem;justify-content:center}body[data-archetype="blog"] .layout.no-sidebar{grid-template-columns:minmax(0,52rem)}body[data-archetype="blog"] .content{border:0;background:transparent}body[data-archetype="blog"] .sidebar{border-width:0 0 0 1px;border-radius:0;background:transparent}body[data-archetype="organization"] header{border-top:.55rem solid var(--accent)}body[data-archetype="organization"] .brand{font-size:1.65rem}body[data-archetype="organization"] .primary-nav{background:color-mix(in srgb,var(--accent) 10%,white);margin-inline:-1.5rem;padding-inline:1.5rem}body[data-archetype="gallery"]{color-scheme:dark;--paper:#141516;--card:#202224;--ink:#f0eee8;--muted:#aaa9a4;--line:#3b3d3f}body[data-archetype="gallery"] header{background:#0e0f10}body[data-archetype="gallery"] .brand{font-size:1.8rem;letter-spacing:.04em}body[data-archetype="gallery"] .card-grid{grid-template-columns:repeat(auto-fit,minmax(16rem,1fr))}body[data-archetype="gallery"] .supporting-media img{border:1px solid #ffffff22}body[data-archetype="records"],body[data-archetype="version-history"]{--paper:#edf1f4;--line:#b9c3cb;--card:#fff}body[data-archetype="records"] header,body[data-archetype="version-history"] header{border-top:.35rem solid var(--accent)}body[data-archetype="records"] .content,body[data-archetype="records"] .sidebar,body[data-archetype="version-history"] .content{border-radius:0;box-shadow:0 .2rem .8rem #24374610}body[data-archetype="records"] table th,body[data-archetype="version-history"] table th{background:#e3e9ed}body[data-archetype="directory"],body[data-archetype="database"]{--paper:#f3f6f7;--line:#c9d3d8}body[data-archetype="directory"] .masthead,body[data-archetype="database"] .masthead{max-width:1240px}body[data-archetype="directory"] .layout,body[data-archetype="database"] .layout{max-width:1240px;grid-template-columns:minmax(0,1fr) 18rem}body[data-archetype="directory"] .layout.no-sidebar,body[data-archetype="database"] .layout.no-sidebar{grid-template-columns:minmax(0,64rem);justify-content:center}body[data-archetype="directory"] table,body[data-archetype="database"] table{font-size:.92rem}body[data-archetype="directory"] tbody tr:hover,body[data-archetype="database"] tbody tr:hover{background:color-mix(in srgb,var(--accent) 7%,white)}body[data-archetype="audio-archive"]{--paper:#191d28;--card:#242938;--ink:#f4f5f7;--muted:#b0b7c7;--line:#3e465c}body[data-archetype="audio-archive"] header{background:linear-gradient(135deg,#171b25,color-mix(in srgb,var(--accent) 35%,#171b25))}body[data-archetype="audio-archive"] .brand{font-size:1.75rem}body[data-archetype="generic"] header{border-top:.35rem solid var(--accent)}.bundle-index{min-height:100vh;padding:clamp(2rem,8vw,6rem);background:#10151d;color:#f2f5f8}.bundle-index main{max-width:900px;margin:auto}.bundle-index .summary{color:#b8c1cc}.bundle-site-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem;margin:2rem 0}.bundle-site-grid a{display:block;min-height:9rem;padding:1.3rem;border:1px solid #ffffff22;border-radius:.6rem;background:#ffffff0d;color:#fff;text-decoration:none}.bundle-site-grid a:hover,.bundle-site-grid a:focus{background:#ffffff18;border-color:#ffffff55}.bundle-site-grid strong{display:block;font-size:1.2rem}.bundle-site-grid span{display:block;margin-top:.7rem;color:#b8c1cc}.begin-link{display:inline-block;padding:.7rem 1rem;border-radius:.35rem;background:#fff;color:#10151d;font-weight:750;text-decoration:none}@media(max-width:760px){.brand-row{align-items:flex-start;flex-direction:column}.site-search{width:100%}.site-search input[type="search"]{min-width:0;flex:1}.breadcrumbs{padding-inline:1rem}.site-footer{display:block}body[data-archetype="blog"] .layout,body[data-archetype="directory"] .layout,body[data-archetype="database"] .layout{grid-template-columns:1fr}}`;
+const REALISM_CSS = `.visually-hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.skip-link{position:absolute;left:-9999px;top:.5rem;z-index:20;background:#fff;padding:.6rem 1rem}.skip-link:focus{left:.5rem}.site-kicker{margin:0 0 .2rem;color:var(--muted);font-size:.74rem;font-weight:750;letter-spacing:.12em;text-transform:uppercase}.brand-row{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem}.site-search{display:flex;align-items:end;gap:.4rem}.site-search label{font-size:.78rem;font-weight:700}.site-search input[type="search"]{display:block;min-width:12rem;margin-top:.2rem;padding:.45rem .6rem;border:1px solid var(--line);background:var(--card);color:var(--ink)}.site-search button{padding:.45rem .7rem;border:0;background:var(--accent);color:#fff}.primary-nav{margin-top:.85rem;border-top:1px solid var(--line);padding-top:.7rem}.primary-nav a[aria-current="page"],.secondary-nav a[aria-current="page"]{font-weight:750;text-decoration-thickness:.15rem}.secondary-nav ul{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:.4rem 1rem;margin:.55rem 0 0;padding:0;list-style:none;font-size:.88rem}.breadcrumbs{max-width:1080px;margin:.9rem auto 0;padding:0 1.5rem;color:var(--muted);font-size:.84rem}.breadcrumbs ol{display:flex;gap:.45rem;margin:0;padding:0;list-style:none}.breadcrumbs li+li:before{content:"/";margin-right:.45rem;color:var(--line)}.layout.no-sidebar{grid-template-columns:minmax(0,52rem);justify-content:center}.content>h1{font-size:clamp(2rem,5vw,3.2rem);line-height:1.08;margin:.1rem 0 .65rem}.content-block{margin-top:2rem}.content-block>h2{font-size:1.22rem;line-height:1.25}.card-grid article{background:color-mix(in srgb,var(--card) 94%,var(--accent));box-shadow:0 .35rem 1rem #0000000a}.supporting-media{margin:0;padding-bottom:.5rem}.supporting-media img{display:block;max-width:100%;height:auto}.sidebar h2{margin-top:0;font-size:1rem}.route-list{display:grid;gap:.65rem}.route-list a{text-decoration-thickness:.06rem}.discovery{margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid var(--line)}.discovery form{display:flex;align-items:end;gap:.55rem;flex-wrap:wrap}.discovery label{font-weight:700}.discovery input{display:block;margin-top:.3rem;padding:.55rem;border:1px solid var(--line)}.discovery button{padding:.55rem .8rem;border:0;background:var(--accent);color:#fff}.site-footer{display:flex;justify-content:space-between;gap:1rem;border-top:1px solid var(--line)}.site-footer nav{display:flex;flex-wrap:wrap;gap:.4rem 1rem}body[data-tone="warm"]{--paper:#f8f2e8;--line:#ded2c2}body[data-tone="formal"]{--paper:#eef2f5;--line:#bbc6ce}body[data-tone="playful"] .card-grid article{border-radius:1rem}body[data-tone="artistic"] .supporting-media img{margin-bottom:.9rem;box-shadow:.7rem .7rem 0 color-mix(in srgb,var(--accent) 22%,transparent)}body[data-tone="artistic"] .supporting-media figcaption{position:relative}body[data-density="compact"] .content,body[data-density="compact"] .sidebar{padding:1rem}body[data-density="spacious"] .content,body[data-density="spacious"] .sidebar{padding:clamp(1.5rem,4vw,3rem)}body[data-font-style="mono-accent"] h1,body[data-font-style="mono-accent"] h2,body[data-font-style="mono-accent"] .site-kicker{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}body[data-archetype="blog"]{--paper:#faf8f3;--line:#ddd6c8}body[data-archetype="blog"] header{text-align:center;border-top:.4rem solid var(--accent)}body[data-archetype="blog"] .brand-row{display:block}body[data-archetype="blog"] .brand{font:700 clamp(2rem,6vw,3.4rem)/1 Georgia,serif}body[data-archetype="blog"] .primary-nav ul{justify-content:center}body[data-archetype="blog"] .layout{grid-template-columns:minmax(0,46rem) 14rem;justify-content:center}body[data-archetype="blog"] .layout.no-sidebar{grid-template-columns:minmax(0,52rem)}body[data-archetype="blog"] .content{border:0;background:transparent}body[data-archetype="blog"] .sidebar{border-width:0 0 0 1px;border-radius:0;background:transparent}body[data-archetype="organization"] header{border-top:.55rem solid var(--accent)}body[data-archetype="organization"] .brand{font-size:1.65rem}body[data-archetype="organization"] .primary-nav{background:color-mix(in srgb,var(--accent) 10%,white);margin-inline:-1.5rem;padding-inline:1.5rem}body[data-archetype="gallery"]{color-scheme:dark;--paper:#141516;--card:#202224;--ink:#f0eee8;--muted:#aaa9a4;--line:#3b3d3f}body[data-archetype="gallery"] header{background:#0e0f10}body[data-archetype="gallery"] .brand{font-size:1.8rem;letter-spacing:.04em}body[data-archetype="gallery"] .card-grid{grid-template-columns:repeat(auto-fit,minmax(16rem,1fr))}body[data-archetype="gallery"] .supporting-media img{border:1px solid #ffffff22}body[data-archetype="records"],body[data-archetype="version-history"]{--paper:#edf1f4;--line:#b9c3cb;--card:#fff}body[data-archetype="records"] header,body[data-archetype="version-history"] header{border-top:.35rem solid var(--accent)}body[data-archetype="records"] .content,body[data-archetype="records"] .sidebar,body[data-archetype="version-history"] .content{border-radius:0;box-shadow:0 .2rem .8rem #24374610}body[data-archetype="records"] table th,body[data-archetype="version-history"] table th{background:#e3e9ed}body[data-archetype="directory"],body[data-archetype="database"]{--paper:#f3f6f7;--line:#c9d3d8}body[data-archetype="directory"] .masthead,body[data-archetype="database"] .masthead{max-width:1240px}body[data-archetype="directory"] .layout,body[data-archetype="database"] .layout{max-width:1240px;grid-template-columns:minmax(0,1fr) 18rem}body[data-archetype="directory"] .layout.no-sidebar,body[data-archetype="database"] .layout.no-sidebar{grid-template-columns:minmax(0,64rem);justify-content:center}body[data-archetype="directory"] table,body[data-archetype="database"] table{font-size:.92rem}body[data-archetype="directory"] tbody tr:hover,body[data-archetype="database"] tbody tr:hover{background:color-mix(in srgb,var(--accent) 7%,white)}body[data-archetype="audio-archive"]{--paper:#191d28;--card:#242938;--ink:#f4f5f7;--muted:#b0b7c7;--line:#3e465c}body[data-archetype="audio-archive"] header{background:linear-gradient(135deg,#171b25,color-mix(in srgb,var(--accent) 35%,#171b25))}body[data-archetype="audio-archive"] .brand{font-size:1.75rem}body[data-archetype="generic"] header{border-top:.35rem solid var(--accent)}.bundle-index{min-height:100vh;padding:clamp(2rem,8vw,6rem);background:#10151d;color:#f2f5f8}.bundle-index main{max-width:900px;margin:auto}.bundle-index .summary{color:#b8c1cc}.mission-brief{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem;margin:2rem 0}.mission-brief section{padding:1.15rem;border:1px solid #ffffff24;border-radius:.5rem;background:#ffffff0b}.mission-brief h2{margin-top:0;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase}.mission-brief p,.mission-brief li{color:#d9e0e7}.mission-brief ul{margin-bottom:0;padding-left:1.2rem}.initial-direction{padding:1rem 1.15rem;border-left:.3rem solid #fff;background:#ffffff0b}.bundle-site-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem;margin:2rem 0}.bundle-site-grid a{display:block;min-height:9rem;padding:1.3rem;border:1px solid #ffffff22;border-radius:.6rem;background:#ffffff0d;color:#fff;text-decoration:none}.bundle-site-grid a:hover,.bundle-site-grid a:focus{background:#ffffff18;border-color:#ffffff55}.bundle-site-grid strong{display:block;font-size:1.2rem}.bundle-site-grid span{display:block;margin-top:.7rem;color:#b8c1cc}.begin-link{display:inline-block;padding:.7rem 1rem;border-radius:.35rem;background:#fff;color:#10151d;font-weight:750;text-decoration:none}@media(max-width:760px){.brand-row{align-items:flex-start;flex-direction:column}.site-search{width:100%}.site-search input[type="search"]{min-width:0;flex:1}.breadcrumbs{padding-inline:1rem}.site-footer{display:block}body[data-archetype="blog"] .layout,body[data-archetype="directory"] .layout,body[data-archetype="database"] .layout{grid-template-columns:1fr}}`;
 
 export interface PublicBundleManifest {
     schemaVersion: "1.0.0";
@@ -42,6 +44,19 @@ function escapeHtml(value: string): string {
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
+}
+
+export function publicLevelGoal(inputs: LevelBundleInputs): string {
+    const labels = [...new Set(inputs.level.terminalAction.fields
+        .map((field) => field.label.trim())
+        .filter((label) => label.length > 0))];
+    if (labels.length === 0) {
+        return "Follow the available evidence and submit your final findings to complete this stage of the investigation.";
+    }
+    const formatted = labels.length === 1
+        ? labels[0].toLocaleLowerCase()
+        : `${labels.slice(0, -1).map((label) => label.toLocaleLowerCase()).join(", ")} and ${labels.at(-1)!.toLocaleLowerCase()}`;
+    return `Use the available records to determine the ${formatted}, then submit your findings to complete this stage of the investigation.`;
 }
 
 function fullRoutePath(site: BundledSite, route: BundleRoute): string {
@@ -193,9 +208,10 @@ function renderPuzzle(
 function renderTerminal(inputs: LevelBundleInputs, site: BundledSite, route: BundleRoute): string {
     const fields = inputs.level.terminalAction.fields.map((field) => [
         `<label for="${escapeHtml(field.id)}">${escapeHtml(field.label)}`,
-        `<input id="${escapeHtml(field.id)}" name="${escapeHtml(field.id)}" required autocomplete="off">`,
-        "</label>"
-    ].join("\n")).join("\n");
+        "</label>",
+        `<input id="${escapeHtml(field.id)}" name="${escapeHtml(field.id)}" type="${field.semanticRole === "date" ? "date" : "text"}" required autocomplete="off"${field.hint ? ` aria-describedby="${escapeHtml(field.id)}-hint"` : ""}>`,
+        field.hint ? `<small id="${escapeHtml(field.id)}-hint">${escapeHtml(field.hint)}</small>` : ""
+    ].join("\n")).map((field) => `<div>${field}</div>`).join("\n");
     return `<form class="terminal-form" method="post" action="/api/validate">
 <input type="hidden" name="levelId" value="${escapeHtml(inputs.level.id)}">
 <input type="hidden" name="returnPath" value="${escapeHtml(fullRoutePath(site, route))}">
@@ -215,9 +231,9 @@ function allBundleRoutes(bundle: LevelBundle): Array<{ site: BundledSite; route:
 export function selectBundleStartingRoutes(
     bundle: LevelBundle,
     startingInputIds: string[]
-): Array<{ inputId: string; site: BundledSite; route: BundleRoute; publicPath: string }> {
+): Array<{ inputId: string; inputIds: string[]; site: BundledSite; route: BundleRoute; publicPath: string }> {
     const routes = allBundleRoutes(bundle);
-    return startingInputIds.flatMap((inputId) => {
+    const selected = startingInputIds.flatMap((inputId) => {
         const source = `starting-input:${inputId}`;
         const candidates = routes.filter(({ route }) => route.discovery?.from.includes(source));
         const ordered = candidates.map((candidate, index) => ({
@@ -232,14 +248,31 @@ export function selectBundleStartingRoutes(
             || left.siteIndex - right.siteIndex
             || left.index - right.index
         );
-        const selected = ordered[0];
-        return selected === undefined ? [] : [{
+        const preferred = ordered[0];
+        return preferred === undefined ? [] : [{
             inputId,
-            site: selected.site,
-            route: selected.route,
-            publicPath: selected.publicPath
+            inputIds: [inputId],
+            site: preferred.site,
+            route: preferred.route,
+            publicPath: preferred.publicPath
         }];
     });
+    const websites = new Map<string, typeof selected[number]>();
+    for (const entry of selected) {
+        const existing = websites.get(entry.site.id);
+        if (existing === undefined) {
+            websites.set(entry.site.id, entry);
+            continue;
+        }
+        existing.inputIds.push(entry.inputId);
+        const existingIsHomepage = existing.route.path === "/";
+        const entryIsHomepage = entry.route.path === "/";
+        if (!existingIsHomepage && entryIsHomepage) {
+            existing.route = entry.route;
+            existing.publicPath = entry.publicPath;
+        }
+    }
+    return [...websites.values()];
 }
 
 type NavigationPlacement = NonNullable<BundleRoute["navigation"]>;
@@ -455,7 +488,8 @@ async function materializeSupportingMediaAssets(
     const assets: PublicBundleManifest["assets"] = [];
     const publicPaths = new Map<string, string>();
     for (const request of bundle.mediaRequests) {
-        const asset = library.assets.find((candidate) => candidate.id === request.id);
+        const context = supportingMediaRequestContext(request, bundle, inputs);
+        const asset = findSupportingMediaAsset(library.assets, request, context);
         if (asset === undefined) {
             throw new Error(
                 `Supporting media ${request.id} has not been generated. Run level:bundle to populate the world media library.`
@@ -571,13 +605,27 @@ export async function buildLevelBundle(options: {
     if (startingRoutes.length === 0) {
         throw new Error("The level bundle has no route for its starting input.");
     }
+    const answers = bundleAnswers(options.inputs.puzzles);
+    const safeCopy = (copy: string): string => findBundleAnswer(copy, answers) === undefined ? copy : "";
     const entryControls = startingRoutes.length === 1
         ? `<p><a class="begin-link" href="${escapeHtml(startingRoutes[0].publicPath)}" target="_blank" rel="noopener">Open starting page</a></p>`
-        : `<section><h2>Starting pages</h2><div class="bundle-site-grid">${startingRoutes.map(({ inputId, route, publicPath }) => {
-            const input = options.inputs.level.startingInputs.find((candidate) => candidate.id === inputId);
-            return `<a href="${escapeHtml(publicPath)}" target="_blank" rel="noopener"><strong>${escapeHtml(route.content.title)}</strong><span>${escapeHtml(input?.description ?? route.content.description)}</span></a>`;
+        : `<section><h2>Starting pages</h2><div class="bundle-site-grid">${startingRoutes.map(({ site, route, publicPath }) => {
+            return `<a href="${escapeHtml(publicPath)}" target="_blank" rel="noopener"><strong>${escapeHtml(safeCopy(site.name) || "Open starting page")}</strong><span>${escapeHtml(safeCopy(route.content.description))}</span></a>`;
         }).join("")}</div></section>`;
-    const indexSource = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${escapeHtml(options.inputs.level.title)}</title><link rel="stylesheet" href="/assets/site.css"></head><body class="bundle-index"><main><p class="site-kicker">Starting point</p><h1>${escapeHtml(options.inputs.level.title)}</h1><p class="summary">${escapeHtml(options.inputs.level.summary)}</p>${entryControls}</main></body></html>`;
+    const knownFacts = options.inputs.level.startingInputs.flatMap((input) => {
+        const description = safeCopy(input.description);
+        const value = "value" in input ? safeCopy(String(input.value)) : "";
+        if (!description && !value) return [];
+        return [`<li>${escapeHtml(description)}${value ? ` <strong>${escapeHtml(value)}</strong>` : ""}</li>`];
+    }).join("") || "<li>Your starting page contains the initial records.</li>";
+    const initialDirection = options.inputs.level.startingInputs.find((input) => "kind" in input && input.kind === "bundle-entry")
+        ?? options.inputs.level.startingInputs[0];
+    const title = safeCopy(options.inputs.level.title) || "Investigation briefing";
+    const situation = safeCopy(options.inputs.level.startingSituation);
+    const role = safeCopy(options.inputs.level.playerRole) || "You are investigating the case.";
+    const goal = safeCopy(publicLevelGoal(options.inputs)) || "Follow the evidence and submit your findings.";
+    const direction = safeCopy(initialDirection?.description ?? "") || "Open the supplied starting page and review the available records.";
+    const indexSource = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${escapeHtml(title)}</title><link rel="stylesheet" href="/assets/site.css"></head><body class="bundle-index"><main><p class="site-kicker">Case briefing</p><h1>${escapeHtml(title)}</h1>${situation ? `<p class="summary">${escapeHtml(situation)}</p>` : ""}<div class="mission-brief"><section><h2>Your role</h2><p>${escapeHtml(role)}</p></section><section><h2>Your goal</h2><p>${escapeHtml(goal)}</p></section><section><h2>Known facts</h2><ul>${knownFacts}</ul></section></div><p class="initial-direction"><strong>Start here:</strong> ${escapeHtml(direction)}</p>${entryControls}</main></body></html>`;
     routeEntries.push({
         path: "/",
         mediaType: "text/html",

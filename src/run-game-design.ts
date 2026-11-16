@@ -5,6 +5,7 @@ import type { AgentEvent } from "@earendil-works/pi-agent-core";
 
 import { createGameDesignAgent } from "./agents/game-design/agent.js";
 import type { GameDesignSubmission } from "./agents/game-design/tool.js";
+import { promptAgentWithRecovery } from "./core/agent-runner.js";
 import { createProgressReporter, toolResultText } from "./core/progress.js";
 import { repositoryPuzzleCatalog } from "./levels/catalog.js";
 
@@ -48,10 +49,15 @@ async function runGameDesignWorker(userBrief: string): Promise<void> {
             }
         });
         sendWorkerMessage({ type: "design-started" });
-        await agent.prompt(
+        await promptAgentWithRecovery(agent,
             userBrief.length === 0
                 ? "Invent and submit a complete multi-level investigation game now."
-                : "Create and submit a complete multi-level investigation game from the supplied brief now."
+                : "Create and submit a complete multi-level investigation game from the supplied brief now.",
+            {
+                onRetry: (attempt, error) => progress.start(
+                    `Retrying game-design model call (attempt ${attempt}): ${error.message}`
+                )
+            }
         );
         if (submission === undefined) {
             throw new Error(

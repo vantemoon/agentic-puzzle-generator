@@ -1,4 +1,4 @@
-import { Agent } from "@earendil-works/pi-agent-core";
+import { Agent } from "../../core/recovering-agent.js";
 
 import { loadKadiModel } from "../../core/model.js";
 import { ACROSTIC_SYSTEM_PROMPT } from "./prompt.js";

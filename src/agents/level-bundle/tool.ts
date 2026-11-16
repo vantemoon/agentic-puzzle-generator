@@ -105,6 +105,17 @@ function validateSupportingContent(
         }
     }
     for (const site of bundle.sites) {
+        const siteName = normalized(site.name);
+        for (const answer of privateAnswers) {
+            const comparableName = answer.caseInsensitive ? siteName.toLocaleLowerCase() : siteName;
+            if (comparableName.includes(answer.value)) {
+                errors.push(
+                    `Bundled site ${site.id} name leaks a puzzle answer in site-wide public chrome. `
+                    + "Use replace_bundle_site to give it a plain non-answer display name while preserving its ID and basePath."
+                );
+                break;
+            }
+        }
         if (!bundle.mediaRequests.some((request) => request.siteId === site.id)) {
             errors.push(`Bundled site ${site.id} must plan at least one supporting-media asset.`);
         }

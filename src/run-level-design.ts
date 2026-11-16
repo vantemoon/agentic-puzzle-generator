@@ -2,6 +2,7 @@ import type { AgentEvent } from "@earendil-works/pi-agent-core";
 
 import { createLevelDesignAgent } from "./agents/level-design/agent.js";
 import type { LevelDesignSubmission } from "./agents/level-design/tool.js";
+import { promptAgentWithRecovery } from "./core/agent-runner.js";
 import { createProgressReporter, toolResultText } from "./core/progress.js";
 import { repositoryPuzzleCatalog } from "./levels/catalog.js";
 import { loadLevelDesignInputs } from "./levels/io.js";
@@ -42,7 +43,11 @@ if (requestFile === undefined || process.argv.length !== 3) {
         });
 
         progress.start("Designing the level structure and puzzle progression");
-        await agent.prompt("Create and submit the validated level design now.");
+        await promptAgentWithRecovery(agent, "Create and submit the validated level design now.", {
+            onRetry: (attempt, error) => progress.start(
+                `Retrying level-design model call (attempt ${attempt}): ${error.message}`
+            )
+        });
         if (submission === undefined) {
             throw new Error(
                 lastSubmissionError

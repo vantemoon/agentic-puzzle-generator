@@ -39,6 +39,62 @@ function opacity(value: string): number {
     return number(value, "opacity", 0, 1);
 }
 
+function clampNumericPart(parts: string[], index: number, minimum: number, maximum: number): void {
+    const parsed = Number(parts[index]);
+    if (!Number.isFinite(parsed)) return;
+    parts[index] = String(Math.min(maximum, Math.max(minimum, parsed)));
+}
+
+function normalizeRasterInstruction(instruction: string): string {
+    const parts = instruction.split("|");
+    if (parts[0] === "rect" && parts.length === 8) {
+        clampNumericPart(parts, 1, 0, RASTER_WIDTH);
+        clampNumericPart(parts, 2, 0, RASTER_HEIGHT);
+        clampNumericPart(parts, 3, 1, RASTER_WIDTH);
+        clampNumericPart(parts, 4, 1, RASTER_HEIGHT);
+        clampNumericPart(parts, 6, 0, 1);
+        clampNumericPart(parts, 7, 0, 100);
+    } else if (parts[0] === "circle" && parts.length === 6) {
+        clampNumericPart(parts, 1, 0, RASTER_WIDTH);
+        clampNumericPart(parts, 2, 0, RASTER_HEIGHT);
+        clampNumericPart(parts, 3, 1, Math.max(RASTER_WIDTH, RASTER_HEIGHT));
+        clampNumericPart(parts, 5, 0, 1);
+    } else if (parts[0] === "line" && parts.length === 8) {
+        clampNumericPart(parts, 1, 0, RASTER_WIDTH);
+        clampNumericPart(parts, 2, 0, RASTER_HEIGHT);
+        clampNumericPart(parts, 3, 0, RASTER_WIDTH);
+        clampNumericPart(parts, 4, 0, RASTER_HEIGHT);
+        clampNumericPart(parts, 6, 1, 40);
+        clampNumericPart(parts, 7, 0, 1);
+    }
+    return parts.join("|");
+}
+
+function normalizeSvgInstruction(instruction: string): string {
+    const parts = instruction.split("|");
+    const coordinate = (index: number): void => clampNumericPart(parts, index, -1_000, 1_000);
+    const nonnegative = (index: number): void => clampNumericPart(parts, index, 0, 1_000);
+    const strokeWidth = (index: number): void => clampNumericPart(parts, index, 0, 50);
+    const opacityPart = (index: number): void => clampNumericPart(parts, index, 0, 1);
+    if (parts[0] === "rect" && parts.length === 11) {
+        coordinate(1); coordinate(2); nonnegative(3); nonnegative(4);
+        strokeWidth(7); opacityPart(8); nonnegative(9); nonnegative(10);
+    } else if (parts[0] === "circle" && parts.length === 8) {
+        coordinate(1); coordinate(2); nonnegative(3); strokeWidth(6); opacityPart(7);
+    } else if (parts[0] === "ellipse" && parts.length === 9) {
+        coordinate(1); coordinate(2); nonnegative(3); nonnegative(4); strokeWidth(7); opacityPart(8);
+    } else if (parts[0] === "line" && parts.length === 8) {
+        coordinate(1); coordinate(2); coordinate(3); coordinate(4); strokeWidth(6); opacityPart(7);
+    } else if ((parts[0] === "polygon" || parts[0] === "polyline") && parts.length === 6) {
+        strokeWidth(4); opacityPart(5);
+    } else if (parts[0] === "path" && parts.length === 6) {
+        strokeWidth(4); opacityPart(5);
+    } else if (parts[0] === "text" && parts.length === 8) {
+        coordinate(1); coordinate(2); clampNumericPart(parts, 3, 1, 100);
+    }
+    return parts.join("|");
+}
+
 function rasterize(backgroundColor: string, elements: string[]): Buffer {
     if (elements.length < 1 || elements.length > 160) {
         throw new Error("Raster artwork must contain 1 to 160 drawing elements.");
@@ -60,7 +116,8 @@ function rasterize(backgroundColor: string, elements: string[]): Buffer {
         rgba[offset + 1] = Math.round(rgba[offset + 1] * (1 - alpha) + fill[1] * alpha);
         rgba[offset + 2] = Math.round(rgba[offset + 2] * (1 - alpha) + fill[2] * alpha);
     };
-    for (const instruction of elements) {
+    for (const rawInstruction of elements) {
+        const instruction = normalizeRasterInstruction(rawInstruction);
         const parts = instruction.split("|");
         if (parts[0] === "rect" && parts.length === 8) {
             const [, xValue, yValue, widthValue, heightValue, fillValue, opacityValue, radiusValue] = parts;
@@ -135,7 +192,11 @@ export function generateSvgMedia(options: {
     description: string;
     elements: string[];
 }): GeneratedSupportingMedia {
-    const drawing = compileDrawingInstructions(options.elements, "supporting artwork", 200);
+    const drawing = compileDrawingInstructions(
+        options.elements.map(normalizeSvgInstruction),
+        "supporting artwork",
+        200
+    );
     const source = [
         `<svg xmlns="http://www.w3.org/2000/svg" width="${SVG_WIDTH}" height="${SVG_HEIGHT}" viewBox="0 0 ${SVG_WIDTH} ${SVG_HEIGHT}" role="img">`,
         `<title>${escapeHtml(options.title)}</title>`,

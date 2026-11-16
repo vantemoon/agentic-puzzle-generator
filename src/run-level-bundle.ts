@@ -10,11 +10,15 @@ import {
 import type { LevelBundleSubmission } from "./agents/level-bundle/tool.js";
 import { loadLevelBundleInputs } from "./levels/bundle-inputs.js";
 import { buildLevelBundle } from "./levels/bundle-build.js";
-import { verifyLevelBundle } from "./levels/bundle-verify.js";
+import {
+    BundleVerificationError,
+    verifyLevelBundle
+} from "./levels/bundle-verify.js";
 import { repositoryPuzzleCatalog } from "./levels/catalog.js";
 import { resolveModelConfiguration } from "./core/model.js";
+import { promptAgentWithRecovery } from "./core/agent-runner.js";
 import { createProgressReporter, toolResultText } from "./core/progress.js";
-import { scaledSupportingItemRange } from "./agents/level-bundle/limits.js";
+import { configuredSupportingItemRange } from "./agents/level-bundle/limits.js";
 import { generateSupportingMedia } from "./agents/supporting-media/coordinator.js";
 
 const progress = createProgressReporter();
@@ -32,19 +36,12 @@ function closeLog(stream: ReturnType<typeof createWriteStream>): Promise<void> {
     });
 }
 
-function integerEnvironment(name: string, fallback: number): number {
-    const raw = process.env[name];
-    if (raw === undefined) return fallback;
-    const value = Number(raw);
-    if (!Number.isInteger(value) || value < 0) throw new Error(`${name} must be a non-negative integer.`);
-    return value;
-}
-
 const bundleToolProgress: Record<string, string> = {
     submit_bundle_structure: "Validating bundle structure",
     add_bundle_routes: "Adding required bundle routes",
     add_supporting_routes: "Adding supporting content routes",
     replace_bundle_route: "Revising a bundle route",
+    replace_bundle_site: "Revising a bundle site",
     add_supporting_media_requests: "Planning supporting media",
     replace_supporting_media_request: "Revising a supporting-media request",
     finalize_level_bundle: "Finalizing the bundle plan"
@@ -60,32 +57,7 @@ async function main(): Promise<void> {
         levelFile,
         catalog: repositoryPuzzleCatalog
     });
-    const supportingItemsMinimum = integerEnvironment("LEVEL_BUNDLE_SUPPORTING_MIN", 10);
-    const supportingItemsMaximum = integerEnvironment("LEVEL_BUNDLE_SUPPORTING_MAX", 15);
-    if (supportingItemsMinimum > supportingItemsMaximum) {
-        throw new Error("LEVEL_BUNDLE_SUPPORTING_MIN cannot exceed LEVEL_BUNDLE_SUPPORTING_MAX.");
-    }
-    const supportingItemsMinimumPerPuzzle = integerEnvironment(
-        "LEVEL_BUNDLE_SUPPORTING_PER_PUZZLE_MIN",
-        2
-    );
-    const supportingItemsMaximumPerPuzzle = integerEnvironment(
-        "LEVEL_BUNDLE_SUPPORTING_PER_PUZZLE_MAX",
-        3
-    );
-    if (supportingItemsMinimumPerPuzzle > supportingItemsMaximumPerPuzzle) {
-        throw new Error(
-            "LEVEL_BUNDLE_SUPPORTING_PER_PUZZLE_MIN cannot exceed " +
-            "LEVEL_BUNDLE_SUPPORTING_PER_PUZZLE_MAX."
-        );
-    }
-    const supportingRange = scaledSupportingItemRange({
-        puzzleCount: inputs.puzzles.length,
-        minimumFloor: supportingItemsMinimum,
-        maximumFloor: supportingItemsMaximum,
-        minimumPerPuzzle: supportingItemsMinimumPerPuzzle,
-        maximumPerPuzzle: supportingItemsMaximumPerPuzzle
-    });
+    const supportingRange = configuredSupportingItemRange(inputs.puzzles.length);
     const options = {
         seed: process.env.LEVEL_BUNDLE_SEED || `${inputs.level.id}-bundle-v1`,
         supportingItemsMinimum: supportingRange.minimum,
@@ -131,7 +103,13 @@ async function main(): Promise<void> {
 
     progress.start(`Planning level bundle: ${inputs.level.title}`);
     try {
-        await agent.prompt("Create and submit the validated level bundle now.");
+        await promptAgentWithRecovery(agent, "Create and submit the validated level bundle now.", {
+            preserveConversationOnRetry: true,
+            retryPrompt: "The previous provider request timed out or failed transiently. Continue from the existing staged level bundle and complete the next required repair or finalization step. Do not recreate accepted sites, routes, or media requests.",
+            onRetry: (attempt, error) => progress.start(
+                `Retrying level-bundle model call (attempt ${attempt}): ${error.message}`
+            )
+        });
         if (submission === undefined) {
             throw new Error(
                 lastSubmissionError
@@ -140,48 +118,88 @@ async function main(): Promise<void> {
             );
         }
         progress.complete("Completed bundle planning");
-        const mediaResults = await generateSupportingMedia({
-            bundle: submission.bundle,
-            inputs,
-            onStatus: (status) => status.state === "start"
-                ? progress.start(status.message)
-                : progress.complete(status.message),
-            onEvent: (event, request) => {
-                if (event.type !== "message_update") {
-                    record("supporting-media-agent-event", { requestId: request.id, event });
+        let currentSubmission = submission;
+        const maximumVerificationAttempts = 3;
+        for (let verificationAttempt = 1; verificationAttempt <= maximumVerificationAttempts; verificationAttempt += 1) {
+            const mediaResults = await generateSupportingMedia({
+                bundle: currentSubmission.bundle,
+                inputs,
+                onStatus: (status) => status.state === "start"
+                    ? progress.start(status.message)
+                    : progress.complete(status.message),
+                onEvent: (event, request) => {
+                    if (event.type !== "message_update") {
+                        record("supporting-media-agent-event", { requestId: request.id, event });
+                    }
                 }
+            });
+            record("supporting-media-complete", {
+                verificationAttempt,
+                generated: mediaResults.filter((result) => result.status === "generated").length,
+                reused: mediaResults.filter((result) => result.status === "reused").length,
+                assets: mediaResults.map((result) => result.asset.id)
+            });
+            progress.start("Building the public level bundle");
+            const build = await buildLevelBundle({
+                bundle: currentSubmission.bundle,
+                inputs,
+                catalog: repositoryPuzzleCatalog
+            });
+            record("bundle-built", {
+                verificationAttempt,
+                publicDirectory: build.publicDirectory,
+                reportPath: build.reportPath
+            });
+            progress.complete("Built the public level bundle");
+            progress.start(`Verifying the level bundle (attempt ${verificationAttempt})`);
+            try {
+                const verification = await verifyLevelBundle({
+                    bundle: currentSubmission.bundle,
+                    inputs,
+                    publicDirectory: build.publicDirectory,
+                    privateDirectory: build.privateDirectory,
+                    supportingItemsMinimum: options.supportingItemsMinimum,
+                    supportingItemsMaximum: options.supportingItemsMaximum
+                });
+                record("bundle-complete", { verification: verification.status, verificationAttempt });
+                progress.complete("Verified the level bundle");
+                progress.complete("Completed level-bundle generation");
+                process.stdout.write(`Level bundle plan: ${currentSubmission.outputPath}\n`);
+                process.stdout.write(`Public level bundle: ${build.publicDirectory}\n`);
+                process.stdout.write(`Private build report: ${build.reportPath}\n`);
+                process.stdout.write(`Bundle verification: ${verification.status}\n`);
+                process.stdout.write(`Preview command: npm run level:preview-bundle -- ${levelFile}\n`);
+                return;
+            } catch (error) {
+                if (!(error instanceof BundleVerificationError)
+                    || verificationAttempt === maximumVerificationAttempts) throw error;
+                record("bundle-verification-rejected", {
+                    verificationAttempt,
+                    issues: error.report.issues
+                });
+                progress.fail(`Bundle verification attempt ${verificationAttempt}`, error);
+                progress.start("Redirecting verification issues to the level-bundle agent");
+                submission = undefined;
+                await promptAgentWithRecovery(agent, [
+                    "The built bundle failed deterministic post-build verification.",
+                    "Repair every issue in the existing staged bundle. Preserve puzzle artifacts, answers, story canon, site IDs, base paths, route roles, and valid content.",
+                    "Use replace_bundle_site for site-wide identity or visual-profile leaks, replace_bundle_route for route issues, and replace_supporting_media_request for media-request issues. Then call finalize_level_bundle again.",
+                    `Verification report:\n${JSON.stringify(error.report.issues, null, 2)}`
+                ].join("\n\n"), {
+                    preserveConversationOnRetry: true,
+                    retryPrompt: "The previous provider request timed out or failed transiently. Continue repairing the existing staged level bundle from the current verification feedback. Do not recreate accepted content."
+                });
+                if (submission === undefined) {
+                    throw new Error(
+                        lastSubmissionError
+                        || agent.state.errorMessage
+                        || "The Level Bundle Agent did not submit a repaired bundle."
+                    );
+                }
+                currentSubmission = submission;
+                progress.complete("Repaired the bundle plan after verification feedback");
             }
-        });
-        record("supporting-media-complete", {
-            generated: mediaResults.filter((result) => result.status === "generated").length,
-            reused: mediaResults.filter((result) => result.status === "reused").length,
-            assets: mediaResults.map((result) => result.asset.id)
-        });
-        progress.start("Building the public level bundle");
-        const build = await buildLevelBundle({
-            bundle: submission.bundle,
-            inputs,
-            catalog: repositoryPuzzleCatalog
-        });
-        record("bundle-built", { publicDirectory: build.publicDirectory, reportPath: build.reportPath });
-        progress.complete("Built the public level bundle");
-        progress.start("Verifying the level bundle");
-        const verification = await verifyLevelBundle({
-            bundle: submission.bundle,
-            inputs,
-            publicDirectory: build.publicDirectory,
-            privateDirectory: build.privateDirectory,
-            supportingItemsMinimum: options.supportingItemsMinimum,
-            supportingItemsMaximum: options.supportingItemsMaximum
-        });
-        record("bundle-complete", { verification: verification.status });
-        progress.complete("Verified the level bundle");
-        progress.complete("Completed level-bundle generation");
-        process.stdout.write(`Level bundle plan: ${submission.outputPath}\n`);
-        process.stdout.write(`Public level bundle: ${build.publicDirectory}\n`);
-        process.stdout.write(`Private build report: ${build.reportPath}\n`);
-        process.stdout.write(`Bundle verification: ${verification.status}\n`);
-        process.stdout.write(`Preview command: npm run level:preview-bundle -- ${levelFile}\n`);
+        }
     } catch (error) {
         record("bundle-error", { message: error instanceof Error ? error.message : String(error) });
         throw error;

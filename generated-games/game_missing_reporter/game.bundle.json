@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "1.0.0",
+  "gameId": "game_missing_reporter",
+  "title": "The Missing Reporter",
+  "gameFile": "/Users/sylviasun/Desktop/Euphoria/SMU/Thesis/project/game-designs/game_missing_reporter.game-design.json",
+  "levels": [
+    {
+      "id": "level_1_disappearance",
+      "title": "The Disappearance",
+      "levelFile": "/Users/sylviasun/Desktop/Euphoria/SMU/Thesis/project/generated-levels/level_1_disappearance.level.json",
+      "bundlePlan": "/Users/sylviasun/Desktop/Euphoria/SMU/Thesis/project/generated-bundles/level_1_disappearance/level.bundle.json",
+      "publicDirectory": "/Users/sylviasun/Desktop/Euphoria/SMU/Thesis/project/generated-bundles/level_1_disappearance/public",
+      "privateDirectory": "/Users/sylviasun/Desktop/Euphoria/SMU/Thesis/project/generated-bundles/level_1_disappearance/private"
+    },
+    {
+      "id": "level_2_redevelopment_scheme",
+      "title": "The Redevelopment Scheme",
+      "levelFile": "/Users/sylviasun/Desktop/Euphoria/SMU/Thesis/project/generated-levels/level_2_redevelopment_scheme.level.json",
+      "bundlePlan": "/Users/sylviasun/Desktop/Euphoria/SMU/Thesis/project/generated-bundles/level_2_redevelopment_scheme/level.bundle.json",
+      "publicDirectory": "/Users/sylviasun/Desktop/Euphoria/SMU/Thesis/project/generated-bundles/level_2_redevelopment_scheme/public",
+      "privateDirectory": "/Users/sylviasun/Desktop/Euphoria/SMU/Thesis/project/generated-bundles/level_2_redevelopment_scheme/private"
+    },
+    {
+      "id": "level_3_kidnapping",
+      "title": "The Kidnapping",
+      "levelFile": "/Users/sylviasun/Desktop/Euphoria/SMU/Thesis/project/generated-levels/level_3_kidnapping.level.json",
+      "bundlePlan": "/Users/sylviasun/Desktop/Euphoria/SMU/Thesis/project/generated-bundles/level_3_kidnapping/level.bundle.json",
+      "publicDirectory": "/Users/sylviasun/Desktop/Euphoria/SMU/Thesis/project/generated-bundles/level_3_kidnapping/public",
+      "privateDirectory": "/Users/sylviasun/Desktop/Euphoria/SMU/Thesis/project/generated-bundles/level_3_kidnapping/private"
+    },
+    {
+      "id": "level_4_find_reporter",
+      "title": "Find the Reporter",
+      "levelFile": "/Users/sylviasun/Desktop/Euphoria/SMU/Thesis/project/generated-levels/level_4_find_reporter.level.json",
+      "bundlePlan": "/Users/sylviasun/Desktop/Euphoria/SMU/Thesis/project/generated-bundles/level_4_find_reporter/level.bundle.json",
+      "publicDirectory": "/Users/sylviasun/Desktop/Euphoria/SMU/Thesis/project/generated-bundles/level_4_find_reporter/public",
+      "privateDirectory": "/Users/sylviasun/Desktop/Euphoria/SMU/Thesis/project/generated-bundles/level_4_find_reporter/private"
+    }
+  ]
+}

@@ -501,6 +501,7 @@ describe("level bundle agent boundary", () => {
             expect(prompt).toContain("add_bundle_routes");
             expect(prompt).toContain("add_supporting_routes");
             expect(prompt).toContain("add_supporting_media_requests");
+            expect(prompt).toContain("replace_bundle_site");
             expect(prompt).toContain("finalize_level_bundle");
             expect(prompt).toContain("first site's \"/\" home route");
             expect(prompt).toContain("find-project-name");
@@ -603,6 +604,35 @@ describe("level bundle agent boundary", () => {
             await expect(tool.execute("tool-call", {
                 bundle: { ...agentFields, terminal: agentTerminal }
             })).rejects.toThrow("must contain 10-15 supporting routes in total; found 0");
+        } finally {
+            await rm(root, { recursive: true, force: true });
+        }
+    });
+
+    it("rejects a puzzle answer used as a site-wide display name", async () => {
+        const root = await mkdtemp(path.join(os.tmpdir(), "level-bundle-site-leak-"));
+        try {
+            const files = await writeInputs(root);
+            const inputs = await loadLevelBundleInputs({
+                ...files,
+                generatedPuzzleDirectory: files.puzzleDirectory,
+                catalog: repositoryPuzzleCatalog
+            });
+            const complete = bundleWithSupportingItems();
+            complete.sites[0].name = "RIVER CLEANUP";
+            const { schemaVersion: _schema, levelId: _level, world: _world, seed: _seed, terminal, ...agentFields } = complete;
+            const { mode: _mode, ...agentTerminal } = terminal;
+            const tool = createSubmitLevelBundleTool(inputs, repositoryPuzzleCatalog, {
+                seed: "tool-seed",
+                supportingItemsMinimum: 10,
+                supportingItemsMaximum: 15
+            });
+
+            await expect(tool.execute("tool-call", {
+                bundle: { ...agentFields, terminal: agentTerminal }
+            })).rejects.toThrow(
+                "Bundled site community-records name leaks a puzzle answer in site-wide public chrome"
+            );
         } finally {
             await rm(root, { recursive: true, force: true });
         }
@@ -713,12 +743,13 @@ describe("level bundle agent boundary", () => {
             const structureTool = tools.find((tool) => tool.name === "submit_bundle_structure");
             const routeTool = tools.find((tool) => tool.name === "add_bundle_routes");
             const supportingTool = tools.find((tool) => tool.name === "add_supporting_routes");
+            const replaceSiteTool = tools.find((tool) => tool.name === "replace_bundle_site");
             const replaceTool = tools.find((tool) => tool.name === "replace_bundle_route");
             const mediaTool = tools.find((tool) => tool.name === "add_supporting_media_requests");
             const replaceMediaTool = tools.find((tool) => tool.name === "replace_supporting_media_request");
             const finalizeTool = tools.find((tool) => tool.name === "finalize_level_bundle");
             if (structureTool === undefined || routeTool === undefined
-                || supportingTool === undefined || replaceTool === undefined
+                || supportingTool === undefined || replaceSiteTool === undefined || replaceTool === undefined
                 || mediaTool === undefined || replaceMediaTool === undefined
                 || finalizeTool === undefined) {
                 throw new Error("Expected all staged level-bundle tools.");
@@ -731,6 +762,9 @@ describe("level bundle agent boundary", () => {
                     : site)
             })).rejects.toThrow("public root is reserved for the level entry page");
             await structureTool.execute("structure", structure);
+            await replaceSiteTool.execute("replace-site", {
+                site: { ...structure.sites[0], name: "Riverside Public Records" }
+            });
             await routeTool.execute("routes-1", {
                 siteId: complete.sites[0].id,
                 routes: required.slice(0, 5)
@@ -764,6 +798,7 @@ describe("level bundle agent boundary", () => {
             const result = await finalizeTool.execute("finalize", {});
 
             const assembled = (result.details as { bundle: LevelBundle }).bundle;
+            expect(assembled.sites[0].name).toBe("Riverside Public Records");
             expect(assembled.sites[0].routes).toHaveLength(complete.sites[0].routes.length + 3);
             expect(assembled.sites[0].routes[0].path).toBe("/");
             expect(assembled.sites[0].routes[0].content.title).toBe("Corrected home page");

@@ -10,6 +10,7 @@ import { levelFixture } from "./fixtures/level-v5.js";
 import {
     buildPuzzleGenerationPrompt,
     createPuzzleGenerationHandoff,
+    generatePuzzleFromHandoff,
     generatedPuzzleArtifactEntryPath,
     generatedPuzzlePath,
     stopAfterSuccessfulTool,
@@ -92,6 +93,20 @@ describe("level-to-puzzle generation handoff", () => {
 
         expect(puzzle.solution.canonical).toBe("RIVER CLEANUP");
         expect(validateGeneratedPuzzle(handoff, puzzle)).toBe(puzzle);
+    });
+
+    it("generates fully specified page-version puzzles without a model call", async () => {
+        const handoff = createPuzzleGenerationHandoff(
+            levelFixture,
+            "find-meeting-place",
+            repositoryPuzzleCatalog
+        );
+
+        const puzzle = await generatePuzzleFromHandoff(handoff);
+        expect(puzzle.id).toBe("find-meeting-place");
+        expect(puzzle.subtype).toBe("page-version");
+        expect(puzzle.artifact.kind).toBe("html");
+        expect(puzzle.solution.canonical).toBe("EAST PIER");
     });
 
     it("asks the visual-clue agent to author a contextual drawing plan", () => {

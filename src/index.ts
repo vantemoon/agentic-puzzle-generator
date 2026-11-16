@@ -1,6 +1,7 @@
 import type { AgentEvent } from "@earendil-works/pi-agent-core";
 
 import { createCaesarAgent } from "./agents/caesar/agent.js";
+import { promptAgentWithRecovery } from "./core/agent-runner.js";
 import { createProgressReporter } from "./core/progress.js";
 import {
     isPrivatePuzzleInstance,
@@ -34,7 +35,11 @@ async function main(): Promise<void> {
     });
 
     progress.start("Generating the puzzle");
-    await agent.prompt(generationRequest);
+    await promptAgentWithRecovery(agent, generationRequest, {
+        onRetry: (attempt, error) => progress.start(
+            `Retrying puzzle model call (attempt ${attempt}): ${error.message}`
+        )
+    });
 
     if (!generatedPuzzle) {
         throw new Error(agent.state.errorMessage || "The puzzle agent did not generate a puzzle.");

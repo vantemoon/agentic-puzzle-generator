@@ -42,7 +42,7 @@ function request(levelId: string, factId: string, answer: string) {
         theme: "museum theft investigation",
         setting: "Blackwood Museum public records and partner archives",
         startingSituation: `A newly discovered public record may resolve ${levelId}.`,
-        playerRole: "independent museum investigator",
+        playerRole: "You are an independent museum investigator hired to recover the missing collection.",
         playerCapabilities: ["browse fictional public websites", "inspect public records and page source"],
         playerConstraints: ["use only public fictional resources", "do not contact real people"],
         environment: {
@@ -87,6 +87,7 @@ function gameSpec(): GameDesignSpec {
         id: "blackwood-museum-case",
         title: "The Blackwood Falcon",
         premise: "A museum ledger disappears hours before a bronze artifact is stolen.",
+        playerRole: "You are a museum archivist and trusted colleague of the curator whose ledger disappeared.",
         experienceGoals: ["Follow a mounting public-record trail", "Recover the artifact without real-world contact"],
         world: {
             schemaVersion: "1.0.0",
@@ -134,7 +135,9 @@ function agentSubmission() {
         game: {
             id: spec.id,
             title: spec.title,
+            storyArchetype: "stolen-artifact" as const,
             premise: spec.premise,
+            playerRole: spec.playerRole,
             experienceGoals: spec.experienceGoals,
             world: {
                 id: spec.world.id,
@@ -170,13 +173,67 @@ describe("game design agent", () => {
         );
     });
 
+    it("rejects entity discoveries whose semantic role describes the wrong value kind", () => {
+        const spec = gameSpec();
+        const first = spec.levels[0].request;
+        first.world.entityIds.push("person:case-witness");
+        spec.world.entities.push({ id: "person:case-witness", type: "person", name: "Rosa Martinez" });
+        first.requiredDiscoveries[0] = {
+            id: "missed-meeting",
+            semanticRole: "nonvoluntary-indicator",
+            description: "Rosa Martinez confirms that the subject missed the meeting.",
+            dataType: "string",
+            value: "Rosa Martinez"
+        };
+
+        expect(validateGameDesignSpec(spec, TEST_CATALOG)).toContain(
+            'Level trace-missing-ledger required discovery missed-meeting resolves to person "Rosa Martinez", '
+            + 'but semantic role "nonvoluntary-indicator" does not identify a person. '
+            + "Use a role containing one of: person, witness, suspect, victim, culprit, kidnapper, reporter, editor, contact, identity, accomplice, carrier, orderer, authoriz, identifier, name."
+        );
+    });
+
+    it("rejects literal starting inputs that do not state a concrete puzzle use", () => {
+        const spec = gameSpec();
+        spec.levels[0].request.startingInputs.push({
+            id: "case-date",
+            semanticRole: "investigation-date",
+            description: "The date the case began.",
+            dataType: "string",
+            value: "2026-05-14"
+        });
+
+        expect(validateGameDesignSpec(spec, TEST_CATALOG)).toContain(
+            "Level trace-missing-ledger literal starting input case-date must describe how a puzzle will use it "
+            + "to filter, locate, select, compare, interpret, or verify a resource; do not use a background fact as an input."
+        );
+    });
+
+    it("requires new campaign and level roles to address the player directly", () => {
+        const spec = gameSpec();
+        spec.playerRole = "An independent museum investigator.";
+        spec.levels[0].request.playerRole = "A records researcher.";
+
+        const errors = validateGameDesignSpec(spec, TEST_CATALOG);
+        expect(errors).toContain('Game playerRole must directly address the player and begin with "You are".');
+        expect(errors).toContain(
+            'Level trace-missing-ledger playerRole must directly address the player and begin with "You are".'
+        );
+    });
+
     it("supports autonomous creation when no brief is supplied", () => {
         const prompt = buildGameDesignPrompt(TEST_CATALOG, "");
         expect(prompt).toContain("No constraints supplied");
-        expect(GAME_DESIGN_SYSTEM_PROMPT).toContain("murder mystery, kidnapping investigation, stolen artifact");
+        expect(prompt).toContain("Controlled story-archetype catalog");
+        expect(prompt).toContain('"kidnapping"');
+        expect(prompt).toContain('"murder"');
+        expect(prompt).toContain('"conspiracy"');
+        expect(prompt).toContain("Do not coin words or invent poetic compounds");
         expect(GAME_DESIGN_SYSTEM_PROMPT).toContain("normally 3-5 levels");
         expect(GAME_DESIGN_SYSTEM_PROMPT).toContain("Create the GameWorld from scratch");
-        expect(GAME_DESIGN_SYSTEM_PROMPT).toContain("Make at most three submission attempts");
+        expect(GAME_DESIGN_SYSTEM_PROMPT).toContain("persistent playerRole");
+        expect(GAME_DESIGN_SYSTEM_PROMPT).toContain("beginning with “You are”");
+        expect(GAME_DESIGN_SYSTEM_PROMPT).toContain("Make at most five submission attempts");
         expect(GAME_DESIGN_SYSTEM_PROMPT).toContain("Never abandon the run after the first rejection");
     });
 
@@ -186,6 +243,7 @@ describe("game design agent", () => {
         const result = await tool.execute("game-design-tool", agentSubmission() as never);
 
         expect(result.details.spec.levels).toHaveLength(2);
+        expect(result.details.spec.storyArchetype).toBe("stolen-artifact");
         expect(result.details.spec.world.revision).toBe("1");
         expect(result.details.files.requestPaths).toHaveLength(2);
 

@@ -2,6 +2,7 @@ import type { AgentTool } from "@earendil-works/pi-agent-core";
 import Type from "typebox";
 
 import type { PuzzleCatalog } from "../../levels/catalog.js";
+import { StoryArchetypeSchema } from "../../design/house-style.js";
 import { LevelDesignRequestSchema, WorldReferenceSchema } from "../../levels/types.js";
 import { GameWorldSchema, WORLD_SCHEMA_VERSION } from "../../world/types.js";
 import { writeGameDesign, type WrittenGameDesign } from "../../game-design/io.js";
@@ -26,7 +27,9 @@ const RequestSubmissionSchema = Type.Object({
 const GameSubmissionSchema = Type.Object({
     id: Type.String({ minLength: 1 }),
     title: Type.String({ minLength: 1 }),
+    storyArchetype: StoryArchetypeSchema,
     premise: Type.String({ minLength: 1 }),
+    playerRole: Type.String({ minLength: 1 }),
     experienceGoals: Type.Array(Type.String({ minLength: 1 }), { minItems: 1 }),
     world: WorldSubmissionSchema,
     levels: Type.Array(Type.Object({
@@ -62,7 +65,9 @@ export function createSubmitGameDesignTool(
                 schemaVersion: GAME_DESIGN_SCHEMA_VERSION,
                 id: params.game.id,
                 title: params.game.title,
+                storyArchetype: params.game.storyArchetype,
                 premise: params.game.premise,
+                playerRole: params.game.playerRole,
                 experienceGoals: params.game.experienceGoals,
                 world,
                 levels: params.game.levels.map((level) => ({

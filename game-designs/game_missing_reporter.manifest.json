@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "1.0.0",
+  "gameId": "game_missing_reporter",
+  "levels": [
+    {
+      "id": "level_1_disappearance",
+      "prerequisiteLevelIds": [],
+      "levelFile": "generated-levels/level_1_disappearance.level.json"
+    },
+    {
+      "id": "level_2_redevelopment_scheme",
+      "parentLevelId": "level_1_disappearance",
+      "prerequisiteLevelIds": [
+        "level_1_disappearance"
+      ],
+      "levelFile": "generated-levels/level_2_redevelopment_scheme.level.json"
+    },
+    {
+      "id": "level_3_kidnapping",
+      "parentLevelId": "level_2_redevelopment_scheme",
+      "prerequisiteLevelIds": [
+        "level_2_redevelopment_scheme"
+      ],
+      "levelFile": "generated-levels/level_3_kidnapping.level.json"
+    },
+    {
+      "id": "level_4_find_reporter",
+      "parentLevelId": "level_3_kidnapping",
+      "prerequisiteLevelIds": [
+        "level_1_disappearance",
+        "level_2_redevelopment_scheme",
+        "level_3_kidnapping"
+      ],
+      "levelFile": "generated-levels/level_4_find_reporter.level.json"
+    }
+  ]
+}

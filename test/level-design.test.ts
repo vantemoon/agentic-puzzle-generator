@@ -186,6 +186,43 @@ describe("level metadata v5", () => {
         expect(prompt).toContain("reserve it for the clue artwork and clue-specific metadata");
     });
 
+    it("requires anomalous-phrase evidence to be exact document excerpts", () => {
+        const level = copyLevel();
+        const puzzle = level.puzzles[0];
+        puzzle.design.puzzleType = "hidden-information";
+        puzzle.design.subtype = "anomalous-phrase";
+        puzzle.design.generationSpec = {
+            mode: "production",
+            id: puzzle.id,
+            intendedSolution: "Daniel Price",
+            documentTemplate: "Approval author identifies the responsible person. Responsible person: {{ANOMALY}}.",
+            anomalousPhrase: "Daniel Price",
+            normalityContext: "The document defines how responsibility is assigned.",
+            normalPatternEvidence: [
+                "Approval author: full name from the sender field.",
+                "Transfer actor: full name from the completion line."
+            ],
+            genre: "case index",
+            anomalyKind: "out-of-context-entity"
+        };
+        puzzle.design.verification.expectedValue = "Daniel Price";
+
+        const errors = validateLevelBlueprint(level, repositoryPuzzleCatalog);
+        expect(errors).toContain(
+            `Puzzle ${puzzle.id} anomalous-phrase generationSpec failed: Normal-pattern evidence must appear in the document outside the anomaly: "Approval author: full name from the sender field.".`
+        );
+
+        puzzle.design.generationSpec.documentTemplate =
+            "Approval notice: signed. Transfer log: completed. Responsible person: Daniel Price.";
+        puzzle.design.generationSpec.normalPatternEvidence = ["Approval notice: signed.", "Transfer log: completed."];
+        expect(validateLevelBlueprint(level, repositoryPuzzleCatalog)
+            .filter((error) => error.includes("anomalous-phrase generationSpec"))).toEqual([]);
+
+        const prompt = buildLevelDesignPrompt(repositoryPuzzleCatalog);
+        expect(prompt).toContain("distinct exact excerpt already present in documentTemplate");
+        expect(prompt).toContain("do not write abstract descriptions of evidence");
+    });
+
     it("requires chronological dates and site-native labels for page-version puzzles", () => {
         const level = copyLevel();
         const puzzle = level.puzzles.find((candidate) => candidate.design.subtype === "page-version");
@@ -404,6 +441,29 @@ describe("level metadata v5", () => {
         first.design.revealContext = "The matching facilities record displays a room number.";
         expect(validateLevelBlueprint(level, repositoryPuzzleCatalog)).toContain(
             "Puzzle output find-project-name.unused-room is not consumed downstream or by the terminal action."
+        );
+    });
+
+    it("reports the expected and produced values for a mismatched required discovery", () => {
+        const level = copyLevel();
+        const request = structuredClone(levelRequestFixture);
+        const binding = { puzzle: level.puzzles[0], output: level.puzzles[0].design.outputs[0] };
+        if (binding.output.from !== "verification") throw new Error("Expected a verification-backed fixture output.");
+        const required = {
+            id: "required-project-name",
+            semanticRole: binding.output.semanticRole,
+            description: "The project name recovered from the notice.",
+            dataType: "string" as const,
+            value: binding.puzzle.design.verification.expectedValue as string
+        };
+        request.requiredDiscoveries.push(required);
+        binding.output.requiredDiscoveryId = required.id;
+        binding.puzzle.design.verification.expectedValue = "WRONG VALUE";
+        binding.puzzle.design.generationSpec.intendedSolution = "WRONG VALUE";
+
+        expect(validateLevelAgainstRequest(level, request, repositoryPuzzleCatalog)).toContain(
+            `Required discovery ${required.id} expected ${required.dataType} ${JSON.stringify(required.value)}, `
+            + `but ${binding.puzzle.id}.${binding.output.id} resolves to string "WRONG VALUE".`
         );
     });
 

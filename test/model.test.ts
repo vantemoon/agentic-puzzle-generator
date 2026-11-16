@@ -13,6 +13,9 @@ describe("model provider errors", () => {
             'kadi-openai API error (404): {"code":"model_not_found","message":"No such model"}'
         ))).toBe(true);
         expect(isRetryableModelError(new Error("kadi API error (503): unavailable"))).toBe(true);
+        expect(isRetryableModelError(new Error("Connection error"))).toBe(true);
+        expect(isRetryableModelError(new Error("Request timed out."))).toBe(true);
+        expect(isRetryableModelError(new Error("request failed: ETIMEDOUT"))).toBe(true);
         expect(isRetryableModelError(new Error("Puzzle schema was rejected"))).toBe(false);
     });
 });

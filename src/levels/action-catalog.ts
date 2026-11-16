@@ -86,3 +86,4 @@ export function getTerminalAction(actionType: string): TerminalActionCatalogEntr
 export function terminalActionsForPrompt(): unknown {
     return terminalActionCatalog;
 }
+export const TERMINAL_ACTION_POLICY = "Use the smallest set of distinct fields the in-world interface needs. Ask for facts or short identifiers a player can locate in a specific public record. State the source and granularity when several answers could be valid, such as building name versus room. Give an input-format hint when the format matters. Date fields use a date picker. Never require exact wording for a conclusion, a whole sentence, or a repeated summary of other fields. Put findings that only need to be read in the evidence or success outcome. Reserve exact case and punctuation for machine identifiers and secrets.";

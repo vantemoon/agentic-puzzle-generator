@@ -31,7 +31,7 @@ export interface ModelConfigurationFile {
 
 export function isRetryableModelError(error: unknown): boolean {
     const message = error instanceof Error ? error.message : String(error);
-    return /\bmodel_not_found\b|No such model|API error \((?:429|5\d\d)\)/iu.test(message);
+    return /\bmodel_not_found\b|No such model|API error \((?:408|425|429|5\d\d)\)|Connection error|Request timed out|ECONNRESET|ETIMEDOUT|fetch failed/iu.test(message);
 }
 
 function assertKnownKeys(value: Record<string, unknown>, keys: string[], context: string): void {

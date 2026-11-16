@@ -1,4 +1,4 @@
-import { Agent } from "@earendil-works/pi-agent-core";
+import { Agent } from "../../core/recovering-agent.js";
 
 import { loadKadiModel } from "../../core/model.js";
 import type { LevelBundleInputs } from "../../levels/bundle-inputs.js";
@@ -15,6 +15,7 @@ const BUNDLE_TOOL_NAMES = new Set([
     "submit_bundle_structure",
     "add_bundle_routes",
     "add_supporting_routes",
+    "replace_bundle_site",
     "replace_bundle_route",
     "add_supporting_media_requests",
     "replace_supporting_media_request",

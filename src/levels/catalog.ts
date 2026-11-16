@@ -8,6 +8,7 @@ import { createAcrosticPuzzleTool } from "../agents/acrostic/tool.js";
 import { createAlphaChannelPuzzleTool } from "../agents/alpha-channel/tool.js";
 import { createAltTextPuzzleTool } from "../agents/alt-text/tool.js";
 import { createAnagramPuzzleTool } from "../agents/anagram/tool.js";
+import { createAnomalousPhrasePuzzle, type AnomalousPhrasePuzzleSpec } from "../agents/anomalous-phrase/engine.js";
 import { createAnomalousPhrasePuzzleTool } from "../agents/anomalous-phrase/tool.js";
 import { createAsciiArtPuzzleTool } from "../agents/ascii-art/tool.js";
 import { createAsciiPuzzleTool } from "../agents/ascii/tool.js";
@@ -175,6 +176,22 @@ const visualClueGenerationSpecConstraints = [
     "The exact intendedSolution must not appear in sceneTitle, sceneTheme, sceneDescription, or imageCaption; reserve it for the clue artwork and clue-specific metadata."
 ];
 
+const anomalousPhraseGenerationSpecConstraints = [
+    "documentTemplate must contain exactly one anomaly placeholder ({{ANOMALY}} unless placeholder supplies another exact token).",
+    "Every normalPatternEvidence item must be a distinct exact excerpt already present in documentTemplate outside the anomaly placeholder; do not write abstract descriptions of evidence.",
+    "normalPatternEvidence must not contain intendedSolution, and anomalousPhrase must contain intendedSolution."
+];
+
+function validateAnomalousPhraseGenerationSpec(spec: Record<string, unknown>): string[] {
+    // The blueprint validator checks the tool schema before calling this hook.
+    try {
+        createAnomalousPhrasePuzzle(spec as unknown as AnomalousPhrasePuzzleSpec);
+        return [];
+    } catch (error) {
+        return [`anomalous-phrase generationSpec failed: ${error instanceof Error ? error.message : String(error)}`];
+    }
+}
+
 const pageVersionGenerationSpecConstraints = [
     "Both dated snapshots must be credible states of the same webpage; the meaningful evidence must come from added, removed, revealed, or altered content.",
     "Do not claim that a page changes after another puzzle is solved unless the runtime supplies an enforceable trigger.",
@@ -242,7 +259,15 @@ export const repositoryPuzzleCatalog: PuzzleCatalog = {
         textPuzzleEntry({ tool: createAlphaChannelPuzzleTool, puzzleType: "hidden-information", subtype: "alpha-channel", displayName: "Alpha channel", narrativeTags: ["image", "forensics", "hidden-data"], bundle: { placements: ["media-viewer", "downloadable-file"], integrity: "exact-file" } }),
         textPuzzleEntry({ tool: createAltTextPuzzleTool, puzzleType: "hidden-information", subtype: "alt-text", displayName: "Alt text", narrativeTags: ["web", "image", "accessibility", "hidden-data"], bundle: { placements: ["native-html"], integrity: "html-source" } }),
         textPuzzleEntry({ tool: createAnagramPuzzleTool, puzzleType: "reconstruction", subtype: "anagram", displayName: "Anagram", narrativeTags: ["text", "reconstruction"] }),
-        textPuzzleEntry({ tool: createAnomalousPhrasePuzzleTool, puzzleType: "hidden-information", subtype: "anomalous-phrase", displayName: "Anomalous phrase", narrativeTags: ["document", "research", "investigation"] }),
+        textPuzzleEntry({
+            tool: createAnomalousPhrasePuzzleTool,
+            puzzleType: "hidden-information",
+            subtype: "anomalous-phrase",
+            displayName: "Anomalous phrase",
+            narrativeTags: ["document", "research", "investigation"],
+            generationSpecConstraints: anomalousPhraseGenerationSpecConstraints,
+            validateGenerationSpec: validateAnomalousPhraseGenerationSpec
+        }),
         textPuzzleEntry({ tool: createAsciiArtPuzzleTool, puzzleType: "visual-recognition", subtype: "ascii-art", displayName: "ASCII art", narrativeTags: ["terminal", "visual", "text"] }),
         textPuzzleEntry({ tool: createAsciiPuzzleTool, puzzleType: "encoding", subtype: "ascii-code", displayName: "ASCII code", narrativeTags: ["encoding", "terminal", "text"], difficultyControls: ["radix"] }),
         textPuzzleEntry({ tool: createBinaryCapitalizationPuzzleTool, puzzleType: "hidden-information", subtype: "binary-capitalization-pattern", displayName: "Binary capitalization", narrativeTags: ["document", "binary", "hidden-data"] }),

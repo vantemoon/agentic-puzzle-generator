@@ -65,6 +65,17 @@ describe("anomalous phrase engine", () => {
         expect(document.match(/the blue lantern/g)).toHaveLength(1);
     });
 
+    it("preserves a legacy document with one already-inserted anomaly", () => {
+        const spec = knownSpec("legacy");
+        const document = template.replace("{{ANOMALY}}", spec.anomalousPhrase);
+        expect(createAnomalousPhrasePuzzle({ ...spec, documentTemplate: document }))
+            .toEqual(createAnomalousPhrasePuzzle(spec));
+        expect(() => createAnomalousPhrasePuzzle({
+            ...spec,
+            documentTemplate: `${document}\n${spec.anomalousPhrase}`
+        })).toThrow("exactly one");
+    });
+
     it("creates deterministic schema-valid private instances", () => {
         const first = createAnomalousPhrasePuzzle(knownSpec("anomalous-1"));
         const second = createAnomalousPhrasePuzzle(knownSpec("anomalous-1"));

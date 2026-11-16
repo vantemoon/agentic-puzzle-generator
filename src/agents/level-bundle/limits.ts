@@ -23,6 +23,43 @@ export function scaledSupportingItemRange(options: {
     return { minimum, maximum };
 }
 
+function integerEnvironment(name: string, fallback: number): number {
+    const raw = process.env[name];
+    if (raw === undefined) return fallback;
+    const value = Number(raw);
+    if (!Number.isInteger(value) || value < 0) throw new Error(`${name} must be a non-negative integer.`);
+    return value;
+}
+
+export function configuredSupportingItemRange(puzzleCount: number): SupportingItemRange {
+    const supportingItemsMinimum = integerEnvironment("LEVEL_BUNDLE_SUPPORTING_MIN", 10);
+    const supportingItemsMaximum = integerEnvironment("LEVEL_BUNDLE_SUPPORTING_MAX", 15);
+    if (supportingItemsMinimum > supportingItemsMaximum) {
+        throw new Error("LEVEL_BUNDLE_SUPPORTING_MIN cannot exceed LEVEL_BUNDLE_SUPPORTING_MAX.");
+    }
+    const supportingItemsMinimumPerPuzzle = integerEnvironment(
+        "LEVEL_BUNDLE_SUPPORTING_PER_PUZZLE_MIN",
+        2
+    );
+    const supportingItemsMaximumPerPuzzle = integerEnvironment(
+        "LEVEL_BUNDLE_SUPPORTING_PER_PUZZLE_MAX",
+        3
+    );
+    if (supportingItemsMinimumPerPuzzle > supportingItemsMaximumPerPuzzle) {
+        throw new Error(
+            "LEVEL_BUNDLE_SUPPORTING_PER_PUZZLE_MIN cannot exceed " +
+            "LEVEL_BUNDLE_SUPPORTING_PER_PUZZLE_MAX."
+        );
+    }
+    return scaledSupportingItemRange({
+        puzzleCount,
+        minimumFloor: supportingItemsMinimum,
+        maximumFloor: supportingItemsMaximum,
+        minimumPerPuzzle: supportingItemsMinimumPerPuzzle,
+        maximumPerPuzzle: supportingItemsMaximumPerPuzzle
+    });
+}
+
 export function levelBundleRouteMaximum(
     puzzleCount: number,
     supportingItemsMaximum: number

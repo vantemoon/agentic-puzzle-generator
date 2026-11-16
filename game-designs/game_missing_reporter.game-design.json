@@ -1,0 +1,1567 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "game_missing_reporter",
+  "title": "The Missing Reporter",
+  "storyArchetype": "kidnapping",
+  "premise": "Local reporter Maya Chen disappears hours before publishing evidence that city redevelopment director Daniel Price used false safety reports and dishonest contracts to force residents from valuable properties. Maya left a deliberate trail through public records. You must prove that Price ordered contractor Eric Shaw to kidnap her, locate her at a seeded redevelopment property, and submit the evidence needed for her rescue and the corruption case.",
+  "playerRole": "You are Maya Chen's trusted friend. Her editor, Julia Reed, has asked you to investigate Maya's disappearance because you know her reporting habits and will recognize the trail she left behind.",
+  "experienceGoals": [
+    "Reconstruct a disappearance from ordinary public information.",
+    "Understand a redevelopment fraud through connected safety, contract, and property records.",
+    "Resolve contradictions to identify who ordered and carried out the kidnapping.",
+    "Synthesize established evidence to locate Maya Chen and support a safe rescue."
+  ],
+  "world": {
+    "id": "world_missing_reporter_r1",
+    "entities": [
+      {
+        "id": "person_maya_chen",
+        "type": "person",
+        "name": "Maya Chen",
+        "subtype": "investigative reporter",
+        "description": "A reporter for the Lakeview Ledger who investigated the Central Market Redevelopment Program and prepared a public evidence package."
+      },
+      {
+        "id": "person_julia_reed",
+        "type": "person",
+        "name": "Julia Reed",
+        "subtype": "editor",
+        "description": "Maya Chen's editor and trusted contact at the Lakeview Ledger."
+      },
+      {
+        "id": "person_daniel_price",
+        "type": "person",
+        "name": "Daniel Price",
+        "subtype": "redevelopment director",
+        "description": "The city official directing the Central Market Redevelopment Program and the person who authorized Maya Chen's kidnapping."
+      },
+      {
+        "id": "person_eric_shaw",
+        "type": "person",
+        "name": "Eric Shaw",
+        "subtype": "contractor manager",
+        "description": "The manager of Shaw Site Services who supplied false safety reports and carried out the kidnapping on Daniel Price's order."
+      },
+      {
+        "id": "person_rosa_martinez",
+        "type": "person",
+        "name": "Rosa Martinez",
+        "subtype": "resident",
+        "description": "A Central Market resident forced from her apartment after a false unsafe-building finding."
+      },
+      {
+        "id": "person_ben_cole",
+        "type": "person",
+        "name": "Ben Cole",
+        "subtype": "delivery driver",
+        "description": "A driver whose public delivery log and photograph place Eric Shaw near Maya Chen's final meeting and later at the holding site."
+      },
+      {
+        "id": "org_lakeview_ledger",
+        "type": "organization",
+        "name": "Lakeview Ledger",
+        "subtype": "local newspaper",
+        "description": "The local newspaper where Maya Chen and Julia Reed work."
+      },
+      {
+        "id": "org_city_redevelopment_office",
+        "type": "organization",
+        "name": "City Redevelopment Office",
+        "subtype": "public agency",
+        "description": "The agency responsible for the Central Market Redevelopment Program."
+      },
+      {
+        "id": "org_shaw_site_services",
+        "type": "organization",
+        "name": "Shaw Site Services",
+        "subtype": "contractor",
+        "description": "A small contractor managed by Eric Shaw that received inspection and site security work."
+      },
+      {
+        "id": "org_city_building_safety",
+        "type": "organization",
+        "name": "City Building Safety Department",
+        "subtype": "public agency",
+        "description": "The agency whose records contain genuine inspection histories and later altered safety reports."
+      },
+      {
+        "id": "program_central_market",
+        "type": "event",
+        "name": "Central Market Redevelopment Program",
+        "subtype": "redevelopment program",
+        "description": "A city program intended to redevelop several occupied blocks near Central Market."
+      },
+      {
+        "id": "place_lakeview_ledger_office",
+        "type": "place",
+        "name": "Lakeview Ledger Office",
+        "subtype": "office",
+        "description": "The newsroom where Maya Chen was last seen by colleagues."
+      },
+      {
+        "id": "place_central_market_hall",
+        "type": "place",
+        "name": "Central Market Community Hall",
+        "subtype": "meeting place",
+        "description": "The public meeting hall where Maya planned to interview Rosa Martinez."
+      },
+      {
+        "id": "place_214_park_street",
+        "type": "place",
+        "name": "214 Park Street",
+        "subtype": "apartment building",
+        "description": "Rosa Martinez's former building, declared unsafe using a false report."
+      },
+      {
+        "id": "place_18_river_road",
+        "type": "place",
+        "name": "18 River Road",
+        "subtype": "warehouse",
+        "description": "A city-owned warehouse assigned to Shaw Site Services for redevelopment storage and used to hold Maya Chen."
+      },
+      {
+        "id": "site_ledger_news",
+        "type": "site",
+        "name": "Lakeview Ledger News Site",
+        "subtype": "news website",
+        "description": "The public site containing Maya Chen's articles, author page, and editor's disappearance notice."
+      },
+      {
+        "id": "site_city_planning_records",
+        "type": "site",
+        "name": "City Planning Records",
+        "subtype": "public records website",
+        "description": "The public site for redevelopment notices, meeting minutes, budgets, and property records."
+      },
+      {
+        "id": "site_building_inspections",
+        "type": "site",
+        "name": "City Building Inspection Records",
+        "subtype": "public records website",
+        "description": "The public site containing inspection histories and safety reports."
+      },
+      {
+        "id": "site_city_contracts",
+        "type": "site",
+        "name": "City Contract Records",
+        "subtype": "public procurement website",
+        "description": "The public site containing awards, invoices, and contractor information."
+      },
+      {
+        "id": "site_delivery_log",
+        "type": "site",
+        "name": "Lakeview Delivery Log",
+        "subtype": "public business log",
+        "description": "A public delivery schedule and photograph page maintained by Ben Cole's delivery firm."
+      },
+      {
+        "id": "site_reporter_evidence",
+        "type": "site",
+        "name": "Reporter Evidence Archive",
+        "subtype": "evidence archive",
+        "description": "A project-hosted archive Maya prepared for Julia Reed if she failed to file her story."
+      },
+      {
+        "id": "object_maya_notebook_photo",
+        "type": "object",
+        "name": "Maya Chen Notebook Photograph",
+        "subtype": "photograph",
+        "description": "A photograph on Maya's author page showing her final schedule and a note to compare report revisions."
+      },
+      {
+        "id": "object_final_schedule",
+        "type": "object",
+        "name": "Maya Chen Final Schedule",
+        "subtype": "schedule",
+        "description": "Maya's planned activities on the day she disappeared."
+      },
+      {
+        "id": "object_park_safety_report",
+        "type": "object",
+        "name": "214 Park Street Safety Report",
+        "subtype": "inspection report",
+        "description": "A false safety report signed under a retired inspector's identifier."
+      },
+      {
+        "id": "object_park_original_inspection",
+        "type": "object",
+        "name": "214 Park Street Original Inspection",
+        "subtype": "inspection record",
+        "description": "The original inspection finding only minor repairs before it was replaced by the false report."
+      },
+      {
+        "id": "object_shaw_contract",
+        "type": "object",
+        "name": "Shaw Site Services Contract",
+        "subtype": "contract",
+        "description": "A city contract awarded by Daniel Price for safety review and site security."
+      },
+      {
+        "id": "object_displacement_list",
+        "type": "object",
+        "name": "Central Market Displacement List",
+        "subtype": "public record",
+        "description": "A list of residents displaced after unsafe-building findings, including Rosa Martinez."
+      },
+      {
+        "id": "object_meeting_minutes",
+        "type": "object",
+        "name": "Redevelopment Committee Minutes",
+        "subtype": "meeting minutes",
+        "description": "Minutes showing Daniel Price approved Shaw Site Services and directed building clearance work."
+      },
+      {
+        "id": "object_delivery_photo",
+        "type": "object",
+        "name": "Community Hall Delivery Photograph",
+        "subtype": "photograph",
+        "description": "A timestamped photograph showing Eric Shaw's service van near the hall during Maya's planned interview."
+      },
+      {
+        "id": "object_warehouse_access_log",
+        "type": "object",
+        "name": "18 River Road Access Log",
+        "subtype": "access record",
+        "description": "A public contract compliance log showing Eric Shaw entering the warehouse after Maya disappeared."
+      },
+      {
+        "id": "object_price_statement",
+        "type": "object",
+        "name": "Daniel Price Public Statement",
+        "subtype": "public statement",
+        "description": "A statement claiming Price had no direct contact with Shaw Site Services during the week of the disappearance."
+      },
+      {
+        "id": "object_invoice_revision",
+        "type": "object",
+        "name": "Site Security Invoice Revision",
+        "subtype": "invoice revision record",
+        "description": "A revision history showing Daniel Price approved an urgent Shaw Site Services payment tied to 18 River Road."
+      },
+      {
+        "id": "object_rescue_evidence_file",
+        "type": "object",
+        "name": "Maya Chen Rescue Evidence File",
+        "subtype": "evidence file",
+        "description": "Maya's complete evidence file stored in the Reporter Evidence Archive."
+      },
+      {
+        "id": "event_maya_disappearance",
+        "type": "event",
+        "name": "Maya Chen Disappearance",
+        "subtype": "kidnapping",
+        "description": "Maya Chen disappeared after leaving the newsroom for a scheduled interview."
+      },
+      {
+        "id": "event_contract_award",
+        "type": "event",
+        "name": "Shaw Site Services Contract Award",
+        "subtype": "contract award",
+        "description": "Daniel Price approved a contract that gave Shaw Site Services inspection and site access."
+      },
+      {
+        "id": "event_park_eviction",
+        "type": "event",
+        "name": "214 Park Street Eviction",
+        "subtype": "displacement",
+        "description": "Residents were ordered out after the false safety report was filed."
+      }
+    ],
+    "facts": [
+      {
+        "id": "fact_maya_employer",
+        "subjectId": "person_maya_chen",
+        "relation": "works_for",
+        "value": {
+          "kind": "entity",
+          "entityId": "org_lakeview_ledger"
+        }
+      },
+      {
+        "id": "fact_julia_employer",
+        "subjectId": "person_julia_reed",
+        "relation": "works_for",
+        "value": {
+          "kind": "entity",
+          "entityId": "org_lakeview_ledger"
+        }
+      },
+      {
+        "id": "fact_maya_editor",
+        "subjectId": "person_maya_chen",
+        "relation": "trusted_editor",
+        "value": {
+          "kind": "entity",
+          "entityId": "person_julia_reed"
+        }
+      },
+      {
+        "id": "fact_price_directs_program",
+        "subjectId": "person_daniel_price",
+        "relation": "directs",
+        "value": {
+          "kind": "entity",
+          "entityId": "program_central_market"
+        }
+      },
+      {
+        "id": "fact_shaw_manages_company",
+        "subjectId": "person_eric_shaw",
+        "relation": "manages",
+        "value": {
+          "kind": "entity",
+          "entityId": "org_shaw_site_services"
+        }
+      },
+      {
+        "id": "fact_program_agency",
+        "subjectId": "program_central_market",
+        "relation": "run_by",
+        "value": {
+          "kind": "entity",
+          "entityId": "org_city_redevelopment_office"
+        }
+      },
+      {
+        "id": "fact_final_date",
+        "subjectId": "event_maya_disappearance",
+        "relation": "date",
+        "value": {
+          "kind": "literal",
+          "value": "2026-05-14"
+        }
+      },
+      {
+        "id": "fact_last_newsroom_time",
+        "subjectId": "person_maya_chen",
+        "relation": "last_seen_at_newsroom",
+        "value": {
+          "kind": "literal",
+          "value": "2026-05-14 16:40"
+        }
+      },
+      {
+        "id": "fact_final_interview_place",
+        "subjectId": "object_final_schedule",
+        "relation": "interview_location",
+        "value": {
+          "kind": "entity",
+          "entityId": "place_central_market_hall"
+        }
+      },
+      {
+        "id": "fact_final_interview_time",
+        "subjectId": "object_final_schedule",
+        "relation": "interview_time",
+        "value": {
+          "kind": "literal",
+          "value": "2026-05-14 17:30"
+        }
+      },
+      {
+        "id": "fact_final_interview_person",
+        "subjectId": "object_final_schedule",
+        "relation": "interview_with",
+        "value": {
+          "kind": "entity",
+          "entityId": "person_rosa_martinez"
+        }
+      },
+      {
+        "id": "fact_maya_missed_deadline",
+        "subjectId": "person_maya_chen",
+        "relation": "missed_filing_deadline",
+        "value": {
+          "kind": "literal",
+          "value": "2026-05-14 19:00"
+        }
+      },
+      {
+        "id": "fact_maya_left_work_materials",
+        "subjectId": "person_maya_chen",
+        "relation": "left_at_desk",
+        "value": {
+          "kind": "literal",
+          "value": "wallet, charger, and apartment keys"
+        }
+      },
+      {
+        "id": "fact_first_lead_phrase",
+        "subjectId": "object_maya_notebook_photo",
+        "relation": "visible_note",
+        "value": {
+          "kind": "literal",
+          "value": "Compare 214 Park report versions"
+        }
+      },
+      {
+        "id": "fact_rosa_waited",
+        "subjectId": "person_rosa_martinez",
+        "relation": "waited_until",
+        "value": {
+          "kind": "literal",
+          "value": "2026-05-14 18:10"
+        }
+      },
+      {
+        "id": "fact_rosa_never_met_maya",
+        "subjectId": "person_rosa_martinez",
+        "relation": "met_maya_on_disappearance_day",
+        "value": {
+          "kind": "literal",
+          "value": false
+        }
+      },
+      {
+        "id": "fact_original_finding",
+        "subjectId": "object_park_original_inspection",
+        "relation": "finding",
+        "value": {
+          "kind": "literal",
+          "value": "Minor repairs required; building may remain occupied"
+        }
+      },
+      {
+        "id": "fact_false_finding",
+        "subjectId": "object_park_safety_report",
+        "relation": "finding",
+        "value": {
+          "kind": "literal",
+          "value": "Immediate evacuation required"
+        }
+      },
+      {
+        "id": "fact_false_report_date",
+        "subjectId": "object_park_safety_report",
+        "relation": "filed_date",
+        "value": {
+          "kind": "literal",
+          "value": "2026-04-22"
+        }
+      },
+      {
+        "id": "fact_false_inspector_id",
+        "subjectId": "object_park_safety_report",
+        "relation": "inspector_identifier",
+        "value": {
+          "kind": "literal",
+          "value": "BI-1047"
+        }
+      },
+      {
+        "id": "fact_inspector_retired",
+        "subjectId": "object_park_safety_report",
+        "relation": "identifier_status",
+        "value": {
+          "kind": "literal",
+          "value": "Retired on 2025-12-31"
+        }
+      },
+      {
+        "id": "fact_report_uploader",
+        "subjectId": "object_park_safety_report",
+        "relation": "uploaded_by",
+        "value": {
+          "kind": "entity",
+          "entityId": "org_shaw_site_services"
+        }
+      },
+      {
+        "id": "fact_rosa_displaced_from",
+        "subjectId": "person_rosa_martinez",
+        "relation": "displaced_from",
+        "value": {
+          "kind": "entity",
+          "entityId": "place_214_park_street"
+        }
+      },
+      {
+        "id": "fact_displacement_count",
+        "subjectId": "object_displacement_list",
+        "relation": "households_displaced",
+        "value": {
+          "kind": "literal",
+          "value": 18
+        }
+      },
+      {
+        "id": "fact_property_transfer",
+        "subjectId": "place_214_park_street",
+        "relation": "transferred_to_program",
+        "value": {
+          "kind": "literal",
+          "value": "2026-04-29"
+        }
+      },
+      {
+        "id": "fact_property_discount",
+        "subjectId": "place_214_park_street",
+        "relation": "transfer_price_below_assessment_percent",
+        "value": {
+          "kind": "literal",
+          "value": 42
+        }
+      },
+      {
+        "id": "fact_contract_awarded_to",
+        "subjectId": "object_shaw_contract",
+        "relation": "awarded_to",
+        "value": {
+          "kind": "entity",
+          "entityId": "org_shaw_site_services"
+        }
+      },
+      {
+        "id": "fact_contract_approved_by",
+        "subjectId": "object_shaw_contract",
+        "relation": "approved_by",
+        "value": {
+          "kind": "entity",
+          "entityId": "person_daniel_price"
+        }
+      },
+      {
+        "id": "fact_contract_number",
+        "subjectId": "object_shaw_contract",
+        "relation": "contract_number",
+        "value": {
+          "kind": "literal",
+          "value": "CR-2026-118"
+        }
+      },
+      {
+        "id": "fact_contract_scope",
+        "subjectId": "object_shaw_contract",
+        "relation": "scope",
+        "value": {
+          "kind": "literal",
+          "value": "Safety review and site security"
+        }
+      },
+      {
+        "id": "fact_contract_value",
+        "subjectId": "object_shaw_contract",
+        "relation": "value_usd",
+        "value": {
+          "kind": "literal",
+          "value": 486000
+        }
+      },
+      {
+        "id": "fact_minutes_approval",
+        "subjectId": "object_meeting_minutes",
+        "relation": "records_approval_by",
+        "value": {
+          "kind": "entity",
+          "entityId": "person_daniel_price"
+        }
+      },
+      {
+        "id": "fact_fraud_summary",
+        "subjectId": "program_central_market",
+        "relation": "fraud_method",
+        "value": {
+          "kind": "literal",
+          "value": "False safety reports cleared occupied properties for discounted transfer"
+        }
+      },
+      {
+        "id": "fact_reporter_motive",
+        "subjectId": "person_maya_chen",
+        "relation": "reason_to_continue",
+        "value": {
+          "kind": "literal",
+          "value": "Eighteen households were displaced and more buildings faced clearance"
+        }
+      },
+      {
+        "id": "fact_delivery_photo_time",
+        "subjectId": "object_delivery_photo",
+        "relation": "captured_at",
+        "value": {
+          "kind": "literal",
+          "value": "2026-05-14 17:22"
+        }
+      },
+      {
+        "id": "fact_delivery_photo_person",
+        "subjectId": "object_delivery_photo",
+        "relation": "shows",
+        "value": {
+          "kind": "entity",
+          "entityId": "person_eric_shaw"
+        }
+      },
+      {
+        "id": "fact_delivery_photo_place",
+        "subjectId": "object_delivery_photo",
+        "relation": "location",
+        "value": {
+          "kind": "entity",
+          "entityId": "place_central_market_hall"
+        }
+      },
+      {
+        "id": "fact_van_plate",
+        "subjectId": "object_delivery_photo",
+        "relation": "vehicle_plate",
+        "value": {
+          "kind": "literal",
+          "value": "LKV-731"
+        }
+      },
+      {
+        "id": "fact_price_claim",
+        "subjectId": "object_price_statement",
+        "relation": "claim",
+        "value": {
+          "kind": "literal",
+          "value": "No direct contact with Shaw Site Services during the week of May 11"
+        }
+      },
+      {
+        "id": "fact_invoice_approver",
+        "subjectId": "object_invoice_revision",
+        "relation": "approved_by",
+        "value": {
+          "kind": "entity",
+          "entityId": "person_daniel_price"
+        }
+      },
+      {
+        "id": "fact_invoice_approval_time",
+        "subjectId": "object_invoice_revision",
+        "relation": "approved_at",
+        "value": {
+          "kind": "literal",
+          "value": "2026-05-14 15:48"
+        }
+      },
+      {
+        "id": "fact_invoice_date",
+        "subjectId": "object_invoice_revision",
+        "relation": "approval_date",
+        "value": {
+          "kind": "literal",
+          "value": "2026-05-14"
+        }
+      },
+      {
+        "id": "fact_invoice_vendor",
+        "subjectId": "object_invoice_revision",
+        "relation": "vendor",
+        "value": {
+          "kind": "entity",
+          "entityId": "org_shaw_site_services"
+        }
+      },
+      {
+        "id": "fact_invoice_location",
+        "subjectId": "object_invoice_revision",
+        "relation": "service_location",
+        "value": {
+          "kind": "entity",
+          "entityId": "place_18_river_road"
+        }
+      },
+      {
+        "id": "fact_invoice_note",
+        "subjectId": "object_invoice_revision",
+        "relation": "revision_note",
+        "value": {
+          "kind": "literal",
+          "value": "Hold room ready by 18:30; use rear entrance"
+        }
+      },
+      {
+        "id": "fact_invoice_entrance",
+        "subjectId": "object_invoice_revision",
+        "relation": "specified_entrance",
+        "value": {
+          "kind": "literal",
+          "value": "rear entrance"
+        }
+      },
+      {
+        "id": "fact_kidnap_orderer",
+        "subjectId": "event_maya_disappearance",
+        "relation": "authorized_by",
+        "value": {
+          "kind": "entity",
+          "entityId": "person_daniel_price"
+        }
+      },
+      {
+        "id": "fact_kidnapper",
+        "subjectId": "event_maya_disappearance",
+        "relation": "carried_out_by",
+        "value": {
+          "kind": "entity",
+          "entityId": "person_eric_shaw"
+        }
+      },
+      {
+        "id": "fact_kidnap_motive",
+        "subjectId": "event_maya_disappearance",
+        "relation": "motive",
+        "value": {
+          "kind": "literal",
+          "value": "Prevent publication of the redevelopment fraud"
+        }
+      },
+      {
+        "id": "fact_warehouse_owner",
+        "subjectId": "place_18_river_road",
+        "relation": "owned_by",
+        "value": {
+          "kind": "entity",
+          "entityId": "org_city_redevelopment_office"
+        }
+      },
+      {
+        "id": "fact_warehouse_assigned",
+        "subjectId": "place_18_river_road",
+        "relation": "assigned_to",
+        "value": {
+          "kind": "entity",
+          "entityId": "org_shaw_site_services"
+        }
+      },
+      {
+        "id": "fact_warehouse_use",
+        "subjectId": "place_18_river_road",
+        "relation": "listed_use",
+        "value": {
+          "kind": "literal",
+          "value": "Redevelopment storage"
+        }
+      },
+      {
+        "id": "fact_access_person",
+        "subjectId": "object_warehouse_access_log",
+        "relation": "entrant",
+        "value": {
+          "kind": "entity",
+          "entityId": "person_eric_shaw"
+        }
+      },
+      {
+        "id": "fact_access_time",
+        "subjectId": "object_warehouse_access_log",
+        "relation": "entry_time",
+        "value": {
+          "kind": "literal",
+          "value": "2026-05-14 18:36"
+        }
+      },
+      {
+        "id": "fact_access_vehicle",
+        "subjectId": "object_warehouse_access_log",
+        "relation": "vehicle_plate",
+        "value": {
+          "kind": "literal",
+          "value": "LKV-731"
+        }
+      },
+      {
+        "id": "fact_access_location",
+        "subjectId": "object_warehouse_access_log",
+        "relation": "location",
+        "value": {
+          "kind": "entity",
+          "entityId": "place_18_river_road"
+        }
+      },
+      {
+        "id": "fact_maya_held_at",
+        "subjectId": "person_maya_chen",
+        "relation": "held_at",
+        "value": {
+          "kind": "entity",
+          "entityId": "place_18_river_road"
+        }
+      },
+      {
+        "id": "fact_archive_filename",
+        "subjectId": "object_rescue_evidence_file",
+        "relation": "filename",
+        "value": {
+          "kind": "literal",
+          "value": "maya-chen-case-evidence.pdf"
+        }
+      },
+      {
+        "id": "fact_archive_contains",
+        "subjectId": "object_rescue_evidence_file",
+        "relation": "decisive_proof",
+        "value": {
+          "kind": "literal",
+          "value": "Invoice revision approved by Daniel Price for a hold room at 18 River Road"
+        }
+      },
+      {
+        "id": "fact_archive_prepared_by",
+        "subjectId": "object_rescue_evidence_file",
+        "relation": "prepared_by",
+        "value": {
+          "kind": "entity",
+          "entityId": "person_maya_chen"
+        }
+      },
+      {
+        "id": "fact_archive_recipient",
+        "subjectId": "object_rescue_evidence_file",
+        "relation": "intended_for",
+        "value": {
+          "kind": "entity",
+          "entityId": "person_julia_reed"
+        }
+      },
+      {
+        "id": "fact_case_rescue_status",
+        "subjectId": "person_maya_chen",
+        "relation": "rescue_outcome",
+        "value": {
+          "kind": "literal",
+          "value": "Located alive; emergency services can conduct a safe rescue"
+        }
+      }
+    ],
+    "schemaVersion": "1.0.0",
+    "revision": "1"
+  },
+  "levels": [
+    {
+      "prerequisiteLevelIds": [],
+      "request": {
+        "levelId": "level_1_disappearance",
+        "titleHint": "The Disappearance",
+        "genre": "online-investigation",
+        "theme": "Timeline reconstruction",
+        "setting": "The Lakeview Ledger public news site and linked public event pages",
+        "startingSituation": "Julia Reed asks you to review Maya Chen's public work after Maya misses her filing deadline and cannot be reached. Maya's author page is the ordinary starting point.",
+        "playerRole": "You are Maya Chen's trusted friend, helping her editor Julia Reed document Maya's final known activities.",
+        "playerCapabilities": [
+          "Browse project-hosted public pages and records.",
+          "Compare timestamps, schedules, photographs, and public notices.",
+          "Submit exact findings to the newspaper's case intake page."
+        ],
+        "playerConstraints": [
+          "Use only the supplied fictional public resources.",
+          "Do not contact people or access private accounts.",
+          "Do not assume that Maya left voluntarily or was kidnapped until evidence supports it."
+        ],
+        "environment": {
+          "mode": "self-contained"
+        },
+        "narrativeContext": [
+          "Maya Chen was investigating the Central Market Redevelopment Program.",
+          "Her editor Julia Reed expected a draft by 19:00 on 2026-05-14.",
+          "Daniel Price and Shaw Site Services should appear as subjects of Maya's reporting, but their full roles remain unresolved."
+        ],
+        "startingInputs": [
+          {
+            "id": "input_l1_author_page",
+            "semanticRole": "public-starting-resource",
+            "description": "Maya Chen's author page on the Lakeview Ledger News Site, including recent articles and an ordinary desk photograph.",
+            "kind": "bundle-entry",
+            "resourceKind": "news-author-page"
+          },
+          {
+            "id": "input_l1_case_date",
+            "semanticRole": "investigation-date",
+            "description": "The date to use when filtering Maya Chen's public activity and schedule records.",
+            "dataType": "string",
+            "value": "2026-05-14"
+          }
+        ],
+        "externalContentRequirements": [],
+        "requiredDiscoveries": [
+          {
+            "id": "discovery_l1_last_seen",
+            "semanticRole": "timeline-anchor",
+            "description": "Maya Chen was last seen at the newsroom at this time.",
+            "dataType": "string",
+            "value": "2026-05-14 16:40"
+          },
+          {
+            "id": "discovery_l1_meeting",
+            "semanticRole": "planned-destination",
+            "description": "Maya's scheduled interview location after leaving the newsroom.",
+            "dataType": "string",
+            "value": "Central Market Community Hall"
+          },
+          {
+            "id": "discovery_l1_missed_meeting",
+            "semanticRole": "witness-identifier",
+            "description": "The name of the person who can confirm that Maya did not reach the planned interview.",
+            "dataType": "string",
+            "value": "Rosa Martinez"
+          }
+        ],
+        "terminalAction": {
+          "actionType": "evidence-submission",
+          "description": "File a missing-person evidence update with the Lakeview Ledger showing that Maya left for a documented interview, never arrived, and left a deliberate records lead.",
+          "requiredOutputs": [
+            {
+              "id": "output_l1_person",
+              "semanticRole": "person-identifier",
+              "dataType": "string",
+              "requiredValue": "Maya Chen"
+            },
+            {
+              "id": "output_l1_date",
+              "semanticRole": "date",
+              "dataType": "string",
+              "requiredValue": "2026-05-14"
+            },
+            {
+              "id": "output_l1_location",
+              "semanticRole": "location",
+              "dataType": "string",
+              "requiredValue": "Central Market Community Hall"
+            },
+            {
+              "id": "output_l1_witness",
+              "semanticRole": "person-identifier",
+              "dataType": "string",
+              "requiredValue": "Rosa Martinez"
+            }
+          ]
+        },
+        "config": {
+          "structuralDifficulty": {
+            "preset": "easy",
+            "puzzleCount": {
+              "minimum": 3,
+              "maximum": 4
+            },
+            "phaseCount": {
+              "minimum": 2,
+              "maximum": 3
+            },
+            "linearity": 0.85,
+            "maxParallelPuzzles": 1
+          },
+          "puzzleDifficulty": {
+            "preset": "easy"
+          },
+          "transformationPolicy": {
+            "enabled": true,
+            "maxCount": 1,
+            "maxDifficulty": "easy"
+          },
+          "reviewRetryLimit": 3,
+          "concealUnreachedContent": true,
+          "encourageSubtypeVariety": true
+        },
+        "world": {
+          "entityIds": [
+            "person_maya_chen",
+            "person_julia_reed",
+            "person_rosa_martinez",
+            "person_daniel_price",
+            "org_lakeview_ledger",
+            "program_central_market",
+            "place_lakeview_ledger_office",
+            "place_central_market_hall",
+            "site_ledger_news",
+            "object_maya_notebook_photo",
+            "object_final_schedule",
+            "event_maya_disappearance"
+          ],
+          "factIds": [
+            "fact_maya_employer",
+            "fact_julia_employer",
+            "fact_maya_editor",
+            "fact_final_date",
+            "fact_last_newsroom_time",
+            "fact_final_interview_place",
+            "fact_final_interview_time",
+            "fact_final_interview_person",
+            "fact_maya_missed_deadline",
+            "fact_maya_left_work_materials",
+            "fact_first_lead_phrase",
+            "fact_rosa_waited",
+            "fact_rosa_never_met_maya"
+          ],
+          "asOf": "2026-05-15",
+          "id": "world_missing_reporter_r1",
+          "revision": "1"
+        },
+        "catalogVersion": "repository-puzzles-2.0.0"
+      }
+    },
+    {
+      "parentLevelId": "level_1_disappearance",
+      "prerequisiteLevelIds": [
+        "level_1_disappearance"
+      ],
+      "request": {
+        "levelId": "level_2_redevelopment_scheme",
+        "titleHint": "The Redevelopment Scheme",
+        "genre": "online-investigation",
+        "theme": "Records and financial relationships",
+        "setting": "City building inspection, planning, property, and contract record sites",
+        "startingSituation": "Maya's note points to two versions of the 214 Park Street safety record. Julia Reed asks you to trace who changed the finding, who benefited, and why Maya kept investigating.",
+        "playerRole": "You are Maya Chen's trusted friend, now tracing the public records behind the story that put her in danger.",
+        "playerCapabilities": [
+          "Search fictional public inspection, planning, property, and contract records.",
+          "Compare document versions, identifiers, dates, and financial relationships.",
+          "Retrieve a specific public contract from the city record system."
+        ],
+        "playerConstraints": [
+          "Use only supplied project-hosted records.",
+          "Treat document differences as evidence only when supported by dates or record metadata.",
+          "Do not yet infer who arranged Maya's disappearance."
+        ],
+        "environment": {
+          "mode": "self-contained"
+        },
+        "narrativeContext": [
+          "Maya deliberately directed investigators to 214 Park Street.",
+          "Rosa Martinez was displaced from that building.",
+          "Daniel Price already appears publicly as director of the redevelopment program, and Eric Shaw appears as manager of a program contractor."
+        ],
+        "startingInputs": [
+          {
+            "id": "input_l2_report_versions",
+            "semanticRole": "record-starting-resource",
+            "description": "A bundle containing the public inspection history and both available report versions for 214 Park Street.",
+            "kind": "bundle-entry",
+            "resourceKind": "inspection-record-bundle"
+          },
+          {
+            "id": "input_l2_lead",
+            "semanticRole": "prior-level-lead",
+            "description": "Maya's notebook instruction to use when locating the two versions of the 214 Park Street report.",
+            "dataType": "string",
+            "value": "Compare 214 Park report versions"
+          }
+        ],
+        "externalContentRequirements": [],
+        "requiredDiscoveries": [
+          {
+            "id": "discovery_l2_original_finding",
+            "semanticRole": "original-record-finding",
+            "description": "The original inspection finding for 214 Park Street.",
+            "dataType": "string",
+            "value": "Minor repairs required; building may remain occupied"
+          },
+          {
+            "id": "discovery_l2_false_finding",
+            "semanticRole": "replacement-record-finding",
+            "description": "The later safety report's finding.",
+            "dataType": "string",
+            "value": "Immediate evacuation required"
+          },
+          {
+            "id": "discovery_l2_uploader",
+            "semanticRole": "responsible-organization",
+            "description": "The organization that uploaded the false report.",
+            "dataType": "string",
+            "value": "Shaw Site Services"
+          },
+          {
+            "id": "discovery_l2_fraud",
+            "semanticRole": "scheme-summary",
+            "description": "The record-supported method used by the redevelopment scheme.",
+            "dataType": "string",
+            "value": "False safety reports cleared occupied properties for discounted transfer"
+          },
+          {
+            "id": "discovery_l2_victims",
+            "semanticRole": "victim-count",
+            "description": "The number of households already displaced in the public list.",
+            "dataType": "number",
+            "value": 18
+          },
+          {
+            "id": "discovery_l2_motive",
+            "semanticRole": "reporter-motive",
+            "description": "Why Maya continued despite the risk.",
+            "dataType": "string",
+            "value": "Eighteen households were displaced and more buildings faced clearance"
+          }
+        ],
+        "terminalAction": {
+          "actionType": "file-retrieval",
+          "description": "Retrieve the city contract that links Daniel Price's approval, Shaw Site Services, safety review work, and site security authority.",
+          "requiredOutputs": [
+            {
+              "id": "output_l2_contract",
+              "semanticRole": "resource-identifier",
+              "dataType": "string",
+              "requiredValue": "CR-2026-118"
+            },
+            {
+              "id": "output_l2_path",
+              "semanticRole": "path",
+              "dataType": "string",
+              "requiredValue": "City Contract Records"
+            }
+          ]
+        },
+        "config": {
+          "structuralDifficulty": {
+            "preset": "medium",
+            "puzzleCount": {
+              "minimum": 4,
+              "maximum": 6
+            },
+            "phaseCount": {
+              "minimum": 3,
+              "maximum": 4
+            },
+            "linearity": 0.65,
+            "maxParallelPuzzles": 2
+          },
+          "puzzleDifficulty": {
+            "preset": "medium"
+          },
+          "transformationPolicy": {
+            "enabled": true,
+            "maxCount": 2,
+            "maxDifficulty": "easy"
+          },
+          "reviewRetryLimit": 3,
+          "concealUnreachedContent": true,
+          "encourageSubtypeVariety": true
+        },
+        "world": {
+          "entityIds": [
+            "person_maya_chen",
+            "person_rosa_martinez",
+            "person_daniel_price",
+            "person_eric_shaw",
+            "org_shaw_site_services",
+            "org_city_building_safety",
+            "org_city_redevelopment_office",
+            "program_central_market",
+            "place_214_park_street",
+            "site_city_planning_records",
+            "site_building_inspections",
+            "site_city_contracts",
+            "object_park_safety_report",
+            "object_park_original_inspection",
+            "object_shaw_contract",
+            "object_displacement_list",
+            "object_meeting_minutes",
+            "event_park_eviction",
+            "event_contract_award"
+          ],
+          "factIds": [
+            "fact_price_directs_program",
+            "fact_shaw_manages_company",
+            "fact_original_finding",
+            "fact_false_finding",
+            "fact_false_report_date",
+            "fact_false_inspector_id",
+            "fact_inspector_retired",
+            "fact_report_uploader",
+            "fact_rosa_displaced_from",
+            "fact_displacement_count",
+            "fact_property_transfer",
+            "fact_property_discount",
+            "fact_contract_awarded_to",
+            "fact_contract_approved_by",
+            "fact_contract_number",
+            "fact_contract_scope",
+            "fact_contract_value",
+            "fact_minutes_approval",
+            "fact_fraud_summary",
+            "fact_reporter_motive"
+          ],
+          "asOf": "2026-05-15",
+          "id": "world_missing_reporter_r1",
+          "revision": "1"
+        },
+        "catalogVersion": "repository-puzzles-2.0.0"
+      }
+    },
+    {
+      "parentLevelId": "level_2_redevelopment_scheme",
+      "prerequisiteLevelIds": [
+        "level_2_redevelopment_scheme"
+      ],
+      "request": {
+        "levelId": "level_3_kidnapping",
+        "titleHint": "The Kidnapping",
+        "genre": "online-investigation",
+        "theme": "Contradictions and responsibility",
+        "setting": "Public statements, delivery records, contract revisions, and access records",
+        "startingSituation": "The city contract gave a contractor both inspection and site security access. The official who approved it publicly denied contact with the company during the week Maya disappeared. Compare that statement with the public records.",
+        "playerRole": "You are Maya Chen's trusted friend, working with Julia Reed to connect the redevelopment fraud to Maya's disappearance.",
+        "playerCapabilities": [
+          "Compare public statements against timestamped records.",
+          "Correlate people, vehicles, places, and approvals.",
+          "Open one specific record in a public message and revision archive."
+        ],
+        "playerConstraints": [
+          "Use only supplied fictional records.",
+          "Distinguish the person who authorized the kidnapping from the person who carried it out.",
+          "Do not identify a holding location without converging evidence."
+        ],
+        "environment": {
+          "mode": "self-contained"
+        },
+        "narrativeContext": [
+          "Daniel Price approved contract CR-2026-118 for Shaw Site Services.",
+          "Eric Shaw's company uploaded the false 214 Park Street report.",
+          "Maya disappeared while trying to meet an affected resident."
+        ],
+        "startingInputs": [
+          {
+            "id": "input_l3_statement_bundle",
+            "semanticRole": "contradiction-starting-resource",
+            "description": "A bundle containing Daniel Price's public statement and a directory of related public schedules, delivery pages, and contract revision notices.",
+            "kind": "bundle-entry",
+            "resourceKind": "public-statement-record-bundle"
+          },
+          {
+            "id": "input_l3_contract",
+            "semanticRole": "prior-level-contract",
+            "description": "The contract identifier to use when locating the associated security records and public statements.",
+            "dataType": "string",
+            "value": "CR-2026-118"
+          }
+        ],
+        "externalContentRequirements": [],
+        "requiredDiscoveries": [
+          {
+            "id": "discovery_l3_shaw_at_hall",
+            "semanticRole": "accomplice-placement",
+            "description": "The person shown by a timestamped delivery photograph near Maya's planned meeting.",
+            "dataType": "string",
+            "value": "Eric Shaw"
+          },
+          {
+            "id": "discovery_l3_vehicle",
+            "semanticRole": "vehicle-identifier",
+            "description": "The plate on Eric Shaw's service van.",
+            "dataType": "string",
+            "value": "LKV-731"
+          },
+          {
+            "id": "discovery_l3_contradiction",
+            "semanticRole": "false-public-claim",
+            "description": "Daniel Price's contradicted public claim.",
+            "dataType": "string",
+            "value": "No direct contact with Shaw Site Services during the week of May 11"
+          },
+          {
+            "id": "discovery_l3_orderer",
+            "semanticRole": "authorizing-person",
+            "description": "The person who approved the urgent invoice revision and authorized the kidnapping.",
+            "dataType": "string",
+            "value": "Daniel Price"
+          },
+          {
+            "id": "discovery_l3_carrier",
+            "semanticRole": "carrying-out-person",
+            "description": "The person who carried out the kidnapping.",
+            "dataType": "string",
+            "value": "Eric Shaw"
+          },
+          {
+            "id": "discovery_l3_motive",
+            "semanticRole": "kidnapping-motive",
+            "description": "Why Maya was kidnapped.",
+            "dataType": "string",
+            "value": "Prevent publication of the redevelopment fraud"
+          }
+        ],
+        "terminalAction": {
+          "actionType": "message-open",
+          "description": "Open the exact contract revision notice that contradicts Daniel Price's statement and connects him to Shaw Site Services on the day Maya disappeared.",
+          "requiredOutputs": [
+            {
+              "id": "output_l3_sender",
+              "semanticRole": "sender",
+              "dataType": "string",
+              "requiredValue": "Daniel Price"
+            },
+            {
+              "id": "output_l3_recipient",
+              "semanticRole": "recipient",
+              "dataType": "string",
+              "requiredValue": "Shaw Site Services"
+            },
+            {
+              "id": "output_l3_date",
+              "semanticRole": "date",
+              "dataType": "string",
+              "requiredValue": "2026-05-14"
+            },
+            {
+              "id": "output_l3_keyword",
+              "semanticRole": "keyword",
+              "dataType": "string",
+              "requiredValue": "rear entrance"
+            }
+          ]
+        },
+        "config": {
+          "structuralDifficulty": {
+            "preset": "medium",
+            "puzzleCount": {
+              "minimum": 5,
+              "maximum": 7
+            },
+            "phaseCount": {
+              "minimum": 3,
+              "maximum": 5
+            },
+            "linearity": 0.5,
+            "maxParallelPuzzles": 3
+          },
+          "puzzleDifficulty": {
+            "preset": "medium"
+          },
+          "transformationPolicy": {
+            "enabled": true,
+            "maxCount": 3,
+            "maxDifficulty": "medium"
+          },
+          "reviewRetryLimit": 4,
+          "concealUnreachedContent": true,
+          "encourageSubtypeVariety": true
+        },
+        "world": {
+          "entityIds": [
+            "person_maya_chen",
+            "person_daniel_price",
+            "person_eric_shaw",
+            "person_ben_cole",
+            "org_shaw_site_services",
+            "program_central_market",
+            "place_central_market_hall",
+            "place_18_river_road",
+            "site_delivery_log",
+            "site_city_contracts",
+            "object_shaw_contract",
+            "object_delivery_photo",
+            "object_price_statement",
+            "object_invoice_revision",
+            "object_warehouse_access_log",
+            "event_maya_disappearance"
+          ],
+          "factIds": [
+            "fact_contract_number",
+            "fact_delivery_photo_time",
+            "fact_delivery_photo_person",
+            "fact_delivery_photo_place",
+            "fact_van_plate",
+            "fact_price_claim",
+            "fact_invoice_approver",
+            "fact_invoice_approval_time",
+            "fact_invoice_date",
+            "fact_invoice_vendor",
+            "fact_invoice_location",
+            "fact_invoice_note",
+            "fact_invoice_entrance",
+            "fact_kidnap_orderer",
+            "fact_kidnapper",
+            "fact_kidnap_motive"
+          ],
+          "asOf": "2026-05-15",
+          "id": "world_missing_reporter_r1",
+          "revision": "1"
+        },
+        "catalogVersion": "repository-puzzles-2.0.0"
+      }
+    },
+    {
+      "parentLevelId": "level_3_kidnapping",
+      "prerequisiteLevelIds": [
+        "level_1_disappearance",
+        "level_2_redevelopment_scheme",
+        "level_3_kidnapping"
+      ],
+      "request": {
+        "levelId": "level_4_find_reporter",
+        "titleHint": "Find the Reporter",
+        "genre": "online-investigation",
+        "theme": "Evidence synthesis and location",
+        "setting": "City property records, contractor access logs, and Maya Chen's evidence archive",
+        "startingSituation": "The invoice note says a hold room was to be ready by 18:30 and names 18 River Road. You must verify that this is a real accessible site, connect Eric Shaw's vehicle to it, recover Maya's decisive evidence file, and submit an emergency case report.",
+        "playerRole": "You are Maya Chen's trusted friend, coordinating the final evidence needed to locate her and support her rescue.",
+        "playerCapabilities": [
+          "Synthesize findings from all prior levels.",
+          "Verify ownership, assignment, access, and timing through public records.",
+          "Retrieve a named evidence file from an archive made available to Maya's editor.",
+          "Submit exact people, location, and proof to the emergency case system."
+        ],
+        "playerConstraints": [
+          "Use only supplied fictional resources and previously established evidence.",
+          "Do not rely on a new suspect, witness, or unexplained clue.",
+          "The emergency report must distinguish verified fact from inference and identify decisive proof."
+        ],
+        "environment": {
+          "mode": "self-contained"
+        },
+        "narrativeContext": [
+          "Daniel Price authorized the kidnapping and Eric Shaw carried it out.",
+          "The same van seen near Maya's missed meeting had plate LKV-731.",
+          "The urgent invoice revision named 18 River Road before Maya disappeared.",
+          "Julia Reed has legitimate access to the Reporter Evidence Archive Maya prepared for her."
+        ],
+        "startingInputs": [
+          {
+            "id": "input_l4_case_bundle",
+            "semanticRole": "synthesis-starting-resource",
+            "description": "A case bundle containing prior findings, the city property index, contractor compliance access logs, and Julia Reed's authorized Reporter Evidence Archive interface.",
+            "kind": "bundle-entry",
+            "resourceKind": "case-synthesis-bundle"
+          },
+          {
+            "id": "input_l4_location_lead",
+            "semanticRole": "candidate-location",
+            "description": "The service location to verify against ownership and access records.",
+            "dataType": "string",
+            "value": "18 River Road"
+          },
+          {
+            "id": "input_l4_vehicle",
+            "semanticRole": "vehicle-identifier",
+            "description": "The service van plate to match against records at the location.",
+            "dataType": "string",
+            "value": "LKV-731"
+          }
+        ],
+        "externalContentRequirements": [],
+        "requiredDiscoveries": [
+          {
+            "id": "discovery_l4_owner",
+            "semanticRole": "site-owner",
+            "description": "The organization that owns 18 River Road.",
+            "dataType": "string",
+            "value": "City Redevelopment Office"
+          },
+          {
+            "id": "discovery_l4_assignment",
+            "semanticRole": "site-assignment",
+            "description": "The contractor assigned to 18 River Road.",
+            "dataType": "string",
+            "value": "Shaw Site Services"
+          },
+          {
+            "id": "discovery_l4_entry_time",
+            "semanticRole": "access-timestamp",
+            "description": "When Eric Shaw entered the warehouse after Maya disappeared.",
+            "dataType": "string",
+            "value": "2026-05-14 18:36"
+          },
+          {
+            "id": "discovery_l4_location",
+            "semanticRole": "verified-holding-location",
+            "description": "The verified location where Maya Chen is being held.",
+            "dataType": "string",
+            "value": "18 River Road"
+          },
+          {
+            "id": "discovery_l4_file",
+            "semanticRole": "decisive-evidence-file",
+            "description": "The filename of Maya's complete evidence package.",
+            "dataType": "string",
+            "value": "maya-chen-case-evidence.pdf"
+          }
+        ],
+        "terminalAction": {
+          "actionType": "evidence-submission",
+          "description": "Submit the verified emergency and corruption case report so emergency services can rescue Maya Chen and investigators can preserve the evidence against the responsible people.",
+          "requiredOutputs": [
+            {
+              "id": "output_l4_responsible",
+              "semanticRole": "person-identifier",
+              "dataType": "string",
+              "requiredValue": "Daniel Price"
+            },
+            {
+              "id": "output_l4_location",
+              "semanticRole": "location",
+              "dataType": "string",
+              "requiredValue": "18 River Road"
+            },
+            {
+              "id": "output_l4_file",
+              "semanticRole": "resource-identifier",
+              "dataType": "string",
+              "requiredValue": "maya-chen-case-evidence.pdf"
+            }
+          ]
+        },
+        "config": {
+          "structuralDifficulty": {
+            "preset": "hard",
+            "puzzleCount": {
+              "minimum": 5,
+              "maximum": 8
+            },
+            "phaseCount": {
+              "minimum": 4,
+              "maximum": 5
+            },
+            "linearity": 0.4,
+            "maxParallelPuzzles": 3
+          },
+          "puzzleDifficulty": {
+            "preset": "hard"
+          },
+          "transformationPolicy": {
+            "enabled": true,
+            "maxCount": 4,
+            "maxDifficulty": "medium"
+          },
+          "reviewRetryLimit": 5,
+          "concealUnreachedContent": true,
+          "encourageSubtypeVariety": true
+        },
+        "world": {
+          "entityIds": [
+            "person_maya_chen",
+            "person_julia_reed",
+            "person_daniel_price",
+            "person_eric_shaw",
+            "org_city_redevelopment_office",
+            "org_shaw_site_services",
+            "place_18_river_road",
+            "site_city_planning_records",
+            "site_city_contracts",
+            "site_reporter_evidence",
+            "object_delivery_photo",
+            "object_invoice_revision",
+            "object_warehouse_access_log",
+            "object_rescue_evidence_file",
+            "event_maya_disappearance"
+          ],
+          "factIds": [
+            "fact_van_plate",
+            "fact_invoice_approver",
+            "fact_invoice_location",
+            "fact_invoice_note",
+            "fact_kidnap_orderer",
+            "fact_kidnapper",
+            "fact_warehouse_owner",
+            "fact_warehouse_assigned",
+            "fact_warehouse_use",
+            "fact_access_person",
+            "fact_access_time",
+            "fact_access_vehicle",
+            "fact_access_location",
+            "fact_maya_held_at",
+            "fact_archive_filename",
+            "fact_archive_contains",
+            "fact_archive_prepared_by",
+            "fact_archive_recipient",
+            "fact_case_rescue_status"
+          ],
+          "asOf": "2026-05-15",
+          "id": "world_missing_reporter_r1",
+          "revision": "1"
+        },
+        "catalogVersion": "repository-puzzles-2.0.0"
+      }
+    }
+  ]
+}

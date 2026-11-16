@@ -202,7 +202,7 @@ export function buildAnomalousDocument(
         throw new Error("The anomalous phrase must not already appear outside the placeholder.");
     }
 
-    return template.replace(placeholder, anomalousPhrase);
+    return template.replace(placeholder, () => anomalousPhrase);
 }
 
 export function createAnomalousPhrasePuzzle(
@@ -219,7 +219,14 @@ export function createAnomalousPhrasePuzzle(
     const anomalousPhrase = normalizeAnomalousPhrase(spec.anomalousPhrase);
     const anomalyKind = normalizeAnomalyKind(spec.anomalyKind);
     const placeholder = normalizePlaceholder(spec.placeholder);
-    const documentTemplate = normalizeDocumentTemplate(spec.documentTemplate);
+    let documentTemplate = normalizeDocumentTemplate(spec.documentTemplate);
+    // Older blueprints stored a complete document instead of an insertion template.
+    // Recover the template only when the authored anomaly has one unambiguous location.
+    if (spec.placeholder === undefined && !documentTemplate.includes(placeholder)
+        && countOccurrences(documentTemplate, anomalousPhrase) === 1) {
+        documentTemplate = documentTemplate.replace(anomalousPhrase, () => placeholder);
+    }
+    const documentText = buildAnomalousDocument(documentTemplate, anomalousPhrase, placeholder);
     assertArtifactGrounding({
         solution,
         anomalousPhrase,
@@ -227,11 +234,6 @@ export function createAnomalousPhrasePuzzle(
         placeholder,
         normalPatternEvidence
     });
-    const documentText = buildAnomalousDocument(
-        documentTemplate,
-        anomalousPhrase,
-        placeholder
-    );
     const acceptedAlternatives = spec.acceptedAlternatives?.map(normalizeAnomalousPhraseSolution);
     const externalKnowledgeRequired = spec.externalKnowledgeRequired ?? false;
     assertExternalKnowledge(externalKnowledgeRequired, spec.externalKnowledgeProvenance);
@@ -259,7 +261,7 @@ export function createAnomalousPhrasePuzzle(
                     maximumCharacters: MAX_DOCUMENT_TEMPLATE_LENGTH,
                     ruleVersion: RULE_VERSION
                 },
-                value: normalizeDocumentTemplate(spec.documentTemplate)
+                value: documentTemplate
             },
             {
                 key: "anomalous_phrase",

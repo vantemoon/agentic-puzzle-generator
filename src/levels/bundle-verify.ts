@@ -5,6 +5,7 @@ import { isDeepStrictEqual } from "node:util";
 
 import type { PrivatePuzzleInstance } from "../core/types.js";
 import type { LevelBundleInputs } from "./bundle-inputs.js";
+import { bundleAnswers, findBundleAnswer } from "./bundle-answers.js";
 import { selectBundleStartingRoutes, type PublicBundleManifest } from "./bundle-build.js";
 import type { BundleRoute, BundledSite, LevelBundle } from "./bundle.js";
 import { BUNDLE_SECURITY_HEADERS } from "./bundle-security.js";
@@ -30,7 +31,9 @@ export class BundleVerificationError extends Error {
     readonly report: BundleVerificationReport;
 
     constructor(report: BundleVerificationReport) {
-        super(`Level bundle verification failed:\n- ${report.issues.map((issue) => `${issue.code}: ${issue.message}`).join("\n- ")}`);
+        super(`Level bundle verification failed:\n- ${report.issues.map((issue) =>
+            `${issue.code}${issue.path === undefined ? "" : ` (${issue.path})`}: ${issue.message}`
+        ).join("\n- ")}`);
         this.name = "BundleVerificationError";
         this.report = report;
     }
@@ -53,10 +56,6 @@ function routeFile(publicDirectory: string, publicPath: string): string {
 
 function publicFile(publicDirectory: string, publicPath: string): string {
     return path.join(publicDirectory, publicPath.replace(/^\/+/, ""));
-}
-
-function normalized(value: string): string {
-    return value.replace(/\s+/g, " ").trim();
 }
 
 function escapeHtml(value: string): string {
@@ -212,23 +211,15 @@ export async function verifyLevelBundle(options: {
     const puzzleRoutePaths = new Set(options.bundle.sites.flatMap((site) => site.routes
         .filter((route) => route.role === "puzzle")
         .map((route) => fullRoutePath(site, route))));
-    const privateAnswers = options.inputs.puzzles.flatMap(({ puzzle }) => {
-        const caseInsensitive = puzzle.validator.kind === "normalized-text"
-            && puzzle.validator.options.caseInsensitive;
-        return [puzzle.solution.canonical, ...(puzzle.solution.acceptedAlternatives ?? [])]
-            .map((value) => ({ value: normalized(value), caseInsensitive }));
-    });
+    const privateAnswers = bundleAnswers(options.inputs.puzzles);
     for (const [publicPath, source] of routeSources) {
         if (puzzleRoutePaths.has(publicPath)) continue;
-        const normalizedSource = normalized(source);
-        for (const answer of privateAnswers) {
-            const comparableSource = answer.caseInsensitive ? normalizedSource.toLocaleLowerCase() : normalizedSource;
-            const comparableAnswer = answer.caseInsensitive ? answer.value.toLocaleLowerCase() : answer.value;
-            if (comparableAnswer.length > 0 && comparableSource.includes(comparableAnswer)) {
-                issues.push({ code: "answer-leak", message: "A non-puzzle public page contains a private puzzle answer.", path: publicPath });
-                break;
-            }
-        }
+        const answer = findBundleAnswer(source, privateAnswers);
+        if (answer !== undefined) issues.push({
+            code: "answer-leak",
+            message: `A non-puzzle public page contains an answer for puzzle ${answer.puzzleId}: ${JSON.stringify(answer.value)}.`,
+            path: publicPath
+        });
     }
     const manifestSource = await readFile(manifestPath, "utf8");
     if (/"(?:solution|validator|acceptedAlternatives|puzzleId)"\s*:/i.test(manifestSource)) {
@@ -281,10 +272,13 @@ export async function verifyLevelBundle(options: {
         const candidates = [destination, ...segments.reverse()].filter((candidate) => candidate.length >= 4);
         return candidates.some((candidate) => source.includes(candidate));
     };
-    const startingDestinations = new Map(selectBundleStartingRoutes(
+    const startingDestinations = new Map<string, string>(selectBundleStartingRoutes(
         options.bundle,
         options.inputs.level.startingInputs.map((input) => input.id)
-    ).map((entry) => [`starting-input:${entry.inputId}`, entry.publicPath]));
+    ).flatMap((entry) => entry.inputIds.map((inputId) => [
+        `starting-input:${inputId}`,
+        entry.publicPath
+    ] as const)));
     for (const site of options.bundle.sites) {
         for (const route of site.routes) {
             const destination = fullRoutePath(site, route);

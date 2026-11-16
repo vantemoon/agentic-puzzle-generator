@@ -20,6 +20,13 @@ function scalarSubmission(value: unknown): string | undefined {
     return undefined;
 }
 
+const humanTextRoles = new Set(["person-identifier", "sender", "recipient", "location", "finding", "keyword"]);
+
+function terminalText(value: string, role: string): string {
+    const trimmed = value.trim();
+    return humanTextRoles.has(role) ? trimmed.replace(/\s+/g, " ").toLowerCase() : trimmed;
+}
+
 export function validateTerminalSubmission(
     inputs: LevelBundleInputs,
     submission: Record<string, unknown>
@@ -38,7 +45,8 @@ export function validateTerminalSubmission(
         const actual = scalarSubmission(submission[field.id]);
         const accepted = expected.dataType === "number"
             ? actual !== undefined && actual.trim().length > 0 && Number(actual) === expected.value
-            : actual?.trim() === expected.value;
+            : actual !== undefined && typeof expected.value === "string"
+                && terminalText(actual, field.semanticRole) === terminalText(expected.value, field.semanticRole);
         if (!accepted) fieldErrors.push(field.id);
     }
     if (fieldErrors.length > 0) return { status: "incorrect", fieldErrors };
@@ -54,13 +62,22 @@ function safeReturnPath(value: unknown): string {
     return path !== undefined && /^\/(?!\/)/.test(path) ? path : "/";
 }
 
-function responseHtml(result: TerminalValidationResult, returnPath: string): string {
+function responseHtml(
+    result: TerminalValidationResult,
+    returnPath: string,
+    nextLevel?: { title: string; url: string },
+    gameComplete = false
+): string {
     const success = result.status === "success";
     const title = success ? "Submission Complete" : "Check Your Findings";
     const message = success
         ? result.outcome ?? "Your submission has been accepted."
         : "One or more fields do not match the public records. Review the referenced records and try again.";
-    const action = success
+    const action = success && nextLevel !== undefined
+        ? `<a class="begin-link" href="${escapeHtml(nextLevel.url)}">Continue to ${escapeHtml(nextLevel.title)}</a>`
+        : success && gameComplete
+        ? "<strong>Game complete.</strong>"
+        : success
         ? '<a class="begin-link" href="/">Return to start</a>'
         : `<a class="begin-link" href="${escapeHtml(returnPath)}">Try again</a>`;
     return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${title}</title><link rel="stylesheet" href="/assets/site.css"></head><body class="bundle-index completion-page"><main><p class="site-kicker">${success ? "Complete" : "Submission not accepted"}</p><h1>${title}</h1><p class="summary">${escapeHtml(message)}</p><p>${action}</p></main></body></html>`;
@@ -193,6 +210,8 @@ export function createBundlePreviewServer(options: {
     publicDirectory: string;
     inputs: LevelBundleInputs;
     bundle: LevelBundle;
+    nextLevel?: { title: string; url: string };
+    gameComplete?: boolean;
 }): Server {
     const publicDirectory = path.resolve(options.publicDirectory);
     return createServer(async (request, response) => {
@@ -249,7 +268,12 @@ export function createBundlePreviewServer(options: {
                         ...BUNDLE_SECURITY_HEADERS,
                         "content-type": "text/html; charset=utf-8",
                         "cache-control": "no-store"
-                    }).end(responseHtml(result, safeReturnPath(submission.returnPath)));
+                    }).end(responseHtml(
+                        result,
+                        safeReturnPath(submission.returnPath),
+                        options.nextLevel,
+                        options.gameComplete
+                    ));
                 }
                 return;
             }

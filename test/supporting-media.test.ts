@@ -68,14 +68,50 @@ describe("supporting media generation", () => {
         expect(document.data).not.toContain("Visitor <Guide>");
     });
 
+    it("clamps finite supporting-media coordinates to safe renderer bounds", () => {
+        const raster = generateRasterMedia({
+            backgroundColor: "#d7e1e5",
+            elements: ["rect|-20|500|900|0|#445566|2|400"]
+        });
+        expect(decodeRgbaPng(raster.data)).toMatchObject({ width: 640, height: 360 });
+
+        const svg = generateSvgMedia({
+            title: "Bounded mark",
+            description: "A safely bounded geometric mark",
+            elements: [
+                "rect|1200|-1400|2400|-4|#f4efe2|#445566|90|2|1400|-3",
+                "text|1800|-1200|240|#445566|middle|sans-serif|Public Records"
+            ]
+        });
+        expect(svg.data).toContain('x="1000"');
+        expect(svg.data).toContain('y="-1000"');
+        expect(svg.data).toContain('width="1000"');
+        expect(svg.data).toContain('height="0"');
+        expect(svg.data).toContain('font-size="100"');
+        expect(svg.data).toContain('opacity="1"');
+    });
+
     it("rejects puzzle answers in generated public media", async () => {
         const tool = createSupportingMediaTool(REQUEST, ["SECRET ANSWER"]);
         await expect(tool.execute("tool", {
             kind: "svg",
             title: "SECRET ANSWER",
             description: "Library mark",
-            elements: ["circle|100|100|50|#334455|none|0|1"]
+            elements: [{ kind: "circle", cx: 100, cy: 100, radius: 50, fill: "#334455" }]
         })).rejects.toThrow("must not contain a puzzle answer");
+    });
+
+    it("compiles SVG drawing objects with named fields and default paint values", async () => {
+        const tool = createSupportingMediaTool(REQUEST, []);
+        const result = await tool.execute("tool", {
+            kind: "svg",
+            title: "Library map",
+            description: "A floor plan",
+            elements: [{ kind: "rect", fill: "#FFFFFF", height: 360, width: 840, y: 110, x: 60 }]
+        });
+        expect(result.details.data).toContain(
+            '<rect x="60" y="110" width="840" height="360" fill="#FFFFFF" stroke="none" stroke-width="0" opacity="1" rx="0" ry="0"/>'
+        );
     });
 
     it("writes, reads, and verifies reusable world media assets", async () => {

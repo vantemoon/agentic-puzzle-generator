@@ -281,6 +281,7 @@ export const OutputReferenceSchema = Type.Object({
 export const TerminalFieldSchema = Type.Object({
     id: Type.String({ minLength: 1 }),
     label: Type.String({ minLength: 1 }),
+    hint: Type.Optional(Type.String({ minLength: 1, maxLength: 240 })),
     semanticRole: Type.String({ minLength: 1 }),
     source: OutputReferenceSchema
 }, closed);

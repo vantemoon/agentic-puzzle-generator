@@ -331,7 +331,12 @@ export function validateLevelBlueprint(value: unknown, catalog: PuzzleCatalog): 
         errors.push(`Transformation count ${transformationCount} exceeds configured maximum ${level.generationConfig.transformationPolicy.maxCount}.`);
     }
     for (const input of level.startingInputs) {
-        if (!consumedStartingInputs.has(input.id)) errors.push(`Starting input ${input.id} is not consumed by any puzzle.`);
+        if (!consumedStartingInputs.has(input.id)) {
+            errors.push(
+                `Starting input ${input.id} is not consumed by any puzzle. `
+                + "Because starting inputs are request-owned, reference it from a puzzle input and make it materially constrain that puzzle."
+            );
+        }
     }
     for (const requirementId of externalRequirementIds) {
         if (!usedExternalRequirementIds.has(requirementId)) {
@@ -380,7 +385,11 @@ export function validateLevelBlueprint(value: unknown, catalog: PuzzleCatalog): 
     for (const puzzle of level.puzzles) {
         for (const output of puzzle.design.outputs) {
             const key = `${puzzle.id}.${output.id}`;
-            if ((consumedOutputs.get(key) ?? 0) === 0) errors.push(`Puzzle output ${key} is not consumed downstream or by the terminal action.`);
+            if ((consumedOutputs.get(key) ?? 0) === 0) {
+                errors.push(output.requiredDiscoveryId === undefined
+                    ? `Puzzle output ${key} is not consumed downstream or by the terminal action.`
+                    : `Puzzle output ${key}, which produces required discovery ${output.requiredDiscoveryId}, is not consumed downstream or by the terminal action. A required-discovery binding does not count as consumption; reference this output from a later puzzle input or terminal field.`);
+            }
         }
     }
 
@@ -442,7 +451,10 @@ export function validateLevelAgainstRequest(level: LevelBlueprint, request: Leve
         }
         const resolved = outputValue(level, matches[0].puzzle.id, matches[0].output);
         if (resolved.dataType !== required.dataType || !isDeepStrictEqual(resolved.value, required.value)) {
-            errors.push(`Required discovery ${required.id} does not match its game-defined type and value.`);
+            errors.push(
+                `Required discovery ${required.id} expected ${required.dataType} ${JSON.stringify(required.value)}, `
+                + `but ${matches[0].puzzle.id}.${matches[0].output.id} resolves to ${resolved.dataType} ${JSON.stringify(resolved.value)}.`
+            );
         }
     }
     for (const binding of discoveryBindings) {

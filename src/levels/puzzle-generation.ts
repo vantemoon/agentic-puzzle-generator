@@ -4,6 +4,7 @@ import path from "node:path";
 import type { Agent, AgentEvent } from "@earendil-works/pi-agent-core";
 
 import { authoredContentForPuzzle } from "../core/authored-content.js";
+import { promptAgentWithRecovery } from "../core/agent-runner.js";
 import {
     assertPrivatePuzzleInstance,
     type PrivatePuzzleInstance,
@@ -12,8 +13,33 @@ import {
 } from "../core/types.js";
 import { getPuzzleCatalogEntry, type PuzzleCatalog } from "./catalog.js";
 import type { LevelBlueprint, PuzzleNode } from "./types.js";
+import { PLAIN_LANGUAGE_HOUSE_STYLE } from "../design/house-style.js";
 
 type AgentFactory = () => Promise<Agent>;
+type DeterministicPuzzleFactory = (spec: Record<string, unknown>) => Promise<PrivatePuzzleInstance>;
+
+const deterministicPuzzleFactories: Record<string, DeterministicPuzzleFactory> = {
+    "anomalous-phrase": async (spec) => {
+        const engine = await import("../agents/anomalous-phrase/engine.js");
+        return engine.createAnomalousPhrasePuzzle(spec as unknown as import("../agents/anomalous-phrase/engine.js").AnomalousPhrasePuzzleSpec);
+    },
+    "dom-element": async (spec) => {
+        const engine = await import("../agents/dom-element/engine.js");
+        return engine.createDomElementPuzzle(spec as unknown as import("../agents/dom-element/engine.js").DomElementPuzzleSpec);
+    },
+    "html-comment": async (spec) => {
+        const engine = await import("../agents/html-comment/engine.js");
+        return engine.createHtmlCommentPuzzle(spec as unknown as import("../agents/html-comment/engine.js").HtmlCommentPuzzleSpec);
+    },
+    "html-source-inspection": async (spec) => {
+        const engine = await import("../agents/html-source-inspection/engine.js");
+        return engine.createSourceCodePuzzle(spec as unknown as import("../agents/html-source-inspection/engine.js").SourceCodePuzzleSpec);
+    },
+    "page-version": async (spec) => {
+        const engine = await import("../agents/page-version/engine.js");
+        return engine.createPageVersionPuzzle(spec as unknown as import("../agents/page-version/engine.js").PageVersionPuzzleSpec);
+    }
+};
 
 const agentFactories: Record<string, AgentFactory> = {
     "cover-text-line-acrostic": async () => (await import("../agents/acrostic/agent.js")).createAcrosticAgent(),
@@ -98,6 +124,7 @@ export function buildPuzzleGenerationPrompt(handoff: PuzzleGenerationHandoff): s
             : "Preserve every supplied field and call your puzzle creation tool with exactly this JSON object:";
     return [
         "Generate this production puzzle from the upstream level-design specification.",
+        PLAIN_LANGUAGE_HOUSE_STYLE,
         toolInstruction,
         JSON.stringify(handoff.generationSpec, null, 2)
     ].join("\n\n");
@@ -144,6 +171,10 @@ export function stopAfterSuccessfulTool(
 export async function generatePuzzleFromHandoff(
     handoff: PuzzleGenerationHandoff
 ): Promise<PrivatePuzzleInstance> {
+    const deterministicFactory = deterministicPuzzleFactories[handoff.subtype];
+    if (deterministicFactory !== undefined && authoredContentForPuzzle(handoff.subtype) === undefined) {
+        return validateGeneratedPuzzle(handoff, await deterministicFactory(handoff.generationSpec));
+    }
     const factory = agentFactories[handoff.subtype];
     if (factory === undefined) throw new Error(`No puzzle-generation agent is registered for subtype ${handoff.subtype}.`);
     const agent = await factory();
@@ -169,7 +200,7 @@ export async function generatePuzzleFromHandoff(
         }
     });
 
-    await agent.prompt(buildPuzzleGenerationPrompt(handoff));
+    await promptAgentWithRecovery(agent, buildPuzzleGenerationPrompt(handoff));
     if (generated === undefined) {
         throw new Error(
             lastToolError

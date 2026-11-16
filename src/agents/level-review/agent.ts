@@ -1,4 +1,4 @@
-import { Agent } from "@earendil-works/pi-agent-core";
+import { Agent } from "../../core/recovering-agent.js";
 
 import { loadKadiModel } from "../../core/model.js";
 import type { LevelBlueprint, LevelDesignRequest } from "../../levels/types.js";

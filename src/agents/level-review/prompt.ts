@@ -1,6 +1,10 @@
 import type { LevelBlueprint, LevelDesignRequest } from "../../levels/types.js";
+import { PLAIN_LANGUAGE_HOUSE_STYLE } from "../../design/house-style.js";
+import { TERMINAL_ACTION_POLICY } from "../../levels/action-catalog.js";
 
 export const LEVEL_REVIEW_SYSTEM_PROMPT = `
+${TERMINAL_ACTION_POLICY} Flag any field that a reasonable player could interpret in more than one way.
+
 You are an independent design reviewer for metadata-only online-investigation levels.
 
 The deterministic validator already checks schema shape, catalogs, exact values, source references, output consumption, phase order, graph acyclicity, terminal producers, and configured limits. Review qualities that require judgment:
@@ -35,6 +39,7 @@ Review the level in investigator-visible progression order across the full allow
 export function buildLevelReviewPrompt(level: LevelBlueprint, request: LevelDesignRequest, attempt: number): string {
     return [
         LEVEL_REVIEW_SYSTEM_PROMPT,
+        `\n${PLAIN_LANGUAGE_HOUSE_STYLE}`,
         `\nReview attempt: ${attempt}`,
         `\nOriginal request:\n${JSON.stringify(request, null, 2)}`,
         `\nPrivate level blueprint:\n${JSON.stringify(level, null, 2)}`
