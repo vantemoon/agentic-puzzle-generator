@@ -13,18 +13,18 @@ import {
     normalizeImageLabel,
     normalizeVisibleBody,
     normalizeVisibleTitle
-} from "../src/agents/alt-text/engine.js";
+} from "../src/features/puzzle-generation/generators/alt-text/engine.js";
 import {
     createAltTextPuzzleTool,
     writeAltTextArtifactPreview
-} from "../src/agents/alt-text/tool.js";
+} from "../src/features/puzzle-generation/generators/alt-text/tool.js";
 import {
     assertPrivatePuzzleInstance,
     assertPublicPuzzleInstance,
     getHtmlEntrySource,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 const knownSpec = (id: string) => ({
     id,

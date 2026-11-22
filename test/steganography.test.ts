@@ -9,18 +9,18 @@ import {
     extractPngLsbRgbPayload,
     normalizeCoverTheme,
     normalizeSteganographyPayload,
-} from "../src/agents/steganography/engine.js";
+} from "../src/features/puzzle-generation/generators/steganography/engine.js";
 import {
     createSteganographyPuzzleTool,
     writeSteganographyArtifactPreview
-} from "../src/agents/steganography/tool.js";
+} from "../src/features/puzzle-generation/generators/steganography/tool.js";
 import {
     assertPrivatePuzzleInstance,
     assertPublicPuzzleInstance,
     getPngImageData,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 const knownSpec = (id: string) => ({
     id,

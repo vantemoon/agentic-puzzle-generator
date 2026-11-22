@@ -5,13 +5,13 @@ import {
     decodeCaesar, 
     encodeCaesar,
     normalizePhrase
-} from "../src/agents/caesar/engine.js";
+} from "../src/features/puzzle-generation/generators/caesar-cipher/engine.js";
 import {
     assertPrivatePuzzleInstance,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
-import { createCaesarPuzzleTool } from "../src/agents/caesar/tool.js";
+} from "../src/shared/artifacts/types.js";
+import { createCaesarPuzzleTool } from "../src/features/puzzle-generation/generators/caesar-cipher/tool.js";
 
 describe("Caesar cipher engine", () => {
     it("declares an object-rooted tool schema for strict model providers", () => {

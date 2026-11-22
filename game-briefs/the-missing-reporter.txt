@@ -1,0 +1,12 @@
+THE MISSING REPORTER
+Four-level demonstration campaign brief
+
+Create a fresh, four-level demonstration campaign for The Missing Reporter. Use kidnapping as the primary story archetype. Use game ID game_missing_reporter_demo_v2, world ID world_missing_reporter_demo_v2, and prefix every level ID with missing_reporter_demo_v2_ so the candidate can sit alongside the original.
+
+Premise
+
+Local reporter Maya Chen disappears hours before publishing evidence of fraud in a city redevelopment program. Her editor, Julia Reed, asks you to trace Maya’s public work because you are Maya’s trusted friend and recognize the leads she would leave. Keep that role throughout the campaign. Use a fictional, self-contained setting and end with a believable, non-graphic rescue payoff.
+
+Design goals
+
+Give all four levels equal design attention. Vary the investigative reasoning across the campaign and make each level’s outcome matter to what follows. Let the player identify useful evidence within ordinary fictional websites and infer where to look next. Keep the terminal actions short and consequential.

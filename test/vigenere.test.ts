@@ -6,14 +6,14 @@ import {
     encodeVigenere,
     normalizeVigenereKey,
     normalizeVigenerePhrase
-} from "../src/agents/vigenere/engine.js";
+} from "../src/features/puzzle-generation/generators/vigenere/engine.js";
 import {
     assertPrivatePuzzleInstance,
     getPuzzleArtifactSource,
     assertPublicPuzzleInstance,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 describe("Vigenere cipher engine", () => {
     it("encodes and decodes a standard known vector", () => {

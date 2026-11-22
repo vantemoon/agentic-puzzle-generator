@@ -9,14 +9,14 @@ import {
     tokenizeNthWordCover,
     validateNthWordCover,
     validateNthWordRule
-} from "../src/agents/nth-word/engine.js";
+} from "../src/features/puzzle-generation/generators/periodic-word-extraction/engine.js";
 import {
     assertPrivatePuzzleInstance,
     getPuzzleArtifactSource,
     assertPublicPuzzleInstance,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 function buildCover(
     solution: string,

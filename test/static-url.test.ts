@@ -10,15 +10,15 @@ import {
     normalizePathSegmentIndex,
     normalizeUrlPayload,
     normalizeVisibleInstruction
-} from "../src/agents/static-url/engine.js";
-import { createStaticUrlPuzzleTool } from "../src/agents/static-url/tool.js";
+} from "../src/features/puzzle-generation/generators/static-url/engine.js";
+import { createStaticUrlPuzzleTool } from "../src/features/puzzle-generation/generators/static-url/tool.js";
 import {
     assertPrivatePuzzleInstance,
     getPuzzleArtifactSource,
     assertPublicPuzzleInstance,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 const knownSpec = (id: string) => ({
     id,

@@ -8,14 +8,14 @@ import {
     normalizeNthCharacterSolution,
     validateNthCharacterCarrier,
     validateNthCharacterRule
-} from "../src/agents/nth-character/engine.js";
+} from "../src/features/puzzle-generation/generators/periodic-letter-extraction/engine.js";
 import {
     assertPrivatePuzzleInstance,
     getPuzzleArtifactSource,
     assertPublicPuzzleInstance,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 function buildCarrier(
     solution: string,

@@ -3,13 +3,13 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { readGameWorldFile, writeGameWorldFile } from "../src/world/io.js";
-import type { GameWorld, GameWorldFile, WorldRevisionAdditions } from "../src/world/types.js";
+import { readGameWorldFile, writeGameWorldFile } from "../src/features/world/io.js";
+import type { GameWorld, GameWorldFile, WorldRevisionAdditions } from "../src/features/world/types.js";
 import {
     assertGameWorld,
     validateGameWorld,
     validateGameWorldFile
-} from "../src/world/validator.js";
+} from "../src/features/world/validator.js";
 
 const WORLD_FIXTURE: GameWorld = {
     schemaVersion: "1.0.0",

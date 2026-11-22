@@ -4,23 +4,34 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { createHtmlCommentPuzzle } from "../src/agents/html-comment/engine.js";
-import { createDomElementPuzzle } from "../src/agents/dom-element/engine.js";
-import { createSourceCodePuzzle } from "../src/agents/html-source-inspection/engine.js";
-import { createPageVersionPuzzle } from "../src/agents/page-version/engine.js";
-import { createQrCodePuzzle } from "../src/agents/qr-code/engine.js";
-import { generateRasterMedia } from "../src/agents/supporting-media/engine.js";
-import { generateSupportingMedia } from "../src/agents/supporting-media/coordinator.js";
-import { writeWorldMediaAsset } from "../src/agents/supporting-media/library.js";
-import { supportingMediaRequestContext } from "../src/agents/supporting-media/request.js";
-import type { LevelBundleInputs } from "../src/levels/bundle-inputs.js";
-import { buildLevelBundle, publicLevelGoal, selectBundleStartingRoutes } from "../src/levels/bundle-build.js";
-import { createBundlePreviewServer, validateTerminalSubmission } from "../src/levels/bundle-server.js";
-import { BundleVerificationError, verifyLevelBundle } from "../src/levels/bundle-verify.js";
-import { LEVEL_BUNDLE_SCHEMA_VERSION, type LevelBundle } from "../src/levels/bundle.js";
-import { repositoryPuzzleCatalog } from "../src/levels/catalog.js";
-import type { LevelBlueprint } from "../src/levels/types.js";
-import type { GameWorld } from "../src/world/types.js";
+import { createHtmlCommentPuzzle } from "../src/features/puzzle-generation/generators/html-comment/engine.js";
+import { createDomElementPuzzle } from "../src/features/puzzle-generation/generators/dom-element/engine.js";
+import { createSourceCodePuzzle } from "../src/features/puzzle-generation/generators/html-source-inspection/engine.js";
+import { createPageVersionPuzzle } from "../src/features/puzzle-generation/generators/page-version/engine.js";
+import { createQrCodePuzzle } from "../src/features/puzzle-generation/generators/qr-code/engine.js";
+import { generateRasterMedia } from "../src/features/supporting-media/engine.js";
+import { generateSupportingMedia } from "../src/features/supporting-media/coordinator.js";
+import { writeWorldMediaAsset } from "../src/features/supporting-media/library.js";
+import { supportingMediaRequestContext } from "../src/features/supporting-media/request.js";
+import { pagePathIssues } from "../src/features/level-bundle/page-content.js";
+import { createSubmitLevelBundleTool } from "../src/features/level-bundle/agent/tool.js";
+import { gameBuildPaths } from "../src/shared/utilities/game-build-paths.js";
+import { loadAndVerifyLevelBundle, loadSavedGameLevel } from "../src/features/game-bundle/orchestration.js";
+import type { LevelBundleInputs } from "../src/features/level-bundle/inputs.js";
+import { buildLevelBundle, selectBundleStartingRoutes } from "../src/features/level-bundle/build.js";
+import { findBundleHtmlAnswer } from "../src/features/level-bundle/answers.js";
+import { writeLevelBundleFile } from "../src/features/level-bundle/io.js";
+import { createBundlePreviewServer, validateTerminalSubmission } from "../src/features/level-bundle/server.js";
+import { applyEditorialEdits, assertCopyOnlyBuild } from "../src/features/game-evaluation/feedback.js";
+import { assertBlindPlaytest, playtestCandidate, verifyGameInteractions } from "../src/features/game-bundle/playability.js";
+import { BundleVerificationError, verifyLevelBundle } from "../src/features/level-bundle/verify.js";
+import { LEVEL_BUNDLE_SCHEMA_VERSION, type LevelBundle } from "../src/features/level-bundle/types.js";
+import { repositoryPuzzleCatalog } from "../src/features/puzzle-generation/catalog.js";
+import { writeLevelBlueprintFile } from "../src/features/level-design/io.js";
+import { writeGeneratedPuzzle } from "../src/features/puzzle-generation/generate.js";
+import type { LevelBlueprint } from "../src/features/level-design/types.js";
+import { writeGameWorldFile } from "../src/features/world/io.js";
+import type { GameWorld } from "../src/features/world/types.js";
 import { levelFixture } from "./fixtures/level-v5.js";
 
 function buildFixture(): { inputs: LevelBundleInputs; bundle: LevelBundle } {
@@ -180,6 +191,31 @@ function supportingMediaFixture(): { inputs: LevelBundleInputs; bundle: LevelBun
     return fixture;
 }
 
+it("builds and reloads a saved level whose artifacts are isolated from the shared directories", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "game-regeneration-"));
+    try {
+        const { levelDirectory, worldDirectory, generatedPuzzleDirectory, bundleDirectory } = gameBuildPaths(root);
+        const { bundle, inputs: { level, world, puzzles } } = buildFixture();
+        level.generationConfig.structuralDifficulty.puzzleCount = { minimum: 1, maximum: 1 };
+        level.terminalAction.actionType = "database-search";
+        level.terminalAction.fields[0].semanticRole = "record-selector";
+        const catalog = repositoryPuzzleCatalog;
+        const levelFile = await writeLevelBlueprintFile({ level, catalog, outputDirectory: levelDirectory });
+        await writeGameWorldFile({ world, outputDirectory: worldDirectory });
+        const metadataFile = await writeGeneratedPuzzle(level.id, puzzles[0].puzzle, generatedPuzzleDirectory);
+        const bundlePlan = await writeLevelBundleFile({ level, world, bundle, catalog, outputDirectory: bundleDirectory });
+
+        const { publicDirectory, privateDirectory } = await loadAndVerifyLevelBundle(levelFile, undefined, root);
+        const saved = await loadSavedGameLevel({
+            id: level.id, title: level.title, levelFile, bundlePlan, publicDirectory, privateDirectory
+        }, root);
+        expect(saved.inputs.puzzles[0].metadataFile).toBe(metadataFile);
+        expect(path.relative(bundleDirectory, publicDirectory)).toBe(path.join(level.id, "public"));
+    } finally {
+        await rm(root, { recursive: true, force: true });
+    }
+});
+
 function qrFixture(): { inputs: LevelBundleInputs; bundle: LevelBundle; svg: string } {
     const fixture = buildFixture();
     const node = fixture.inputs.level.puzzles[0];
@@ -213,6 +249,38 @@ function qrFixture(): { inputs: LevelBundleInputs; bundle: LevelBundle; svg: str
     }
     return { ...fixture, svg: puzzle.artifact.source };
 }
+
+it("publishes the original puzzle file when a bundle also requests it as supporting media", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "duplicate-puzzle-media-"));
+    try {
+        const { inputs, bundle, svg } = qrFixture();
+        const site = bundle.sites[0];
+        const route = site.routes.find((candidate) => candidate.role === "puzzle")!;
+        if (route.role !== "puzzle" || !route.directAssetPath) throw new Error("Expected a puzzle file.");
+        route.content.blocks.push({ kind: "media", mediaId: route.puzzleId, caption: "Original attachment" });
+        bundle.mediaRequests.push({
+            id: route.puzzleId, siteId: site.id, routePath: route.path, kind: "svg",
+            purpose: "Publish the puzzle attachment",
+            brief: "Reuse the original attachment bytes.",
+            accessibilityText: "Scanned attachment",
+            worldEntityIds: ["site:community-notices"]
+        });
+        const catalog = repositoryPuzzleCatalog;
+        const tool = createSubmitLevelBundleTool(inputs, catalog, {
+            seed: "media-test", supportingItemsMinimum: 0, supportingItemsMaximum: 15
+        }, root);
+        const result = await tool.execute("finalize", { bundle });
+        const plan = result.details.bundle;
+        expect(plan.mediaRequests).toEqual([]);
+        const build = await buildLevelBundle({ bundle: plan, inputs, catalog, outputDirectory: root });
+        expect(await readFile(path.join(build.publicDirectory, route.directAssetPath.slice(1)), "utf8")).toBe(svg);
+        const html = await readFile(path.join(build.publicDirectory, site.basePath.slice(1), route.path.slice(1), "index.html"), "utf8");
+        expect(html.split(`src="${route.directAssetPath}"`)).toHaveLength(2);
+        await expect(verifyLevelBundle({ ...build, inputs, bundle: plan })).resolves.toMatchObject({ status: "passed" });
+    } finally {
+        await rm(root, { recursive: true, force: true });
+    }
+});
 
 function versionFixture(): { inputs: LevelBundleInputs; bundle: LevelBundle; currentSource: string } {
     const fixture = buildFixture();
@@ -250,7 +318,75 @@ function versionFixture(): { inputs: LevelBundleInputs; bundle: LevelBundle; cur
     return { ...fixture, currentSource: current.source };
 }
 
+it("requires extensionless web page paths", () => {
+    expect(pagePathIssues("/archive/note.html")).toEqual([expect.stringContaining("extensionless")]);
+    expect(pagePathIssues("/archive/note")).toEqual([]);
+});
+
 describe("level bundle builder", () => {
+    it("keeps a broken required journey invalid regardless of the page's editorial type", async () => {
+        const root = await mkdtemp(path.join(os.tmpdir(), "bundle-authored-journey-"));
+        try {
+            const fixture = buildFixture();
+            fixture.inputs.level.investigationQuestion = "What project does the notice describe?";
+            fixture.bundle.sites[0].routes[0].content.title = "Contractor Directory";
+            const terminal = fixture.bundle.sites[0].routes.find((route) => route.role === "terminal")!;
+            terminal.discovery = { ...terminal.discovery!, linkReason: "The notice links its official intake form." };
+            const build = await buildLevelBundle({ ...fixture, catalog: repositoryPuzzleCatalog, outputDirectory: root });
+            const home = await readFile(path.join(build.publicDirectory, "records", "index.html"), "utf8");
+            expect(home).not.toContain('href="/records/notices/cleanup"');
+            await expect(verifyLevelBundle({ ...fixture, ...build })).rejects.toThrow("journey-link (/records)");
+
+            const site = fixture.bundle.sites[0];
+            site.routes = site.routes.filter((route) => route.role !== "supporting");
+            const notice = site.routes.find((route) => route.role === "puzzle")!;
+            notice.discovery = {
+                kind: "direct-link", from: ["/records"], cue: "Open the listed record.",
+                linkReason: "The directory provides the sole record in this collection."
+            };
+            site.routes[0].content.blocks.push({
+                kind: "cards", collection: "records",
+                items: [{ title: "Selected record", summary: "A publicly available notice.", href: "/records/notices/cleanup" }]
+            });
+            const narrow = await buildLevelBundle({ ...fixture, catalog: repositoryPuzzleCatalog, outputDirectory: root });
+            await expect(verifyLevelBundle({ ...fixture, ...narrow })).resolves.toMatchObject({ status: "passed" });
+        } finally {
+            await rm(root, { recursive: true, force: true });
+        }
+    });
+
+    it("requires a current blind trace with evidence for each terminal field", async () => {
+        const root = await mkdtemp(path.join(os.tmpdir(), "bundle-blind-gate-"));
+        try {
+            const fixture = buildFixture();
+            const build = await buildLevelBundle({ ...fixture, catalog: repositoryPuzzleCatalog, outputDirectory: root });
+            const levels = [{ ...fixture, ...build }];
+            const candidate = await playtestCandidate("fixture", levels);
+            const report = {
+                fingerprint: candidate.fingerprint,
+                gameComplete: true,
+                levels: [{
+                    title: fixture.inputs.level.title,
+                    submissionAccepted: true,
+                    steps: [
+                        { from: "/", to: "/records", reason: "The briefing points to the public records office." },
+                        { from: "/records", to: "/records/notices/cleanup", reason: "I opened the published notice." },
+                        { from: "/records/notices/cleanup", to: "/records/submit", reason: "The notice links the form." }
+                    ],
+                    fields: [{ label: "Project name", path: "/records/notices/cleanup", observation: "The notice identifies the project." }]
+                }],
+                issues: []
+            };
+            expect(() => assertBlindPlaytest(report, candidate, levels)).not.toThrow();
+            expect(() => assertBlindPlaytest({ ...report, fingerprint: "0".repeat(64) }, candidate, levels))
+                .toThrow("different build");
+            report.levels[0].fields[0].path = "/private/answers.json";
+            expect(() => assertBlindPlaytest(report, candidate, levels)).toThrow("public evidence path");
+        } finally {
+            await rm(root, { recursive: true, force: true });
+        }
+    });
+
     it("opens the first setting's homepage when a legacy bundle maps one input to several routes", () => {
         const fixture = buildFixture();
         const source = `starting-input:${fixture.inputs.level.startingInputs[0].id}`;
@@ -371,9 +507,12 @@ describe("level bundle builder", () => {
             expect(indexSource).toContain("Case briefing");
             expect(indexSource).toContain(fixture.inputs.level.startingSituation);
             expect(indexSource).toContain(fixture.inputs.level.playerRole);
-            expect(indexSource).toContain(publicLevelGoal(fixture.inputs));
+            expect(indexSource).toContain("Follow the evidence to learn what happened.");
+            expect(indexSource).not.toContain(fixture.inputs.level.terminalAction.fields[0].label);
             expect(indexSource).toContain("Known facts");
-            expect(indexSource).toContain("Start here:");
+            expect(indexSource).not.toContain("Start here:");
+            const firstFact = fixture.inputs.level.startingInputs[0].description;
+            expect(indexSource.split(firstFact)).toHaveLength(2);
             expect(indexSource).not.toContain(fixture.inputs.level.summary);
             expect(puzzleSource).not.toContain("Related resources");
             expect(puzzleSource).not.toContain("investigation resource");
@@ -406,17 +545,6 @@ describe("level bundle builder", () => {
         }
     });
 
-    it("keeps puzzle answers out of the public goal", () => {
-        const fixture = buildFixture();
-        const answer = fixture.inputs.puzzles[0].puzzle.solution.canonical;
-        fixture.inputs.level.terminalAction.description = `Submit ${answer} as the final finding.`;
-
-        const goal = publicLevelGoal(fixture.inputs);
-
-        expect(goal).toContain("project name");
-        expect(goal).not.toContain(answer);
-    });
-
     it("keeps blueprint spoilers out of the rendered briefing", async () => {
         const root = await mkdtemp(path.join(os.tmpdir(), "bundle-briefing-"));
         try {
@@ -424,11 +552,94 @@ describe("level bundle builder", () => {
             const { level, puzzles } = fixture.inputs;
             const answer = puzzles[0].puzzle.solution.canonical;
             level.startingSituation = `The record identifies ${answer}.`;
+            level.terminalAction.briefing = { kind: "assigned", instruction: `Send ${answer} to the archive.` };
             level.startingInputs[0].description = `Look up ${answer}.`;
             const build = await buildLevelBundle({ ...fixture, catalog: repositoryPuzzleCatalog, outputDirectory: root });
             const briefing = await readFile(path.join(build.publicDirectory, "index.html"), "utf8");
             expect(briefing).not.toContain(answer);
             expect(briefing).toContain(level.playerRole);
+            expect(briefing).toContain('href="/records"');
+            await expect(verifyLevelBundle({ ...fixture, ...build })).resolves.toMatchObject({ status: "passed" });
+        } finally {
+            await rm(root, { recursive: true, force: true });
+        }
+    });
+
+    it("keeps puzzle answers in blueprint field hints out of the terminal form", async () => {
+        const root = await mkdtemp(path.join(os.tmpdir(), "terminal-hint-spoiler-"));
+        try {
+            const fixture = buildFixture();
+            const { level, puzzles } = fixture.inputs;
+            const answer = puzzles[0].puzzle.solution.canonical;
+            const field = level.terminalAction.fields[0];
+            field.hint = `Use the value from the ${answer} record.`;
+            const build = await buildLevelBundle({ ...fixture, catalog: repositoryPuzzleCatalog, outputDirectory: root });
+            const form = await readFile(path.join(build.publicDirectory, "records", "submit", "index.html"), "utf8");
+            expect(form).not.toContain(answer);
+            expect(form).not.toContain(`aria-describedby="${field.id}-hint"`);
+            expect(form).toContain(`<label for="${field.id}">${field.label}`);
+            expect(form).toContain(`name="${field.id}"`);
+            await expect(verifyLevelBundle({ ...fixture, ...build })).resolves.toMatchObject({ status: "passed" });
+        } finally {
+            await rm(root, { recursive: true, force: true });
+        }
+    });
+
+    it.each(["assigned", "discovered"] as const)("shows only a story-assigned terminal action in the level briefing (%s)", async (kind) => {
+        const root = await mkdtemp(path.join(os.tmpdir(), "terminal-briefing-"));
+        try {
+            const fixture = buildFixture();
+            const { level } = fixture.inputs;
+            const instruction = "The archive desk asks you to send back what you find so it can update its records.";
+            level.investigationQuestion = "Which project does the notice describe?";
+            level.terminalAction.description = "Return your findings through the records portal.";
+            level.terminalAction.briefing = kind === "assigned" ? { kind, instruction } : { kind };
+            const terminal = fixture.bundle.sites[0].routes.find((route) => route.role === "terminal")!;
+            terminal.discovery!.linkReason = "The archived notice links to the records desk's response form.";
+            const field = level.terminalAction.fields[0];
+            field.hint = "Use the name as printed on the notice.";
+            const build = await buildLevelBundle({ ...fixture, catalog: repositoryPuzzleCatalog, outputDirectory: root });
+            const index = await readFile(path.join(build.publicDirectory, "index.html"), "utf8");
+            const form = await readFile(path.join(build.publicDirectory, "records", "submit", "index.html"), "utf8");
+            expect(index).toContain(level.investigationQuestion);
+            expect(index.includes(instruction)).toBe(kind === "assigned");
+            expect(index).not.toContain(level.terminalAction.description);
+            expect(index).not.toContain(field.label);
+            expect(index).not.toContain(field.hint);
+            expect(form).toContain(field.label);
+            expect(form).toContain(field.hint);
+        } finally {
+            await rm(root, { recursive: true, force: true });
+        }
+    });
+
+    it("combines the public campaign opening with the first level briefing", async () => {
+        const root = await mkdtemp(path.join(os.tmpdir(), "campaign-briefing-"));
+        try {
+            const fixture = buildFixture();
+            const { level } = fixture.inputs;
+            const campaignBriefing = {
+                title: "The Archive Case",
+                situation: "A clerk vanished from the city archives just before a public hearing.",
+                playerRole: "You are the clerk's colleague.",
+                goal: "Find the clerk and bring the evidence to the council.",
+                firstLead: "Start with the public files your colleague was reviewing."
+            };
+            level.startingSituation = "Click through the archive menu and submit the value you find.";
+            const instruction = "The records desk asks you to send what you find so it can follow up.";
+            level.terminalAction.briefing = { kind: "assigned", instruction };
+            const build = await buildLevelBundle({
+                ...fixture, catalog: repositoryPuzzleCatalog, outputDirectory: root, campaignBriefing
+            });
+            const briefing = await readFile(path.join(build.publicDirectory, "index.html"), "utf8");
+            expect(briefing).toContain(`<h1>${campaignBriefing.title}</h1>`);
+            expect(briefing).toContain(campaignBriefing.situation);
+            expect(briefing).toContain("You are the clerk&#39;s colleague.");
+            expect(briefing).toContain(campaignBriefing.goal);
+            expect(briefing).toContain(`<h2>${level.title}</h2>`);
+            expect(briefing).toContain(instruction);
+            expect(briefing).toContain(campaignBriefing.firstLead);
+            expect(briefing).not.toContain(level.startingSituation);
             expect(briefing).toContain('href="/records"');
             await expect(verifyLevelBundle({ ...fixture, ...build })).resolves.toMatchObject({ status: "passed" });
         } finally {
@@ -551,6 +762,57 @@ describe("level bundle builder", () => {
         }
     });
 
+    it("opens cross-site links and searches in a new tab, even when sites share a path prefix", async () => {
+        const root = await mkdtemp(path.join(os.tmpdir(), "bundle-site-tabs-"));
+        try {
+            const fixture = buildFixture();
+            const records = fixture.bundle.sites[0];
+            const home = records.routes[0];
+            const registryPath = "/records/registry";
+            const registryEntry = records.routes.splice(2, 1)[0];
+            registryEntry.path = "/entry";
+            registryEntry.discovery = { kind: "lookup", from: ["/records"], cue: "Check the registry." };
+            records.routes[1].discovery = { kind: "lookup", from: ["/records"], cue: "Search community updates." };
+            fixture.bundle.sites.push({
+                id: "registry",
+                name: "Public Registry",
+                archetype: "records",
+                visualProfile: records.visualProfile,
+                basePath: registryPath,
+                routes: [{
+                    path: "/",
+                    role: "structural",
+                    content: {
+                        title: "Registry homepage",
+                        description: "Search official entries.",
+                        blocks: [{ kind: "prose", paragraphs: ["The registry lists public filings."] }]
+                    },
+                    discovery: { kind: "direct-link", from: ["/records"], cue: "Open the registry homepage." }
+                }, registryEntry]
+            });
+            home.content.blocks.push({
+                kind: "cards",
+                items: [{
+                    title: "Registry homepage",
+                    summary: "Open the registry.",
+                    href: registryPath
+                }, {
+                    title: "Community update",
+                    summary: "Read more local news.",
+                    href: "/records/news/update-3"
+                }]
+            });
+            const build = await buildLevelBundle({ ...fixture, catalog: repositoryPuzzleCatalog, outputDirectory: root });
+            const html = await readFile(path.join(build.publicDirectory, "records", "index.html"), "utf8");
+            expect(html).toContain('<a href="/records/registry" target="_blank" rel="noopener">Registry homepage');
+            expect(html).toContain('<a href="/records/news/update-3">Community update');
+            expect(html).toContain('role="search" target="_blank" rel="noopener"><input type="hidden" name="target" value="/records/registry/entry">');
+            expect(html).toContain('role="search"><input type="hidden" name="target" value="/records/news/update-1">');
+        } finally {
+            await rm(root, { recursive: true, force: true });
+        }
+    });
+
     it("fails verification when a public page changes or leaks an answer", async () => {
         const root = await mkdtemp(path.join(os.tmpdir(), "bundle-verification-"));
         try {
@@ -588,6 +850,14 @@ describe("level bundle builder", () => {
         } finally {
             await rm(root, { recursive: true, force: true });
         }
+    });
+
+    it("checks numeric answers in public text without matching generated HTML or larger numbers", () => {
+        const answers = [{ value: "3", puzzleId: "find-unit", caseInsensitive: false }];
+        const shell = '<link href="/assets/site-3.css"><h3>Records from 2023</h3>';
+        expect(findBundleHtmlAnswer(shell, answers)).toBeUndefined();
+        expect(findBundleHtmlAnswer(`${shell}<p>Unit <strong>3</strong></p>`, answers)).toBe(answers[0]);
+        expect(findBundleHtmlAnswer(`${shell}<img alt="Unit 3" src="/photo.png">`, answers)).toBe(answers[0]);
     });
 
     it("publishes media at a stable direct URL without changing its source", async () => {
@@ -827,7 +1097,68 @@ describe("level bundle builder", () => {
     });
 });
 
+describe("copy-only game feedback", () => {
+    it("validates the original and revised flow, and rejects changes outside the approved paragraph", async () => {
+        const root = await mkdtemp(path.join(os.tmpdir(), "game-copy-revision-"));
+        try {
+            const fixture = buildFixture();
+            const original = await buildLevelBundle({
+                ...fixture, catalog: repositoryPuzzleCatalog, outputDirectory: path.join(root, "before")
+            });
+            const baseline = { ...fixture, ...original };
+            await verifyGameInteractions([baseline]);
+
+            const edit = { level: 1, path: "/records", finding: 1, paragraph: "The archive is maintained by the city clerk." };
+            expect(() => applyEditorialEdits(baseline, [{ ...edit, path: "/records/notices/cleanup" }]))
+                .toThrow("Rejected copy addition");
+            expect(() => applyEditorialEdits(baseline, [{ ...edit, paragraph: "The project is river cleanup." }]))
+                .toThrow("Rejected copy addition");
+            expect(() => applyEditorialEdits(baseline, [{ ...edit, paragraph: "Open /records/notices/cleanup." }]))
+                .toThrow("Rejected copy addition");
+
+            const revision = applyEditorialEdits(baseline, [edit]);
+            const revised = await buildLevelBundle({
+                ...fixture, bundle: revision.bundle, catalog: repositoryPuzzleCatalog, outputDirectory: path.join(root, "after")
+            });
+            await assertCopyOnlyBuild(original.publicDirectory, revised.publicDirectory, revision.additions);
+            const result = { ...fixture, ...revised, bundle: revision.bundle };
+            await verifyGameInteractions([result]);
+            const revisedHome = path.join(revised.publicDirectory, "records", "index.html");
+            const html = await readFile(revisedHome, "utf8");
+            expect(html).toContain(edit.paragraph);
+            await writeFile(revisedHome, html.replace("/records/notices/cleanup", "/elsewhere"));
+            await expect(assertCopyOnlyBuild(original.publicDirectory, revised.publicDirectory, revision.additions))
+                .rejects.toThrow("changed more than the approved paragraph");
+
+            const terminal = path.join(revised.publicDirectory, "records", "submit", "index.html");
+            const terminalHtml = await readFile(terminal, "utf8");
+            await writeFile(terminal, terminalHtml.replace('name="project"', 'name="missing-field"'));
+            await expect(verifyGameInteractions([result])).rejects.toThrow("incomplete terminal form");
+        } finally {
+            await rm(root, { recursive: true, force: true });
+        }
+    });
+});
+
 describe("level bundle preview and terminal validation", () => {
+    it("checks the actual preview handlers for a game sequence", async () => {
+        const root = await mkdtemp(path.join(os.tmpdir(), "bundle-runtime-gate-"));
+        try {
+            const fixture = buildFixture();
+            const lookup = fixture.bundle.sites[0].routes.find((route) => route.path === "/news/update-2")!;
+            lookup.discovery = { kind: "lookup", from: ["/records/news/update-1"], cue: "Search public updates." };
+            const build = await buildLevelBundle({ ...fixture, catalog: repositoryPuzzleCatalog, outputDirectory: root });
+            const level = { ...fixture, ...build };
+            await expect(verifyGameInteractions([level, level])).resolves.toBeUndefined();
+            const lookupPage = path.join(build.publicDirectory, "records", "news", "update-1", "index.html");
+            const html = await readFile(lookupPage, "utf8");
+            await writeFile(lookupPage, html.replaceAll('name="q"', 'name="wrong-field"'));
+            await expect(verifyGameInteractions([level])).rejects.toThrow("has no usable lookup form");
+        } finally {
+            await rm(root, { recursive: true, force: true });
+        }
+    });
+
     it("validates terminal fields from private level sources", () => {
         const { inputs } = buildFixture();
         inputs.level.terminalAction.fields[0].semanticRole = "location";
@@ -849,6 +1180,19 @@ describe("level bundle preview and terminal validation", () => {
     it("creates a local server over the built public bundle", async () => {
         const root = await mkdtemp(path.join(os.tmpdir(), "bundle-server-"));
         const fixture = buildFixture();
+        const clue = "weekend-volunteering.html";
+        const source = fixture.inputs.level.startingInputs[0];
+        fixture.inputs.level.startingInputs[0] = {
+            id: source.id, semanticRole: source.semanticRole, description: source.description,
+            dataType: "string", value: clue
+        };
+        const notice = fixture.bundle.sites[0].routes.find((route) => route.path === "/notices/cleanup")!;
+        const noteInput = fixture.inputs.level.puzzles[0].design.inputs[0];
+        noteInput.access = { kind: "lookup", fieldLabel: "Archive note reference" };
+        notice.discovery = {
+            kind: "lookup", from: ["/records"], cue: "Enter the file reference.",
+            queryInputId: noteInput.id
+        };
         const build = await buildLevelBundle({
             ...fixture,
             catalog: repositoryPuzzleCatalog,
@@ -869,13 +1213,19 @@ describe("level bundle preview and terminal validation", () => {
             if (address === null || typeof address === "string") throw new Error("Missing preview-server port.");
             const origin = `http://127.0.0.1:${address.port}`;
             const target = "/records/notices/cleanup";
+            const sourcePage = await (await fetch(`${origin}/records`)).text();
+            expect(sourcePage).toContain("Archive note reference");
+            expect(sourcePage).toContain("without the site address");
+            expect(sourcePage).toContain(`name="target" value="${target}"`);
             const wrongSearch = await fetch(
                 `${origin}/api/search?target=${encodeURIComponent(target)}&q=wrong`,
                 { redirect: "manual" }
             );
             expect(wrongSearch.status).toBe(200);
-            expect(await wrongSearch.text()).toContain("No matching results");
-            const correctQuery = "Weekend volunteer notice";
+            const noResults = await wrongSearch.text();
+            expect(noResults).toContain("No matching results");
+            expect(noResults).toContain("Archive note reference");
+            const correctQuery = clue;
             const correctSearch = await fetch(
                 `${origin}/api/search?target=${encodeURIComponent(target)}&q=${encodeURIComponent(correctQuery)}`,
                 { redirect: "manual" }
@@ -929,6 +1279,7 @@ describe("level bundle preview and terminal validation", () => {
             });
             const source = await completion.text();
             expect(source).toContain("Continue to The Next Lead");
+            expect(source).toContain('target="_blank" rel="noopener">Continue to The Next Lead');
             expect(source).toContain('href="http://127.0.0.1:4301/"');
         } finally {
             if (server.listening) await new Promise<void>((resolve) => server.close(() => resolve()));

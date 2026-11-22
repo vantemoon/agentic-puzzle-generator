@@ -7,14 +7,14 @@ import {
     normalizeAnagramAnswer,
     normalizeAnagramClue,
     normalizeScrambleSeed
-} from "../src/agents/anagram/engine.js";
+} from "../src/features/puzzle-generation/generators/anagram/engine.js";
 import {
     assertPrivatePuzzleInstance,
     getPuzzleArtifactSource,
     assertPublicPuzzleInstance,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 const knownSpec = (id: string) => ({
     id,

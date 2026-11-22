@@ -9,14 +9,14 @@ import {
     normalizeCapitalizationCarrier,
     normalizeCapitalizationGenre,
     normalizeCapitalizationSolution
-} from "../src/agents/binary-capitalization/engine.js";
+} from "../src/features/puzzle-generation/generators/binary-capitalization-pattern/engine.js";
 import {
     assertPrivatePuzzleInstance,
     getPuzzleArtifactSource,
     assertPublicPuzzleInstance,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 const CARRIER_TEXT = "quiet rivers cross the valley while lanterns glow beside old roads.";
 

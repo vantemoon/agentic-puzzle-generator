@@ -12,18 +12,18 @@ import {
     normalizeHtmlCommentSolution,
     normalizeVisibleBody,
     normalizeVisibleTitle
-} from "../src/agents/html-comment/engine.js";
+} from "../src/features/puzzle-generation/generators/html-comment/engine.js";
 import {
     createHtmlCommentPuzzleTool,
     writeHtmlArtifactPreview
-} from "../src/agents/html-comment/tool.js";
+} from "../src/features/puzzle-generation/generators/html-comment/tool.js";
 import {
     assertPrivatePuzzleInstance,
     assertPublicPuzzleInstance,
     getHtmlEntrySource,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 const knownSpec = (id: string) => ({
     id,

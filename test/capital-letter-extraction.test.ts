@@ -7,14 +7,14 @@ import {
     normalizeCapitalLetterCarrier,
     normalizeCapitalLetterGenre,
     normalizeCapitalLetterSolution
-} from "../src/agents/capital-letter-extraction/engine.js";
+} from "../src/features/puzzle-generation/generators/capital-letter-extraction/engine.js";
 import {
     assertPrivatePuzzleInstance,
     getPuzzleArtifactSource,
     assertPublicPuzzleInstance,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 const CARRIER_TEXT = [
     "many evenings ease toward a tranquil northern overlook near sunset.",

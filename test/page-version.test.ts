@@ -12,18 +12,18 @@ import {
     normalizePageVersionSolution,
     normalizePageVersionTitle,
     normalizeVersionDate
-} from "../src/agents/page-version/engine.js";
+} from "../src/features/puzzle-generation/generators/page-version/engine.js";
 import {
     createPageVersionPuzzleTool,
     writePageVersionArtifactPreview
-} from "../src/agents/page-version/tool.js";
+} from "../src/features/puzzle-generation/generators/page-version/tool.js";
 import {
     assertPrivatePuzzleInstance,
     assertPublicPuzzleInstance,
     getHtmlEntrySource,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 const knownSpec = (id: string) => ({
     id,

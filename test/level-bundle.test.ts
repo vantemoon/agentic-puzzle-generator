@@ -4,34 +4,35 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { createAltTextPuzzle } from "../src/agents/alt-text/engine.js";
-import { createHtmlCommentPuzzle } from "../src/agents/html-comment/engine.js";
-import { createSourceCodePuzzle } from "../src/agents/html-source-inspection/engine.js";
-import { createPageVersionPuzzle } from "../src/agents/page-version/engine.js";
-import { buildLevelBundlePrompt } from "../src/agents/level-bundle/prompt.js";
-import { stopAfterRepeatedTruncatedBundleSubmissions } from "../src/agents/level-bundle/agent.js";
+import { createAltTextPuzzle } from "../src/features/puzzle-generation/generators/alt-text/engine.js";
+import { createHtmlCommentPuzzle } from "../src/features/puzzle-generation/generators/html-comment/engine.js";
+import { createSourceCodePuzzle } from "../src/features/puzzle-generation/generators/html-source-inspection/engine.js";
+import { createPageVersionPuzzle } from "../src/features/puzzle-generation/generators/page-version/engine.js";
+import { buildLevelBundlePrompt } from "../src/features/level-bundle/agent/prompt.js";
+import { stopAfterRepeatedTruncatedBundleSubmissions } from "../src/features/level-bundle/agent/agent.js";
 import {
     levelBundleCoreRouteMaximum,
     levelBundleRouteMaximum,
     scaledSupportingItemRange
-} from "../src/agents/level-bundle/limits.js";
-import { createStagedLevelBundleTools } from "../src/agents/level-bundle/staged-tool.js";
-import { createSubmitLevelBundleTool } from "../src/agents/level-bundle/tool.js";
+} from "../src/features/level-bundle/limits.js";
+import { createStagedLevelBundleTools } from "../src/features/level-bundle/agent/staged-tool.js";
+import { createSubmitLevelBundleTool } from "../src/features/level-bundle/agent/tool.js";
 import {
     assertLevelBundle,
+    canonicalBundlePagePath,
     LEVEL_BUNDLE_SCHEMA_VERSION,
     type LevelBundle,
     validateLevelBundle
-} from "../src/levels/bundle.js";
+} from "../src/features/level-bundle/types.js";
 import {
     LevelBundlePreflightError,
     loadLevelBundleInputs
-} from "../src/levels/bundle-inputs.js";
-import { readLevelBundleFile } from "../src/levels/bundle-io.js";
-import { repositoryPuzzleCatalog } from "../src/levels/catalog.js";
-import { writeGeneratedPuzzle } from "../src/levels/puzzle-generation.js";
-import type { PuzzleNode } from "../src/levels/types.js";
-import type { GameWorld } from "../src/world/types.js";
+} from "../src/features/level-bundle/inputs.js";
+import { readLevelBundleFile } from "../src/features/level-bundle/io.js";
+import { repositoryPuzzleCatalog } from "../src/features/puzzle-generation/catalog.js";
+import { writeGeneratedPuzzle } from "../src/features/puzzle-generation/generate.js";
+import type { PuzzleNode } from "../src/features/level-design/types.js";
+import type { GameWorld } from "../src/features/world/types.js";
 import { levelFixture } from "./fixtures/level-v5.js";
 
 const page = (title: string) => ({
@@ -198,7 +199,6 @@ function generatedPuzzle(node: PuzzleNode) {
         return createHtmlCommentPuzzle(spec as unknown as Parameters<typeof createHtmlCommentPuzzle>[0]);
     }
     if (node.design.subtype === "alt-text") {
-        spec.altText = "Volunteers gathered at the North River boardwalk on APRIL 18 2026, standing beside filled cleanup bags.";
         spec.imageElements = [
             "rect|0|0|420|180|#b9d4df|none|0|1|0|0",
             "rect|0|115|420|65|#78966f|none|0|1|0|0",
@@ -392,6 +392,20 @@ describe("level bundle contracts", () => {
         );
     });
 
+    it("requires a homepage for each site's persistent navigation", () => {
+        const bundle = validBundle();
+        bundle.sites.push({
+            ...bundle.sites[0],
+            id: "contract-registry",
+            basePath: "/contracts",
+            routes: [{ role: "structural", path: "/search", content: page("Contract search"),
+                discovery: { kind: "navigation", from: ["/community-records"], cue: "Open contract search." } }]
+        });
+        expect(validateLevelBundle(bundle, levelFixture, repositoryPuzzleCatalog)).toContain(
+            'Bundled site contract-registry must declare a homepage route with path "/" because its site navigation links to /contracts.'
+        );
+    });
+
     it("requires direct-link discovery to have a matching clickable card", () => {
         const bundle = validBundle();
         const source = bundle.sites[0].routes.find((route) => route.path === "/directory/coordinator");
@@ -403,6 +417,14 @@ describe("level bundle contracts", () => {
             + "/community-records/submit requires a cards item on "
             + "/community-records/directory/coordinator whose href is exactly /community-records/submit."
         );
+    });
+
+    it("canonicalizes a single trailing slash without repairing unsafe paths", () => {
+        expect(canonicalBundlePagePath("/permits/")).toBe("/permits");
+        expect(canonicalBundlePagePath("/")).toBe("/");
+        for (const invalid of ["//permits/", "/permits//", "/permits/../", "/permits/%2e%2e/", "/permits?foo/"]) {
+            expect(canonicalBundlePagePath(invalid)).toBe(invalid);
+        }
     });
 });
 
@@ -492,7 +514,7 @@ describe("level bundle agent boundary", () => {
                 supportingItemsMaximum: 15
             });
 
-            expect(prompt).toContain("between 10 and 15 routes");
+            expect(prompt).toContain("Around 10 supporting routes is a planning target");
             expect(prompt).toContain("across the entire bundle");
             expect(prompt).toContain("never create routes for artifact filenames");
             expect(prompt).toContain("visible title and body");
@@ -583,7 +605,7 @@ describe("level bundle agent boundary", () => {
         }
     });
 
-    it("rejects too little supporting content before writing a plan", async () => {
+    it("saves a scoped plan without imposing editorial page or media quotas", async () => {
         const root = await mkdtemp(path.join(os.tmpdir(), "level-bundle-depth-"));
         try {
             const files = await writeInputs(root);
@@ -593,17 +615,24 @@ describe("level bundle agent boundary", () => {
                 catalog: repositoryPuzzleCatalog
             });
             const complete = validBundle();
+            complete.mediaRequests = [];
+            const home = complete.sites[0].routes[0];
+            home.content.blocks = home.content.blocks.filter((block) => block.kind !== "media");
+            home.content.blocks.push({
+                kind: "cards", heading: "Selected records", collection: "records",
+                items: [{ title: "Cleanup notice", summary: "A record selected for this collection.", href: "/community-records/notices/cleanup" }]
+            });
             const { schemaVersion: _schema, levelId: _level, world: _world, seed: _seed, terminal, ...agentFields } = complete;
             const { mode: _mode, ...agentTerminal } = terminal;
             const tool = createSubmitLevelBundleTool(inputs, repositoryPuzzleCatalog, {
                 seed: "tool-seed",
                 supportingItemsMinimum: 10,
                 supportingItemsMaximum: 15
-            });
+            }, path.join(root, "bundles"));
 
             await expect(tool.execute("tool-call", {
                 bundle: { ...agentFields, terminal: agentTerminal }
-            })).rejects.toThrow("must contain 10-15 supporting routes in total; found 0");
+            })).resolves.toMatchObject({ details: { bundle: { mediaRequests: [] } } });
         } finally {
             await rm(root, { recursive: true, force: true });
         }
@@ -702,12 +731,12 @@ describe("level bundle agent boundary", () => {
                     ...(site.worldEntityId === undefined ? {} : { worldEntityId: site.worldEntityId }),
                     archetype: site.archetype,
                     visualProfile: site.visualProfile,
-                    basePath: site.basePath
+                    basePath: `${site.basePath}/`
                 })),
                 worldAdditions: complete.worldAdditions,
                 terminal: {
                     siteId: complete.terminal.siteId,
-                    routePath: `${complete.sites[0].basePath}${complete.terminal.routePath}`
+                    routePath: `${complete.sites[0].basePath}${complete.terminal.routePath}/`
                 }
             };
             const supporting = complete.sites[0].routes.filter(
@@ -717,8 +746,8 @@ describe("level bundle agent boundary", () => {
             const withFullPath = <T extends { path: string }>(route: T): T => ({
                 ...route,
                 path: route.path === "/"
-                    ? complete.sites[0].basePath
-                    : `${complete.sites[0].basePath}${route.path}`
+                    ? `${complete.sites[0].basePath}/`
+                    : `${complete.sites[0].basePath}${route.path}/`
             });
             const required = complete.sites[0].routes
                 .filter((route) => route.role !== "supporting")
@@ -765,6 +794,32 @@ describe("level bundle agent boundary", () => {
             await replaceSiteTool.execute("replace-site", {
                 site: { ...structure.sites[0], name: "Riverside Public Records" }
             });
+            const leak = structuredClone(required[0]);
+            leak.content.blocks = [
+                { kind: "table", columns: ["Project"], rows: [["RIVER CLEANUP"]] },
+                { kind: "cards", items: [{ title: "Open record", summary: "View details.", href: "/records/RIVER CLEANUP" }] }
+            ];
+            const rejected = routeTool.execute("spoiler-batch", {
+                siteId: complete.sites[0].id,
+                routes: [...required.slice(1, 3), leak]
+            });
+            await expect(rejected).rejects.toThrow("content.blocks[0].rows[0][0] contains");
+            await expect(rejected).rejects.toThrow('content.blocks[1].items[0].href contains "RIVER CLEANUP" (answer to find-project-name)');
+            const lookup = structuredClone(required.find((route) =>
+                route.role === "puzzle" && route.puzzleId === "find-meeting-place")!);
+            if (lookup.role !== "puzzle") throw new Error("Expected a meeting history puzzle.");
+            const meeting = inputs.level.puzzles.find((puzzle) => puzzle.id === lookup.puzzleId)!;
+            const clueInput = meeting.design.inputs.find((input) => input.source.kind === "puzzle-output")!;
+            if (clueInput.source.kind !== "puzzle-output") throw new Error("Expected a clue from a puzzle output.");
+            lookup.discovery = {
+                kind: "lookup", from: [complete.sites[0].basePath], cue: "Enter the reference.",
+                queryInputId: clueInput.source.outputId
+            };
+            inputs.level.investigationQuestion = "Where did the organizers meet?";
+            await expect(routeTool.execute("wrong-lookup-id", {
+                siteId: complete.sites[0].id, routes: [lookup]
+            })).rejects.toThrow(`Use a destination puzzle input ID from "${clueInput.id}"`);
+            delete inputs.level.investigationQuestion;
             await routeTool.execute("routes-1", {
                 siteId: complete.sites[0].id,
                 routes: required.slice(0, 5)
@@ -773,6 +828,16 @@ describe("level bundle agent boundary", () => {
                 siteId: complete.sites[0].id,
                 routes: required.slice(5)
             });
+            clueInput.access = { kind: "lookup", fieldLabel: "Meeting reference" };
+            await expect(replaceTool.execute("wrong-replacement", {
+                siteId: complete.sites[0].id, route: lookup
+            })).rejects.toThrow(`Use discovery.kind "lookup" and queryInputId "${clueInput.id}"`);
+            await expect(replaceTool.execute("wrong-access-mode", {
+                siteId: complete.sites[0].id,
+                route: { ...lookup, discovery: fromRecordsHome("Open the meeting notice.") }
+            })).rejects.toThrow('requires an on-site lookup labeled "Meeting reference"');
+            delete clueInput.access;
+
             await supportingTool.execute("support-1", {
                 siteId: complete.sites[0].id,
                 routes: fullSupporting.slice(0, 5)
@@ -787,11 +852,24 @@ describe("level bundle agent boundary", () => {
                 siteId: complete.sites[0].id,
                 route: replacement
             });
+            const direct = required.find((route) => route.role === "terminal")!;
+            const sourcePath = direct.discovery!.from[0];
+            const source = structuredClone(required.find((route) => route.path === `${sourcePath}/`)!);
+            for (const block of source.content.blocks) {
+                if (block.kind === "cards") {
+                    for (const item of block.items) if (item.href) item.href += "/";
+                }
+            }
+            await replaceTool.execute("slash-card", { siteId: complete.sites[0].id, route: source });
+            await replaceTool.execute("slash-discovery", {
+                siteId: complete.sites[0].id,
+                route: { ...direct, discovery: { ...direct.discovery!, from: [`${sourcePath}/`] } }
+            });
             await mediaTool.execute("media", { requests: complete.mediaRequests });
             await replaceMediaTool.execute("replace-media", {
                 request: {
                     ...complete.mediaRequests[0],
-                    routePath: complete.sites[0].basePath,
+                    routePath: `${complete.sites[0].basePath}/`,
                     purpose: "Corrected records-office establishing image"
                 }
             });

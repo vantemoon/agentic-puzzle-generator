@@ -5,7 +5,7 @@ import {
     normalizeKadiToolSchemas,
     parseModelConfigurationFile,
     resolveModelConfiguration,
-} from "../src/core/model.js";
+} from "../src/shared/agent-runtime/model.js";
 
 describe("model provider errors", () => {
     it("retries temporary availability errors but not ordinary validation failures", () => {
@@ -16,6 +16,9 @@ describe("model provider errors", () => {
         expect(isRetryableModelError(new Error("Connection error"))).toBe(true);
         expect(isRetryableModelError(new Error("Request timed out."))).toBe(true);
         expect(isRetryableModelError(new Error("request failed: ETIMEDOUT"))).toBe(true);
+        expect(isRetryableModelError(new Error('429: {"message":"The engine is currently overloaded, please try again later","type":"engine_overloaded_error"}'))).toBe(true);
+        expect(isRetryableModelError(new Error('429: {"message":"Too many requests"}'))).toBe(true);
+        expect(isRetryableModelError(new Error('400: {"message":"Invalid tool schema"}'))).toBe(false);
         expect(isRetryableModelError(new Error("Puzzle schema was rejected"))).toBe(false);
     });
 });

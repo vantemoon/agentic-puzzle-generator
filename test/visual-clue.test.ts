@@ -15,19 +15,19 @@ import {
     normalizeSceneTitle,
     normalizeVisualClueKind,
     normalizeVisualClueSolution
-} from "../src/agents/visual-clue/engine.js";
+} from "../src/features/puzzle-generation/generators/visual-clue/engine.js";
 import {
     createVisualCluePuzzleTool,
     writeVisualClueArtifactPreview
-} from "../src/agents/visual-clue/tool.js";
-import { VISUAL_CLUE_MAX_OUTPUT_TOKENS } from "../src/agents/visual-clue/agent.js";
+} from "../src/features/puzzle-generation/generators/visual-clue/tool.js";
+import { VISUAL_CLUE_MAX_OUTPUT_TOKENS } from "../src/features/puzzle-generation/generators/visual-clue/agent.js";
 import {
     assertPrivatePuzzleInstance,
     assertPublicPuzzleInstance,
     getSvgImageSource,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 const ARCHIVE_BACKGROUND_ELEMENTS = [
     "rect|0|0|420|220|#d8cfba|none|0|1|0|0",

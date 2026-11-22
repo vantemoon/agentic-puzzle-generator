@@ -10,14 +10,14 @@ import {
     normalizeNormalityContext,
     normalizeNormalPatternEvidence,
     normalizePlaceholder
-} from "../src/agents/anomalous-phrase/engine.js";
+} from "../src/features/puzzle-generation/generators/anomalous-phrase/engine.js";
 import {
     assertPrivatePuzzleInstance,
     getPuzzleArtifactSource,
     assertPublicPuzzleInstance,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 const template = [
     "Subject: Final lobby checklist",

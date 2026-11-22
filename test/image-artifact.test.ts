@@ -3,14 +3,14 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { writePngImageArtifactPreview } from "../src/core/image-preview.js";
+import { writePngImageArtifactPreview } from "../src/shared/artifacts/image-preview.js";
 import {
     assertPrivatePuzzleInstance,
     createPngImageArtifact,
     getPngImageData,
     getPuzzleArtifactSource,
     type PrivatePuzzleInstance
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 const ONE_PIXEL_PNG_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=";
 

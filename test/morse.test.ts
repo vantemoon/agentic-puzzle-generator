@@ -5,12 +5,12 @@ import {
     decodeMorse,
     encodeMorse,
     normalizePhrase
-} from "../src/agents/morse/engine.js";
+} from "../src/features/puzzle-generation/generators/morse-code/engine.js";
 import {
     assertPrivatePuzzleInstance,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 describe("Morse code engine", () => {
     it("encodes a known phrase", () => {

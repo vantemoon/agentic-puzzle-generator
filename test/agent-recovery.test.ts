@@ -1,14 +1,14 @@
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
     AGENT_RECOVERY_POLICY,
     Agent,
     withAgentRecoveryPolicy
-} from "../src/core/recovering-agent.js";
-import { promptAgentWithRecovery } from "../src/core/agent-runner.js";
+} from "../src/shared/agent-runtime/recovering-agent.js";
+import { promptAgentWithRecovery } from "../src/shared/agent-runtime/agent-runner.js";
 
 async function agentFiles(directory: string): Promise<string[]> {
     const entries = await readdir(directory, { withFileTypes: true });
@@ -52,16 +52,23 @@ describe("shared agent error recovery", () => {
     });
 
     it("routes every repository agent through the recovering wrapper", async () => {
-        const files = await agentFiles(path.resolve("src/agents"));
+        const files = await agentFiles(path.resolve("src/features"));
         expect(files.length).toBeGreaterThan(0);
+        const factory = await readFile(path.resolve("src/shared/agent-runtime/puzzle-agent.ts"), "utf8");
+        expect(factory).toContain('import { Agent } from "./recovering-agent.js"');
+        expect(factory).toContain("return new Agent(");
         for (const file of files) {
             const source = await readFile(file, "utf8");
-            expect(source, file).toContain('from "../../core/recovering-agent.js"');
+            if (/import \{ createPuzzleAgent \} from "[^"]*\/puzzle-agent\.js"/.test(source)) {
+                expect(source, file).toContain("return createPuzzleAgent(");
+            } else {
+                expect(source, file).toMatch(/from "[^"]*\/recovering-agent\.js"/);
+            }
             expect(source, file).not.toContain('import { Agent } from "@earendil-works/pi-agent-core"');
         }
     });
 
-    it("restarts an agent after transient provider failures", async () => {
+    it("restarts an agent with backoff after provider overload", async () => {
         let attempts = 0;
         let resets = 0;
         const state: { errorMessage?: string } = {};
@@ -69,7 +76,7 @@ describe("shared agent error recovery", () => {
             state,
             async prompt() {
                 attempts += 1;
-                state.errorMessage = attempts < 3 ? "Connection error" : undefined;
+                state.errorMessage = attempts < 3 ? "Our servers are currently overloaded. Please try again later." : undefined;
             },
             reset() {
                 resets += 1;
@@ -77,7 +84,20 @@ describe("shared agent error recovery", () => {
             }
         };
 
-        await promptAgentWithRecovery(agent as never, "Generate now.");
+        vi.useFakeTimers();
+        try {
+            const pending = promptAgentWithRecovery(agent as never, "Generate now.");
+            await vi.advanceTimersByTimeAsync(4_999);
+            expect(attempts).toBe(1);
+            await vi.advanceTimersByTimeAsync(1);
+            expect(attempts).toBe(2);
+            await vi.advanceTimersByTimeAsync(9_999);
+            expect(attempts).toBe(2);
+            await vi.advanceTimersByTimeAsync(1);
+            await pending;
+        } finally {
+            vi.useRealTimers();
+        }
         expect(attempts).toBe(3);
         expect(resets).toBe(2);
     });
@@ -98,10 +118,17 @@ describe("shared agent error recovery", () => {
             }
         };
 
-        await promptAgentWithRecovery(agent as never, "Build the bundle.", {
-            preserveConversationOnRetry: true,
-            retryPrompt: "Continue the staged bundle."
-        });
+        vi.useFakeTimers();
+        try {
+            const pending = promptAgentWithRecovery(agent as never, "Build the bundle.", {
+                preserveConversationOnRetry: true,
+                retryPrompt: "Continue the staged bundle."
+            });
+            await vi.runAllTimersAsync();
+            await pending;
+        } finally {
+            vi.useRealTimers();
+        }
 
         expect(prompts).toEqual(["Build the bundle.", "Continue the staged bundle."]);
         expect(resets).toBe(0);

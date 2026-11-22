@@ -3,14 +3,14 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { writeWavAudioArtifactPreview } from "../src/core/audio-preview.js";
+import { writeWavAudioArtifactPreview } from "../src/shared/artifacts/audio-preview.js";
 import {
     assertPrivatePuzzleInstance,
     createWavAudioArtifact,
     getPuzzleArtifactSource,
     getWavAudioData,
     type PrivatePuzzleInstance
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 function silentWavBase64(): string {
     const bytes = Buffer.alloc(44);

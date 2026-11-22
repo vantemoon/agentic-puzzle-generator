@@ -3,11 +3,11 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { GAME_DESIGN_SYSTEM_PROMPT, buildGameDesignPrompt } from "../src/agents/game-design/prompt.js";
-import { createSubmitGameDesignTool } from "../src/agents/game-design/tool.js";
-import type { GameDesignSpec } from "../src/game-design/types.js";
-import { validateGameDesignSpec } from "../src/game-design/validator.js";
-import type { PuzzleCatalog } from "../src/levels/catalog.js";
+import { GAME_DESIGN_SYSTEM_PROMPT, buildGameDesignPrompt } from "../src/features/game-design/agent/prompt.js";
+import { createSubmitGameDesignTool } from "../src/features/game-design/agent/tool.js";
+import type { GameDesignSpec } from "../src/features/game-design/types.js";
+import { validateGameDesignSpec } from "../src/features/game-design/validator.js";
+import type { PuzzleCatalog } from "../src/features/puzzle-generation/catalog.js";
 
 const TEST_CATALOG: PuzzleCatalog = { version: "repository-puzzles-test", entries: [] };
 
@@ -137,6 +137,11 @@ function agentSubmission() {
             title: spec.title,
             storyArchetype: "stolen-artifact" as const,
             premise: spec.premise,
+            openingBriefing: {
+                situation: "A museum ledger went missing shortly before a burglary at Blackwood Museum.",
+                goal: "Find out what happened and help recover the stolen artifact.",
+                firstLead: "Start with the museum's public acquisition records."
+            },
             playerRole: spec.playerRole,
             experienceGoals: spec.experienceGoals,
             world: {
@@ -150,7 +155,15 @@ function agentSubmission() {
                 return {
                     ...(level.parentLevelId === undefined ? {} : { parentLevelId: level.parentLevelId }),
                     prerequisiteLevelIds: level.prerequisiteLevelIds,
-                    request: { ...requestWithoutWorld, world: worldSelection }
+                    request: {
+                        ...requestWithoutWorld,
+                        investigationQuestion: "Which published record establishes what happened?",
+                        terminalAction: {
+                            ...requestWithoutWorld.terminalAction,
+                            briefing: { kind: "discovered" as const }
+                        },
+                        world: worldSelection
+                    }
                 };
             })
         }
@@ -160,6 +173,22 @@ function agentSubmission() {
 describe("game design agent", () => {
     it("validates a grounded multi-level campaign", () => {
         expect(validateGameDesignSpec(gameSpec(), TEST_CATALOG)).toEqual([]);
+    });
+
+    it("lets level design choose intermediate discoveries when the campaign needs no separate exact finding", () => {
+        const spec = gameSpec();
+        spec.levels[0].request.requiredDiscoveries = [];
+        expect(validateGameDesignSpec(spec, TEST_CATALOG)).toEqual([]);
+    });
+
+    it("flags ambiguous exact contracts before starting level design", () => {
+        const spec = gameSpec();
+        const request = spec.levels[0].request;
+        request.requiredDiscoveries.push(structuredClone(request.requiredDiscoveries[0]));
+        request.terminalAction.requiredOutputs.push(structuredClone(request.terminalAction.requiredOutputs[0]));
+        const errors = validateGameDesignSpec(spec, TEST_CATALOG);
+        expect(errors).toContain(`Level ${request.levelId}: Duplicate required discovery ID: ${request.requiredDiscoveries[0].id}.`);
+        expect(errors).toContain(`Level ${request.levelId}: Duplicate terminal output ID: ${request.terminalAction.requiredOutputs[0].id}.`);
     });
 
     it("rejects cyclic progression and values missing from world canon", () => {
@@ -244,12 +273,14 @@ describe("game design agent", () => {
 
         expect(result.details.spec.levels).toHaveLength(2);
         expect(result.details.spec.storyArchetype).toBe("stolen-artifact");
+        expect(result.details.spec.openingBriefing).toEqual(agentSubmission().game.openingBriefing);
         expect(result.details.spec.world.revision).toBe("1");
         expect(result.details.files.requestPaths).toHaveLength(2);
 
         const savedWorld = JSON.parse(await readFile(result.details.files.worldPath, "utf8"));
         const savedManifest = JSON.parse(await readFile(result.details.files.manifestPath, "utf8"));
         const savedRequest = JSON.parse(await readFile(result.details.files.requestPaths[0], "utf8"));
+        expect(savedRequest.terminalAction.briefing).toEqual({ kind: "discovered" });
         expect(savedWorld.id).toBe("blackwood-museum-case");
         expect(savedManifest.levels[1].prerequisiteLevelIds).toEqual(["trace-missing-ledger"]);
         expect(savedRequest.catalogVersion).toBe(TEST_CATALOG.version);

@@ -9,9 +9,9 @@ import {
     normalizeAsciiArtStyle,
     renderAsciiArt,
     renderAsciiObject
-} from "../src/agents/ascii-art/engine.js";
-import { createAsciiArtPuzzleTool } from "../src/agents/ascii-art/tool.js";
-import { assertPrivatePuzzleInstance, assertPublicPuzzleInstance, getPuzzleArtifactSource, toPublicPuzzle, validateNormalizedTextAnswer } from "../src/core/types.js";
+} from "../src/features/puzzle-generation/generators/ascii-art/engine.js";
+import { createAsciiArtPuzzleTool } from "../src/features/puzzle-generation/generators/ascii-art/tool.js";
+import { assertPrivatePuzzleInstance, assertPublicPuzzleInstance, getPuzzleArtifactSource, toPublicPuzzle, validateNormalizedTextAnswer } from "../src/shared/artifacts/types.js";
 
 const spec = (id: string) => ({
     id,

@@ -6,14 +6,14 @@ import {
     encodeSubstitution,
     normalizeCipherAlphabet,
     normalizeSubstitutionPhrase
-} from "../src/agents/substitution/engine.js";
+} from "../src/features/puzzle-generation/generators/monoalphabetic-substitution/engine.js";
 import {
     assertPrivatePuzzleInstance,
     getPuzzleArtifactSource,
     assertPublicPuzzleInstance,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 const CIPHER_ALPHABET = "QWERTYUIOPASDFGHJKLZXCVBNM";
 

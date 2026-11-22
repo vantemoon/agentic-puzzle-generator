@@ -1,28 +1,24 @@
 import { describe, expect, it } from "vitest";
-import { mkdtemp, readFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import Value from "typebox/value";
 
-import { createSubmitLevelBlueprintTool } from "../src/agents/level-design/tool.js";
+import { createSubmitLevelBlueprintTool } from "../src/features/level-design/agent/tool.js";
 import {
     buildLevelDesignPrompt,
     LEVEL_DESIGN_DEPLOYMENT_PROMPT,
     LEVEL_DESIGN_SYSTEM_PROMPT
-} from "../src/agents/level-design/prompt.js";
-import { LEVEL_REVIEW_SYSTEM_PROMPT } from "../src/agents/level-review/prompt.js";
-import { repositoryPuzzleCatalog } from "../src/levels/catalog.js";
+} from "../src/features/level-design/agent/prompt.js";
+import { LEVEL_REVIEW_SYSTEM_PROMPT } from "../src/features/level-review/agent/prompt.js";
+import { repositoryPuzzleCatalog } from "../src/features/puzzle-generation/catalog.js";
 import { levelFixture, levelRequestFixture } from "./fixtures/level-v5.js";
-import { generateReviewedLevel } from "../src/levels/orchestration.js";
-import { validateLevelPatch } from "../src/levels/patch.js";
-import { availablePuzzleIds, toPublicLevelView } from "../src/levels/projection.js";
-import { LevelBlueprintSchema, type LevelBlueprint } from "../src/levels/types.js";
-import {
-    validateGameLevelManifest,
-    validateLevelAgainstRequest,
-    validateLevelBlueprint,
-    validateLevelDesignRequest
-} from "../src/levels/validator.js";
+import { generateReviewedLevel } from "../src/features/level-review/orchestration.js";
+import { validateLevelPatch } from "../src/features/level-review/patch.js";
+import { availablePuzzleIds, toPublicLevelView } from "../src/features/level-design/projection.js";
+import { LevelBlueprintSchema, type LevelBlueprint } from "../src/features/level-design/types.js";
+import { validateGameLevelManifest } from "../src/features/game-design/manifest-validator.js";
+import { validateLevelAgainstRequest, validateLevelBlueprint, validateLevelDesignRequest } from "../src/features/level-design/validator.js";
 
 function copyLevel(): LevelBlueprint {
     return structuredClone(levelFixture);
@@ -49,6 +45,7 @@ function copyLevelSubmission() {
     const {
         actionType: _actionType,
         description: _terminalDescription,
+        briefing: _terminalBriefing,
         ...agentTerminalAction
     } = terminalAction;
     return { ...blueprint, terminalAction: agentTerminalAction };
@@ -114,7 +111,12 @@ describe("level metadata v5", () => {
 
     it("returns the generated JSON file path in demo mode", async () => {
         const outputDirectory = await mkdtemp(path.join(os.tmpdir(), "level-demo-"));
-        const tool = createSubmitLevelBlueprintTool(repositoryPuzzleCatalog, levelRequestFixture, outputDirectory);
+        const request = structuredClone(levelRequestFixture);
+        request.terminalAction.briefing = {
+            kind: "assigned",
+            instruction: "The archive desk asks you to send back what you find so it can update its records."
+        };
+        const tool = createSubmitLevelBlueprintTool(repositoryPuzzleCatalog, request, outputDirectory);
         const result = await tool.execute("demo-tool-call", {
             mode: "demo",
             result: { status: "success", blueprint: copyLevelSubmission() }
@@ -131,7 +133,36 @@ describe("level metadata v5", () => {
         expect(savedLevel.startingInputs).toEqual(levelRequestFixture.startingInputs);
         expect(savedLevel.terminalAction.actionType).toBe(levelRequestFixture.terminalAction.actionType);
         expect(savedLevel.terminalAction.description).toBe(levelRequestFixture.terminalAction.description);
+        expect(savedLevel.terminalAction.briefing).toEqual(request.terminalAction.briefing);
+        savedLevel.terminalAction.briefing = { kind: "discovered" };
+        expect(validateLevelAgainstRequest(savedLevel, request, repositoryPuzzleCatalog))
+            .toContain("Terminal action briefing must match the game-design request.");
         expect(result.details.result.status === "success" && result.details.result.blueprint.schemaVersion).toBe("5.0.0");
+    });
+
+    it("requires authored levels to specify a player action for each puzzle page", async () => {
+        const outputDirectory = await mkdtemp(path.join(os.tmpdir(), "level-access-"));
+        try {
+            const request = { ...levelRequestFixture, investigationQuestion: "Who coordinated the cleanup?" };
+            const tool = createSubmitLevelBlueprintTool(repositoryPuzzleCatalog, request, outputDirectory);
+            const blueprint = copyLevelSubmission();
+            const submission = { mode: "demo", result: { status: "success", blueprint } } as const;
+
+            await expect(tool.execute("missing-access", submission)).rejects.toThrow(
+                "Puzzle find-meeting-place must declare how the player reaches its page"
+            );
+
+            for (const puzzle of blueprint.puzzles) {
+                puzzle.design.inputs[0].access = { kind: "navigation" };
+            }
+            const meetingInput = blueprint.puzzles.find((puzzle) => puzzle.id === "find-meeting-place")!.design.inputs[0];
+            meetingInput.access = { kind: "lookup", fieldLabel: "Project name" };
+            expect(Value.Check(tool.parameters, submission)).toBe(true);
+            const result = await tool.execute("declared-access", submission);
+            expect(result.details.result.status).toBe("success");
+        } finally {
+            await rm(outputDirectory, { recursive: true, force: true });
+        }
     });
 
     it("keeps request-owned fields out of the agent submission contract", () => {
@@ -184,6 +215,55 @@ describe("level metadata v5", () => {
         expect(prompt).toContain("Obey every generationSpecConstraints rule");
         expect(prompt).toContain("clueLabel must exactly equal intendedSolution");
         expect(prompt).toContain("reserve it for the clue artwork and clue-specific metadata");
+    });
+
+    it("rejects an exact permit identifier when the extraction mechanic only supports letters", () => {
+        const level = copyLevel();
+        const puzzle = level.puzzles[0];
+        puzzle.design.subtype = "capital-letter-extraction";
+        puzzle.design.generationSpec = {
+            mode: "production",
+            id: puzzle.id,
+            intendedSolution: "PER-26-0418",
+            genre: "reporter work note"
+        };
+        puzzle.design.verification.expectedValue = "PER-26-0418";
+
+        expect(validateLevelBlueprint(level, repositoryPuzzleCatalog)).toEqual([
+            expect.stringContaining(`Puzzle ${puzzle.id} has an incompatible generationSpec.intendedSolution:`),
+        ]);
+
+        puzzle.design.generationSpec.intendedSolution = "RIVER CLEANUP";
+        puzzle.design.verification.expectedValue = "RIVER CLEANUP";
+        expect(validateLevelBlueprint(level, repositoryPuzzleCatalog)).toEqual([]);
+
+        expect(buildLevelDesignPrompt(repositoryPuzzleCatalog)).toContain(
+            "Choose a different subtype when the exact required answer contains digits or punctuation."
+        );
+    });
+
+    it("rejects answer-bearing alt-text copy before artwork generation", () => {
+        const level = copyLevel();
+        const puzzle = level.puzzles.find(({ design }) => design.subtype === "alt-text")!;
+        const copy = puzzle.design.generationSpec;
+        const answer = String(copy.intendedSolution);
+        const visibleBody = copy.visibleBody;
+        const imageLabel = copy.imageLabel;
+        copy.visibleBody = `The archive places ${answer} beside the event photograph.`;
+        copy.imageLabel = answer;
+
+        expect(validateLevelBlueprint(level, repositoryPuzzleCatalog)).toContain(
+            `Puzzle ${puzzle.id} alt-text generationSpec failed: The intended solution must not appear in visible page, image label, or caption. Found it in visibleBody, imageLabel. Revise the upstream copy without changing required values, or choose a mechanic that fits how the evidence is presented.`
+        );
+
+        copy.visibleBody = visibleBody;
+        copy.imageLabel = imageLabel;
+        expect(validateLevelBlueprint(level, repositoryPuzzleCatalog)).toEqual([]);
+
+        copy.altText = "Volunteers along the riverbank.";
+        expect(validateLevelBlueprint(level, repositoryPuzzleCatalog)).toEqual([
+            expect.stringContaining("The natural image alt text must contain the intended solution.")
+        ]);
     });
 
     it("requires anomalous-phrase evidence to be exact document excerpts", () => {
@@ -427,21 +507,33 @@ describe("level metadata v5", () => {
         );
     });
 
-    it("rejects unused outputs", () => {
+    it("allows an investigation finding outside the terminal data flow", () => {
         const level = copyLevel();
-        const first = level.puzzles[0];
-        first.design.outputs.push({
-            id: "unused-room",
-            semanticRole: "location",
-            description: "An unused room number.",
-            from: "revealed",
-            dataType: "number",
-            value: 17
+        const request = structuredClone(levelRequestFixture);
+        const [project] = level.puzzles;
+        const coordinator = level.puzzles.find((puzzle) => puzzle.id === "identify-coordinator")!;
+        const [person] = coordinator.design.outputs;
+        const personName = String(coordinator.design.verification.expectedValue);
+        level.investigationQuestion = request.investigationQuestion = "Which project was involved and who coordinated it?";
+        level.terminalAction.description = request.terminalAction.description = "Send the project name so the desk can retrieve its file.";
+        level.terminalAction.fields = [{
+            id: "project", label: "Project name", semanticRole: "resource-identifier",
+            source: { puzzleId: project.id, outputId: project.design.outputs[0].id }
+        }];
+        request.terminalAction.requiredOutputs = [{
+            id: "project", semanticRole: "resource-identifier", dataType: "string",
+            requiredValue: String(project.design.verification.expectedValue)
+        }];
+        person.requiredDiscoveryId = "assigned-coordinator";
+        request.requiredDiscoveries.push({
+            id: "assigned-coordinator", semanticRole: "person-identifier", description: "The name in the event recap.",
+            dataType: "string", value: personName
         });
-        first.design.revealContext = "The matching facilities record displays a room number.";
-        expect(validateLevelBlueprint(level, repositoryPuzzleCatalog)).toContain(
-            "Puzzle output find-project-name.unused-room is not consumed downstream or by the terminal action."
-        );
+
+        expect(validateLevelAgainstRequest(level, request, repositoryPuzzleCatalog)).toEqual([]);
+        delete person.requiredDiscoveryId;
+        expect(validateLevelAgainstRequest(level, request, repositoryPuzzleCatalog))
+            .toContain("Required discovery assigned-coordinator must be produced exactly once.");
     });
 
     it("reports the expected and produced values for a mismatched required discovery", () => {

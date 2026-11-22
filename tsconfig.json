@@ -6,12 +6,15 @@
     "rootDir": ".",
     "outDir": "dist",
     "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "types": ["node"]
   },
   "include": [
     "src/**/*.ts",
+    "pi-extensions/**/*.ts",
     "test/**/*.ts"
   ]
 }

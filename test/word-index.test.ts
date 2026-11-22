@@ -8,14 +8,14 @@ import {
     normalizeCoverText,
     normalizeWordIndexPhrase,
     tokenizeCoverText
-} from "../src/agents/word-index/engine.js";
+} from "../src/features/puzzle-generation/generators/cover-text-word-index-cipher/engine.js";
 import {
     assertPrivatePuzzleInstance,
     getPuzzleArtifactSource,
     assertPublicPuzzleInstance,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 const KNOWN_COVER_TEXT = [
     "Yesterday the community garden opened after weeks of rain.",

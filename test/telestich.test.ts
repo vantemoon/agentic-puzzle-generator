@@ -7,14 +7,14 @@ import {
     normalizeTelestichGenre,
     normalizeTelestichPhrase,
     validateTelestichCover
-} from "../src/agents/telestich/engine.js";
+} from "../src/features/puzzle-generation/generators/cover-text-line-telestich/engine.js";
 import {
     assertPrivatePuzzleInstance,
     getPuzzleArtifactSource,
     assertPublicPuzzleInstance,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 const KNOWN_COVER_TEXT = `Morning traffic slowed near the museum
 while rain softened the glare

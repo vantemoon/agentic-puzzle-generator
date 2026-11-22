@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createProgressReporter, toolResultText } from "../src/core/progress.js";
+import { createProgressReporter, toolResultText } from "../src/shared/agent-runtime/progress.js";
 
 describe("agent progress reporting", () => {
     it("formats event-driven progress and failures consistently", () => {

@@ -751,7 +751,7 @@
         "relation": "entry_time",
         "value": {
           "kind": "literal",
-          "value": "2026-05-14 18:36"
+          "value": "2026-05-14 18:52"
         }
       },
       {
@@ -1360,6 +1360,9 @@
             "fact_invoice_location",
             "fact_invoice_note",
             "fact_invoice_entrance",
+            "fact_access_time",
+            "fact_access_vehicle",
+            "fact_access_location",
             "fact_kidnap_orderer",
             "fact_kidnapper",
             "fact_kidnap_motive"
@@ -1384,7 +1387,7 @@
         "genre": "online-investigation",
         "theme": "Evidence synthesis and location",
         "setting": "City property records, contractor access logs, and Maya Chen's evidence archive",
-        "startingSituation": "The invoice note says a hold room was to be ready by 18:30 and names 18 River Road. You must verify that this is a real accessible site, connect Eric Shaw's vehicle to it, recover Maya's decisive evidence file, and submit an emergency case report.",
+        "startingSituation": "Maya’s holding site is still unconfirmed. The invoice names a warehouse and says the room had to be ready by 18:30. Start with the city property index, then match the contractor’s access record to the warehouse plan.",
         "playerRole": "You are Maya Chen's trusted friend, coordinating the final evidence needed to locate her and support her rescue.",
         "playerCapabilities": [
           "Synthesize findings from all prior levels.",
@@ -1417,7 +1420,7 @@
           {
             "id": "input_l4_location_lead",
             "semanticRole": "candidate-location",
-            "description": "The service location to verify against ownership and access records.",
+            "description": "Suspected warehouse address from the invoice. Verify its ownership and match the van’s access record before treating it as the holding site.",
             "dataType": "string",
             "value": "18 River Road"
           },
@@ -1450,7 +1453,7 @@
             "semanticRole": "access-timestamp",
             "description": "When Eric Shaw entered the warehouse after Maya disappeared.",
             "dataType": "string",
-            "value": "2026-05-14 18:36"
+            "value": "2026-05-14 18:52"
           },
           {
             "id": "discovery_l4_location",

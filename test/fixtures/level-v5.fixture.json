@@ -165,7 +165,7 @@
                     "visibleBody": "The page contains one photograph from a recent volunteer cleanup.",
                     "imageLabel": "Volunteers beside collected bags",
                     "imageCaption": "Volunteers after the cleanup.",
-                    "altText": "Volunteers gathered at the North River boardwalk on April 18 2026, standing beside filled cleanup bags."
+                    "altText": "Volunteers gathered at the North River boardwalk on APRIL 18 2026, standing beside filled cleanup bags."
                 },
                 "verification": {
                     "prompt": "Enter the event date as MONTH DAY YEAR in uppercase letters.",

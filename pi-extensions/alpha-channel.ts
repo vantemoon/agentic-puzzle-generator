@@ -1,11 +1,8 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-
-import { ALPHA_CHANNEL_SYSTEM_PROMPT } from "../src/agents/alpha-channel/prompt.js";
-import { createAlphaChannelPuzzleTool } from "../src/agents/alpha-channel/tool.js";
+import { registerPuzzleExtension } from "./register-puzzle.js";
+import { ALPHA_CHANNEL_SYSTEM_PROMPT } from "../src/features/puzzle-generation/generators/alpha-channel/prompt.js";
+import { createAlphaChannelPuzzleTool } from "../src/features/puzzle-generation/generators/alpha-channel/tool.js";
 
 export default function alphaChannelExtension(pi: ExtensionAPI) {
-  pi.registerTool(createAlphaChannelPuzzleTool);
-  pi.on("before_agent_start", async (event) => {
-    event.systemPromptOptions.sections["alpha-channel-agent"] = ALPHA_CHANNEL_SYSTEM_PROMPT;
-  });
+    registerPuzzleExtension(pi, "alpha-channel-agent", ALPHA_CHANNEL_SYSTEM_PROMPT, createAlphaChannelPuzzleTool);
 }

@@ -10,9 +10,9 @@ import {
     extractQrCodePayload,
     normalizeQrCodePayload,
     normalizeQrCodePayloadKind,
-} from "../src/agents/qr-code/engine.js";
-import { createQrCodePuzzleTool, writeQrCodeArtifactPreview } from "../src/agents/qr-code/tool.js";
-import { assertPrivatePuzzleInstance, assertPublicPuzzleInstance, getSvgImageSource, toPublicPuzzle, validateNormalizedTextAnswer } from "../src/core/types.js";
+} from "../src/features/puzzle-generation/generators/qr-code/engine.js";
+import { createQrCodePuzzleTool, writeQrCodeArtifactPreview } from "../src/features/puzzle-generation/generators/qr-code/tool.js";
+import { assertPrivatePuzzleInstance, assertPublicPuzzleInstance, getSvgImageSource, toPublicPuzzle, validateNormalizedTextAnswer } from "../src/shared/artifacts/types.js";
 
 const spec = (id: string) => ({
     id,
@@ -77,6 +77,18 @@ describe("qr-code engine", () => {
         expect(() => assertPrivatePuzzleInstance(first)).not.toThrow();
     });
 
+    it("uses version 2-L for longer payloads and preserves the full decoded address", () => {
+        const address = "18 Mason Street, Unit 3";
+        const matrix = createQrCodeMatrix(address);
+        expect(matrix).toMatchObject({ version: 2, size: 25 });
+        expect(matrix.dataCodewords).toHaveLength(34);
+        expect(matrix.errorCorrectionCodewords).toHaveLength(10);
+        expect(matrix.reserved[18][18]).toBe(true);
+        expect(extractQrCodePayload(matrix)).toBe(address);
+        expect(createQrCodeMatrix("X".repeat(17)).version).toBe(1);
+        expect(extractQrCodePayload(createQrCodeMatrix("X".repeat(32)))).toBe("X".repeat(32));
+    });
+
     it("builds SVG directly from payload", () => {
         const svg = buildQrCodeSvg("HELLO", 4);
         expect(svg).toContain("width=\"116\"");
@@ -99,7 +111,7 @@ describe("qr-code engine", () => {
     });
 
     it("enforces payload capacity, leak checks, and module size", () => {
-        expect(() => normalizeQrCodePayload("X".repeat(18))).toThrow("must not exceed 17");
+        expect(() => normalizeQrCodePayload("X".repeat(33))).toThrow("must not exceed 32");
         expect(() => normalizeQrCodePayloadKind("barcode")).toThrow("payload kind");
 
 

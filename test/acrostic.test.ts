@@ -7,14 +7,14 @@ import {
     normalizeAcrosticGenre,
     normalizeAcrosticPhrase,
     validateAcrosticCover
-} from "../src/agents/acrostic/engine.js";
+} from "../src/features/puzzle-generation/generators/cover-text-line-acrostic/engine.js";
 import {
     assertPrivatePuzzleInstance,
     getPuzzleArtifactSource,
     assertPublicPuzzleInstance,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 const KNOWN_COVER_TEXT = `Morning traffic moved slowly beside the river while
 evening rain still shimmered across the pavement.

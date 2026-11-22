@@ -4,19 +4,19 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { decodeRgbaPng } from "../src/agents/channel-clue/png.js";
+import { decodeRgbaPng } from "../src/features/puzzle-generation/shared/channel-clue/png.js";
 import {
     generateDocumentMedia,
     generateRasterMedia,
     generateSvgMedia
-} from "../src/agents/supporting-media/engine.js";
+} from "../src/features/supporting-media/engine.js";
 import {
     readWorldMediaAsset,
     readWorldMediaLibrary,
     writeWorldMediaAsset
-} from "../src/agents/supporting-media/library.js";
-import { createSupportingMediaTool } from "../src/agents/supporting-media/tool.js";
-import type { SupportingMediaRequest } from "../src/levels/bundle.js";
+} from "../src/features/supporting-media/library.js";
+import { createSupportingMediaTool } from "../src/features/supporting-media/agent/tool.js";
+import type { SupportingMediaRequest } from "../src/features/level-bundle/types.js";
 
 const REQUEST: SupportingMediaRequest = {
     id: "library-mark",

@@ -5,14 +5,14 @@ import {
     decodeAscii,
     encodeAscii,
     normalizeAsciiPhrase
-} from "../src/agents/ascii/engine.js";
+} from "../src/features/puzzle-generation/generators/ascii-code/engine.js";
 import {
     assertPrivatePuzzleInstance,
     getPuzzleArtifactSource,
     assertPublicPuzzleInstance,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 describe("ASCII code engine", () => {
     it("encodes and decodes all supported radices", () => {

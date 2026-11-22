@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { evaluateExactAnswer } from "../src/levels/final-answer.js";
+import { evaluateExactAnswer } from "../src/features/level-design/final-answer.js";
 
 describe("exact answer evaluation", () => {
     it("trims only outer whitespace for strings", () => {

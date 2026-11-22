@@ -3,9 +3,11 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
-import { createBinaryCapitalizationPuzzle } from "../src/agents/binary-capitalization/engine.js";
-import { createHtmlCommentPuzzle } from "../src/agents/html-comment/engine.js";
-import { repositoryPuzzleCatalog } from "../src/levels/catalog.js";
+import { createBinaryCapitalizationPuzzle } from "../src/features/puzzle-generation/generators/binary-capitalization-pattern/engine.js";
+import { createHtmlCommentPuzzleTool } from "../src/features/puzzle-generation/generators/html-comment/tool.js";
+import { validateLevelBlueprint } from "../src/features/level-design/validator.js";
+import { createHtmlCommentPuzzle } from "../src/features/puzzle-generation/generators/html-comment/engine.js";
+import { repositoryPuzzleCatalog } from "../src/features/puzzle-generation/catalog.js";
 import { levelFixture } from "./fixtures/level-v5.js";
 import {
     buildPuzzleGenerationPrompt,
@@ -13,11 +15,12 @@ import {
     generatePuzzleFromHandoff,
     generatedPuzzleArtifactEntryPath,
     generatedPuzzlePath,
+    guardPuzzleGenerationTool,
     stopAfterSuccessfulTool,
     supportedPuzzleGeneratorSubtypes,
     validateGeneratedPuzzle,
     writeGeneratedPuzzle
-} from "../src/levels/puzzle-generation.js";
+} from "../src/features/puzzle-generation/generate.js";
 
 describe("level-to-puzzle generation handoff", () => {
     it("registers one agent for every catalog subtype", () => {
@@ -107,6 +110,46 @@ describe("level-to-puzzle generation handoff", () => {
         expect(puzzle.subtype).toBe("page-version");
         expect(puzzle.artifact.kind).toBe("html");
         expect(puzzle.solution.canonical).toBe("EAST PIER");
+    });
+
+    it("preflights and compiles a complete QR specification without a model", async () => {
+        const level = structuredClone(levelFixture);
+        const [node] = level.puzzles;
+        node.design.puzzleType = "encoding";
+        node.design.subtype = "qr-code";
+        const address = "18 Mason Street, Unit 3";
+        node.design.generationSpec = {
+            mode: "production", id: node.id, intendedSolution: address,
+            payloadKind: "message", documentTheme: "Location confirmation card"
+        };
+        node.design.verification.expectedValue = address;
+        expect(validateLevelBlueprint(level, repositoryPuzzleCatalog)).toEqual([]);
+
+        const handoff = createPuzzleGenerationHandoff(level, node.id, repositoryPuzzleCatalog);
+        await expect(generatePuzzleFromHandoff(handoff)).resolves.toMatchObject({
+            solution: { canonical: address }, extensions: { qrCode: { qrVersion: 2 } }
+        });
+
+        node.design.generationSpec.intendedSolution = node.design.verification.expectedValue = "X".repeat(33);
+        expect(validateLevelBlueprint(level, repositoryPuzzleCatalog))
+            .toContain(`Puzzle ${node.id} qr-code generationSpec failed: QR-code payloads must not exceed 32 UTF-8 bytes; received 33.`);
+    });
+
+    it("rejects model changes and mismatched answers as recoverable tool errors", async () => {
+        const handoff = createPuzzleGenerationHandoff(levelFixture, "find-project-name", repositoryPuzzleCatalog);
+        const tool = guardPuzzleGenerationTool(createHtmlCommentPuzzleTool, handoff);
+        await expect(tool.execute("changed", { ...handoff.generationSpec, intendedSolution: "OTHER VALUE" }))
+            .rejects.toThrow("Preserve the upstream generationSpec fields: intendedSolution");
+        await expect(tool.execute("valid", handoff.generationSpec)).resolves.toMatchObject({
+            details: { solution: { canonical: "RIVER CLEANUP" } }
+        });
+
+        const unrelatedAnswer = {
+            ...handoff, verification: { ...handoff.verification, dataType: "string" as const, expectedValue: "OTHER VALUE" }
+        };
+        await expect(guardPuzzleGenerationTool(createHtmlCommentPuzzleTool, unrelatedAnswer)
+            .execute("wrong-result", handoff.generationSpec))
+            .rejects.toThrow("Generated puzzle does not accept the designed answer");
     });
 
     it("asks the visual-clue agent to author a contextual drawing plan", () => {

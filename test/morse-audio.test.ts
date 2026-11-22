@@ -9,10 +9,10 @@ import {
     extractMorsePatternFromAudio,
     normalizeMorseAudioMessage,
     normalizeMorseAudioToneStyle
-} from "../src/agents/morse-audio/engine.js";
-import { createMorseAudioPuzzleTool, writeMorseAudioArtifactPreview } from "../src/agents/morse-audio/tool.js";
-import { decodeMorse, encodeMorse } from "../src/agents/morse/engine.js";
-import { assertPrivatePuzzleInstance, assertPublicPuzzleInstance, getWavAudioData, toPublicPuzzle, validateNormalizedTextAnswer } from "../src/core/types.js";
+} from "../src/features/puzzle-generation/generators/morse-audio/engine.js";
+import { createMorseAudioPuzzleTool, writeMorseAudioArtifactPreview } from "../src/features/puzzle-generation/generators/morse-audio/tool.js";
+import { decodeMorse, encodeMorse } from "../src/features/puzzle-generation/generators/morse-code/engine.js";
+import { assertPrivatePuzzleInstance, assertPublicPuzzleInstance, getWavAudioData, toPublicPuzzle, validateNormalizedTextAnswer } from "../src/shared/artifacts/types.js";
 
 const spec = (id: string) => ({
     id,

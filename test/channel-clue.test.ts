@@ -7,16 +7,16 @@ import {
     createAlphaChannelPuzzle,
     extractAlphaChannelPayload,
     normalizeAlphaChannelPayload,
-} from "../src/agents/alpha-channel/engine.js";
-import { createAlphaChannelPuzzleTool, writeAlphaChannelArtifactPreview } from "../src/agents/alpha-channel/tool.js";
+} from "../src/features/puzzle-generation/generators/alpha-channel/engine.js";
+import { createAlphaChannelPuzzleTool, writeAlphaChannelArtifactPreview } from "../src/features/puzzle-generation/generators/alpha-channel/tool.js";
 import {
     createColorChannelPuzzle,
     extractColorChannelPayload,
     normalizeColorChannel,
     normalizeColorChannelPayload,
-} from "../src/agents/color-channel/engine.js";
-import { createColorChannelPuzzleTool, writeColorChannelArtifactPreview } from "../src/agents/color-channel/tool.js";
-import { assertPrivatePuzzleInstance, assertPublicPuzzleInstance, getPngImageData, toPublicPuzzle, validateNormalizedTextAnswer } from "../src/core/types.js";
+} from "../src/features/puzzle-generation/generators/color-channel/engine.js";
+import { createColorChannelPuzzleTool, writeColorChannelArtifactPreview } from "../src/features/puzzle-generation/generators/color-channel/tool.js";
+import { assertPrivatePuzzleInstance, assertPublicPuzzleInstance, getPngImageData, toPublicPuzzle, validateNormalizedTextAnswer } from "../src/shared/artifacts/types.js";
 
 const alphaSpec = (id: string) => ({
     id,

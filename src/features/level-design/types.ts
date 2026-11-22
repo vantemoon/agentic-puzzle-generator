@@ -1,0 +1,387 @@
+import Type, { type Static } from "typebox";
+
+import { ExternalKnowledgeProvenanceSchema } from "../../shared/artifacts/types.js";
+
+const closed = { additionalProperties: false } as const;
+
+export const ScalarDataTypeSchema = Type.Union([Type.Literal("string"), Type.Literal("number")]);
+export const DifficultyPresetSchema = Type.Union([
+    Type.Literal("easy"), Type.Literal("medium"), Type.Literal("hard"), Type.Literal("custom")
+]);
+export const RatedDifficultySchema = Type.Union([
+    Type.Literal("easy"), Type.Literal("medium"), Type.Literal("hard")
+]);
+const StringValueSchema = Type.Object({
+    dataType: Type.Literal("string"),
+    value: Type.String({ minLength: 1 })
+}, closed);
+const NumberValueSchema = Type.Object({
+    dataType: Type.Literal("number"),
+    value: Type.Number()
+}, closed);
+export const ScalarValueSchema = Type.Union([StringValueSchema, NumberValueSchema]);
+
+export const VerificationSchema = Type.Union([
+    Type.Object({
+        prompt: Type.String({ minLength: 1 }),
+        dataType: Type.Literal("string"),
+        expectedValue: Type.String({ minLength: 1 })
+    }, closed),
+    Type.Object({
+        prompt: Type.String({ minLength: 1 }),
+        dataType: Type.Literal("number"),
+        expectedValue: Type.Number()
+    }, closed)
+]);
+
+export const EnvironmentSchema = Type.Union([
+    Type.Object({ mode: Type.Literal("self-contained") }, closed),
+    Type.Object({
+        mode: Type.Literal("external-public"),
+        platforms: Type.Array(Type.String({ minLength: 1 }), { minItems: 1 }),
+        deploymentAgentRequired: Type.Literal(true)
+    }, closed)
+]);
+
+export const StructuralDifficultySchema = Type.Object({
+    preset: DifficultyPresetSchema,
+    puzzleCount: Type.Object({
+        minimum: Type.Integer({ minimum: 1 }),
+        maximum: Type.Integer({ minimum: 1 })
+    }, closed),
+    phaseCount: Type.Object({
+        minimum: Type.Integer({ minimum: 1 }),
+        maximum: Type.Integer({ minimum: 1 })
+    }, closed),
+    linearity: Type.Number({ minimum: 0, maximum: 1 }),
+    maxParallelPuzzles: Type.Integer({ minimum: 1 })
+}, closed);
+
+export const PuzzleDifficultySchema = Type.Object({
+    preset: DifficultyPresetSchema
+}, closed);
+
+export const TransformationPolicySchema = Type.Object({
+    enabled: Type.Boolean(),
+    maxCount: Type.Integer({ minimum: 0, maximum: 20 }),
+    maxDifficulty: RatedDifficultySchema
+}, closed);
+
+export const LevelGenerationConfigSchema = Type.Object({
+    structuralDifficulty: StructuralDifficultySchema,
+    puzzleDifficulty: PuzzleDifficultySchema,
+    transformationPolicy: TransformationPolicySchema,
+    reviewRetryLimit: Type.Integer({ minimum: 0, maximum: 20 }),
+    concealUnreachedContent: Type.Boolean(),
+    encourageSubtypeVariety: Type.Boolean()
+}, closed);
+
+export const StartingInputSchema = Type.Union([
+    Type.Object({
+        id: Type.String({ minLength: 1 }), semanticRole: Type.String({ minLength: 1 }),
+        description: Type.String({ minLength: 1 }), kind: Type.Literal("bundle-entry"),
+        resourceKind: Type.String({ minLength: 1 })
+    }, closed),
+    Type.Object({
+        id: Type.String({ minLength: 1 }), semanticRole: Type.String({ minLength: 1 }),
+        description: Type.String({ minLength: 1 }), dataType: Type.Literal("string"),
+        value: Type.String({ minLength: 1 })
+    }, closed),
+    Type.Object({
+        id: Type.String({ minLength: 1 }), semanticRole: Type.String({ minLength: 1 }),
+        description: Type.String({ minLength: 1 }), dataType: Type.Literal("number"), value: Type.Number()
+    }, closed)
+]);
+
+export const RequiredDiscoverySchema = Type.Union([
+    Type.Object({
+        id: Type.String({ minLength: 1 }), semanticRole: Type.String({ minLength: 1 }),
+        description: Type.String({ minLength: 1 }), dataType: Type.Literal("string"),
+        value: Type.String({ minLength: 1 })
+    }, closed),
+    Type.Object({
+        id: Type.String({ minLength: 1 }), semanticRole: Type.String({ minLength: 1 }),
+        description: Type.String({ minLength: 1 }), dataType: Type.Literal("number"), value: Type.Number()
+    }, closed)
+]);
+
+export const RequiredOutputSchema = Type.Union([
+    Type.Object({
+        id: Type.String({ minLength: 1 }),
+        semanticRole: Type.String({ minLength: 1 }),
+        dataType: Type.Literal("string"),
+        requiredValue: Type.Optional(Type.String({ minLength: 1 }))
+    }, closed),
+    Type.Object({
+        id: Type.String({ minLength: 1 }),
+        semanticRole: Type.String({ minLength: 1 }),
+        dataType: Type.Literal("number"),
+        requiredValue: Type.Optional(Type.Number())
+    }, closed)
+]);
+
+export const TerminalBriefingSchema = Type.Union([
+    Type.Object({
+        kind: Type.Literal("assigned"),
+        instruction: Type.String({ minLength: 1, pattern: "\\S" })
+    }, closed),
+    Type.Object({ kind: Type.Literal("discovered") }, closed)
+]);
+
+export const TerminalActionRequestSchema = Type.Object({
+    actionType: Type.String({ minLength: 1 }),
+    description: Type.String({ minLength: 1 }),
+    briefing: Type.Optional(TerminalBriefingSchema),
+    requiredOutputs: Type.Array(RequiredOutputSchema, { minItems: 1 })
+}, closed);
+
+export const ExternalContentRequirementSchema = Type.Object({
+    id: Type.String({ minLength: 1 }),
+    description: Type.String({ minLength: 1 }),
+    provenance: Type.Array(ExternalKnowledgeProvenanceSchema, { minItems: 1 })
+}, closed);
+
+export const WorldReferenceSchema = Type.Object({
+    id: Type.String({ minLength: 1 }),
+    revision: Type.String({ minLength: 1 }),
+    entityIds: Type.Array(Type.String({ minLength: 1 }), { minItems: 1 }),
+    factIds: Type.Array(Type.String({ minLength: 1 })),
+    asOf: Type.Optional(Type.String({ pattern: "^\\d{4}-\\d{2}-\\d{2}$" }))
+}, closed);
+
+export const LevelDesignRequestSchema = Type.Object({
+    levelId: Type.String({ minLength: 1 }),
+    investigationQuestion: Type.Optional(Type.String({ minLength: 1, maxLength: 240, pattern: "\\S" })),
+    world: WorldReferenceSchema,
+    titleHint: Type.Optional(Type.String({ minLength: 1 })),
+    genre: Type.Literal("online-investigation"),
+    theme: Type.Optional(Type.String({ minLength: 1 })),
+    setting: Type.Optional(Type.String({ minLength: 1 })),
+    startingSituation: Type.String({ minLength: 1 }),
+    playerRole: Type.String({ minLength: 1 }),
+    playerCapabilities: Type.Array(Type.String({ minLength: 1 })),
+    playerConstraints: Type.Array(Type.String({ minLength: 1 })),
+    environment: EnvironmentSchema,
+    narrativeContext: Type.Array(Type.String({ minLength: 1 })),
+    startingInputs: Type.Array(StartingInputSchema),
+    externalContentRequirements: Type.Array(ExternalContentRequirementSchema),
+    requiredDiscoveries: Type.Array(RequiredDiscoverySchema),
+    terminalAction: TerminalActionRequestSchema,
+    catalogVersion: Type.String({ minLength: 1 }),
+    config: LevelGenerationConfigSchema
+}, closed);
+
+export const PhaseSchema = Type.Object({
+    id: Type.String({ minLength: 1 }),
+    order: Type.Integer({ minimum: 0 }),
+    title: Type.String({ minLength: 1 }),
+    summary: Type.String({ minLength: 1 })
+}, closed);
+
+export const PuzzleContentMockupSchema = Type.Union([
+    Type.Object({
+        kind: Type.Literal("text"),
+        title: Type.Optional(Type.String({ minLength: 1 })),
+        body: Type.String({ minLength: 1 }),
+        emphasis: Type.Optional(Type.Union([
+            Type.Literal("plain"), Type.Literal("acrostic"), Type.Literal("code"), Type.Literal("cipher")
+        ]))
+    }, closed),
+    Type.Object({
+        kind: Type.Literal("image-description"),
+        description: Type.String({ minLength: 1 }),
+        altText: Type.Optional(Type.String({ minLength: 1 }))
+    }, closed),
+    Type.Object({
+        kind: Type.Literal("audio-description"),
+        description: Type.String({ minLength: 1 }),
+        transcript: Type.Optional(Type.String({ minLength: 1 }))
+    }, closed),
+    Type.Object({ kind: Type.Literal("structured"), data: Type.Unknown() }, closed)
+]);
+
+export const GeneratedContentSchema = Type.Object({
+    status: Type.Union([Type.Literal("mockup"), Type.Literal("generated")]),
+    preview: PuzzleContentMockupSchema
+}, closed);
+
+export const TransformationBindingSchema = Type.Object({
+    type: Type.String({ minLength: 1 }),
+    config: Type.Optional(Type.Record(Type.String(), Type.Unknown()))
+}, closed);
+
+export const InputSourceSchema = Type.Union([
+    Type.Object({
+        kind: Type.Literal("puzzle-output"),
+        puzzleId: Type.String({ minLength: 1 }),
+        outputId: Type.String({ minLength: 1 })
+    }, closed),
+    Type.Object({
+        kind: Type.Literal("starting-input"),
+        inputId: Type.String({ minLength: 1 })
+    }, closed)
+]);
+
+export const PuzzleInputSchema = Type.Object({
+    id: Type.String({ minLength: 1 }),
+    source: InputSourceSchema,
+    transform: Type.Optional(TransformationBindingSchema),
+    use: Type.String({ minLength: 1 }),
+    access: Type.Optional(Type.Union([
+        Type.Object({
+            kind: Type.Literal("lookup"),
+            fieldLabel: Type.String({ minLength: 1, maxLength: 80, pattern: "\\S" })
+        }, closed),
+        Type.Object({
+            kind: Type.Union([Type.Literal("direct-link"), Type.Literal("navigation")])
+        }, closed)
+    ])),
+    expectedSemanticRoles: Type.Optional(Type.Array(Type.String({ minLength: 1 }), { minItems: 1 }))
+}, closed);
+
+export const PuzzleOutputSchema = Type.Union([
+    Type.Object({
+        id: Type.String({ minLength: 1 }),
+        semanticRole: Type.String({ minLength: 1 }),
+        description: Type.String({ minLength: 1 }),
+        from: Type.Literal("verification"),
+        requiredDiscoveryId: Type.Optional(Type.String({ minLength: 1 }))
+    }, closed),
+    Type.Object({
+        id: Type.String({ minLength: 1 }),
+        semanticRole: Type.String({ minLength: 1 }),
+        description: Type.String({ minLength: 1 }),
+        from: Type.Literal("revealed"),
+        dataType: Type.Literal("string"),
+        value: Type.String({ minLength: 1 }),
+        requiredDiscoveryId: Type.Optional(Type.String({ minLength: 1 }))
+    }, closed),
+    Type.Object({
+        id: Type.String({ minLength: 1 }),
+        semanticRole: Type.String({ minLength: 1 }),
+        description: Type.String({ minLength: 1 }),
+        from: Type.Literal("revealed"),
+        dataType: Type.Literal("number"),
+        value: Type.Number(),
+        requiredDiscoveryId: Type.Optional(Type.String({ minLength: 1 }))
+    }, closed)
+]);
+
+export const PuzzleDesignSchema = Type.Object({
+    puzzleType: Type.String({ minLength: 1 }),
+    subtype: Type.String({ minLength: 1 }),
+    difficulty: RatedDifficultySchema,
+    generationSpec: Type.Record(Type.String(), Type.Unknown()),
+    verification: VerificationSchema,
+    inputs: Type.Array(PuzzleInputSchema),
+    outputs: Type.Array(PuzzleOutputSchema, { minItems: 1 }),
+    externalContentRequirementIds: Type.Optional(Type.Array(
+        Type.String({ minLength: 1 }),
+        { minItems: 1 }
+    )),
+    revealContext: Type.Optional(Type.String({ minLength: 1 })),
+    duplicateAnswerJustification: Type.Optional(Type.String({ minLength: 1 }))
+}, closed);
+
+export const PuzzleNodeSchema = Type.Object({
+    id: Type.String({ minLength: 1 }),
+    phaseId: Type.String({ minLength: 1 }),
+    title: Type.String({ minLength: 1 }),
+    purpose: Type.String({ minLength: 1 }),
+    design: PuzzleDesignSchema,
+    generatedContent: Type.Optional(GeneratedContentSchema)
+}, closed);
+
+export const OutputReferenceSchema = Type.Object({
+    puzzleId: Type.String({ minLength: 1 }),
+    outputId: Type.String({ minLength: 1 })
+}, closed);
+
+export const TerminalFieldSchema = Type.Object({
+    id: Type.String({ minLength: 1 }),
+    label: Type.String({ minLength: 1 }),
+    hint: Type.Optional(Type.String({ minLength: 1, maxLength: 240 })),
+    semanticRole: Type.String({ minLength: 1 }),
+    source: OutputReferenceSchema
+}, closed);
+
+export const TerminalActionSchema = Type.Object({
+    id: Type.String({ minLength: 1 }),
+    actionType: Type.String({ minLength: 1 }),
+    title: Type.String({ minLength: 1 }),
+    description: Type.String({ minLength: 1 }),
+    briefing: Type.Optional(TerminalBriefingSchema),
+    interaction: Type.Literal("exact-field-form"),
+    fields: Type.Array(TerminalFieldSchema, { minItems: 1 }),
+    successOutcome: Type.String({ minLength: 1 })
+}, closed);
+
+export const RequiredResourceSchema = Type.Object({
+    id: Type.String({ minLength: 1 }),
+    kind: Type.String({ minLength: 1 }),
+    description: Type.String({ minLength: 1 })
+}, closed);
+
+export const LevelBlueprintSchema = Type.Object({
+    investigationQuestion: Type.Optional(Type.String({ minLength: 1, maxLength: 240, pattern: "\\S" })),
+    schemaVersion: Type.String({ minLength: 1 }),
+    catalogVersion: Type.String({ minLength: 1 }),
+    id: Type.String({ minLength: 1 }),
+    world: WorldReferenceSchema,
+    title: Type.String({ minLength: 1 }),
+    summary: Type.String({ minLength: 1 }),
+    genre: Type.Literal("online-investigation"),
+    environment: EnvironmentSchema,
+    setting: Type.Object({
+        theme: Type.String({ minLength: 1 }),
+        location: Type.String({ minLength: 1 }),
+        tone: Type.String({ minLength: 1 })
+    }, closed),
+    startingSituation: Type.String({ minLength: 1 }),
+    playerRole: Type.String({ minLength: 1 }),
+    playerCapabilities: Type.Array(Type.String({ minLength: 1 })),
+    playerConstraints: Type.Array(Type.String({ minLength: 1 })),
+    startingInputs: Type.Array(StartingInputSchema),
+    generationConfig: LevelGenerationConfigSchema,
+    phases: Type.Array(PhaseSchema, { minItems: 1 }),
+    puzzles: Type.Array(PuzzleNodeSchema, { minItems: 1 }),
+    terminalAction: TerminalActionSchema,
+    externalContentRequirements: Type.Array(ExternalContentRequirementSchema),
+    requiredResources: Type.Array(RequiredResourceSchema)
+}, closed);
+
+export const LevelDesignFailureSchema = Type.Object({
+    schemaVersion: Type.String({ minLength: 1 }),
+    status: Type.Literal("needs-game-design-revision"),
+    requestId: Type.String({ minLength: 1 }),
+    reasonCode: Type.String({ minLength: 1 }),
+    message: Type.String({ minLength: 1 }),
+    blockedRequirement: Type.String({ minLength: 1 }),
+    attemptedAlternatives: Type.Array(Type.String({ minLength: 1 })),
+    suggestions: Type.Array(Type.Object({
+        change: Type.String({ minLength: 1 }),
+        impact: Type.String({ minLength: 1 })
+    }, closed), { minItems: 1 })
+}, closed);
+
+export type ScalarDataType = Static<typeof ScalarDataTypeSchema>;
+export type ScalarValue = Static<typeof ScalarValueSchema>;
+export type Verification = Static<typeof VerificationSchema>;
+export type Environment = Static<typeof EnvironmentSchema>;
+export type LevelGenerationConfig = Static<typeof LevelGenerationConfigSchema>;
+export type StartingInput = Static<typeof StartingInputSchema>;
+export type RequiredDiscovery = Static<typeof RequiredDiscoverySchema>;
+export type LevelDesignRequest = Static<typeof LevelDesignRequestSchema>;
+export type PuzzleContentMockup = Static<typeof PuzzleContentMockupSchema>;
+export type Phase = Static<typeof PhaseSchema>;
+export type PuzzleInput = Static<typeof PuzzleInputSchema>;
+export type PuzzleOutput = Static<typeof PuzzleOutputSchema>;
+export type PuzzleNode = Static<typeof PuzzleNodeSchema>;
+export type TerminalAction = Static<typeof TerminalActionSchema>;
+export type ExternalContentRequirement = Static<typeof ExternalContentRequirementSchema>;
+export type WorldReference = Static<typeof WorldReferenceSchema>;
+export type RequiredResource = Static<typeof RequiredResourceSchema>;
+export type LevelBlueprint = Static<typeof LevelBlueprintSchema>;
+export type LevelDesignFailure = Static<typeof LevelDesignFailureSchema>;
+export const LEVEL_SCHEMA_VERSION = "5.0.0";
+

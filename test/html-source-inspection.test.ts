@@ -11,18 +11,18 @@ import {
     normalizeSourceCodePayload,
     normalizeVisibleBody,
     normalizeVisibleTitle
-} from "../src/agents/html-source-inspection/engine.js";
+} from "../src/features/puzzle-generation/generators/html-source-inspection/engine.js";
 import {
     createSourceCodePuzzleTool,
     writeSourceCodeArtifactPreview
-} from "../src/agents/html-source-inspection/tool.js";
+} from "../src/features/puzzle-generation/generators/html-source-inspection/tool.js";
 import {
     assertPrivatePuzzleInstance,
     assertPublicPuzzleInstance,
     getHtmlEntrySource,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 const knownSpec = (id: string) => ({
     id,

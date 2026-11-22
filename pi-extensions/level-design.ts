@@ -1,10 +1,10 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
-import { buildLevelDesignPrompt } from "../src/agents/level-design/prompt.js";
-import { createSubmitLevelBlueprintTool } from "../src/agents/level-design/tool.js";
-import { repositoryPuzzleCatalog } from "../src/levels/catalog.js";
-import { loadLevelDesignInputs } from "../src/levels/io.js";
-import type { LevelDesignRequest } from "../src/levels/types.js";
+import { buildLevelDesignPrompt } from "../src/features/level-design/agent/prompt.js";
+import { createSubmitLevelBlueprintTool } from "../src/features/level-design/agent/tool.js";
+import { repositoryPuzzleCatalog } from "../src/features/puzzle-generation/catalog.js";
+import { loadLevelDesignInputs } from "../src/features/level-design/io.js";
+import type { LevelDesignRequest } from "../src/features/level-design/types.js";
 
 export default function levelDesignExtension(pi: ExtensionAPI) {
     let request: LevelDesignRequest | undefined;

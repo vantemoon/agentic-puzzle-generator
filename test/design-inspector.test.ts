@@ -2,8 +2,8 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { repositoryPuzzleCatalog } from "../src/levels/catalog.js";
-import { validateLevelBlueprint } from "../src/levels/validator.js";
+import { repositoryPuzzleCatalog } from "../src/features/puzzle-generation/catalog.js";
+import { validateLevelBlueprint } from "../src/features/level-design/validator.js";
 
 const inspectorPath = path.resolve("tools/design-inspector/index.html");
 const levelFixturePath = path.resolve("test/fixtures/level-v5.fixture.json");

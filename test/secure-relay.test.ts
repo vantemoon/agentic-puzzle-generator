@@ -5,22 +5,22 @@ import {
     decryptRsaOaep,
     encryptRsaOaep,
     getRsaOaepMaxPlaintextBytes
-} from "../src/agents/secure-relay/crypto.js";
+} from "../src/features/puzzle-generation/generators/asymmetric-sealed-relay/crypto.js";
 import {
     buildSecureRelayInstruction,
     createSecureRelayPuzzle,
     evaluateSecureRelaySubmission,
     validateSecureRelaySubmission,
     type SecureRelayPuzzleSpec
-} from "../src/agents/secure-relay/engine.js";
-import { createSecureRelayPuzzleTool } from "../src/agents/secure-relay/tool.js";
+} from "../src/features/puzzle-generation/generators/asymmetric-sealed-relay/engine.js";
+import { createSecureRelayPuzzleTool } from "../src/features/puzzle-generation/generators/asymmetric-sealed-relay/tool.js";
 import {
     assertPrivatePuzzleInstance,
     getPuzzleArtifactSource,
     assertPublicPuzzleInstance,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 function generateTestKeyPair(): { publicKey: string; privateKey: string } {
     return generateKeyPairSync("rsa", {

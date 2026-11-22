@@ -3,11 +3,11 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { loadLevelDesignInputs } from "../src/levels/io.js";
-import type { LevelDesignRequest, WorldReference } from "../src/levels/types.js";
-import { validateLevelDesignRequest } from "../src/levels/validator.js";
-import { resolveLevelWorld, validateWorldReference } from "../src/levels/world.js";
-import type { GameWorld } from "../src/world/types.js";
+import { loadLevelDesignInputs } from "../src/features/level-design/io.js";
+import type { LevelDesignRequest, WorldReference } from "../src/features/level-design/types.js";
+import { validateLevelDesignRequest } from "../src/features/level-design/validator.js";
+import { resolveLevelWorld, validateWorldReference } from "../src/features/level-design/world.js";
+import type { GameWorld } from "../src/features/world/types.js";
 import { levelRequestFixture } from "./fixtures/level-v5.js";
 
 const WORLD: GameWorld = {

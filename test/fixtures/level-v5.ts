@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 
-import type { LevelBlueprint, LevelDesignRequest } from "../../src/levels/types.js";
+import type { LevelBlueprint, LevelDesignRequest } from "../../src/features/level-design/types.js";
 
 const levelUrl = new URL("./level-v5.fixture.json", import.meta.url);
 

@@ -10,18 +10,18 @@ import {
     normalizeAudioDescription,
     normalizeReverseAudioMessage,
     reversePcm16Wav
-} from "../src/agents/reverse-audio/engine.js";
+} from "../src/features/puzzle-generation/generators/reverse-audio/engine.js";
 import {
     createReverseAudioPuzzleTool,
     writeReverseAudioArtifactPreview
-} from "../src/agents/reverse-audio/tool.js";
+} from "../src/features/puzzle-generation/generators/reverse-audio/tool.js";
 import {
     assertPrivatePuzzleInstance,
     assertPublicPuzzleInstance,
     getWavAudioData,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 const knownSpec = (id: string) => ({
     id,

@@ -12,18 +12,18 @@ import {
     normalizeHideStrategy,
     normalizeVisibleBody,
     normalizeVisibleTitle
-} from "../src/agents/dom-element/engine.js";
+} from "../src/features/puzzle-generation/generators/dom-element/engine.js";
 import {
     createDomElementPuzzleTool,
     writeDomElementArtifactPreview
-} from "../src/agents/dom-element/tool.js";
+} from "../src/features/puzzle-generation/generators/dom-element/tool.js";
 import {
     assertPrivatePuzzleInstance,
     assertPublicPuzzleInstance,
     getHtmlEntrySource,
     toPublicPuzzle,
     validateNormalizedTextAnswer
-} from "../src/core/types.js";
+} from "../src/shared/artifacts/types.js";
 
 const knownSpec = (id: string) => ({
     id,
