@@ -1,5 +1,14 @@
 # agentic-puzzle-generator
 
+## Play the portable reporter example
+
+With Node.js 26 installed, run `npm ci` followed by `npm run example:reporter`.
+Open http://127.0.0.1:4173/ and keep the terminal running. This fixed four-level
+example runs without model credentials. See
+[the example instructions](examples/missing-reporter/README.md) for QR clues,
+verification commands, and GitLab testing. The accompanying playtest record
+contains spoilers.
+
 ## Source layout
 
 Source code is organized by feature under `src/features/`. Each feature owns its

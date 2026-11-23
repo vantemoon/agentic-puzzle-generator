@@ -1,0 +1,605 @@
+{
+  "id": "world_missing_reporter_demo_v2",
+  "entities": [
+    {
+      "id": "person_maya_chen",
+      "type": "person",
+      "name": "Maya Chen",
+      "subtype": "reporter"
+    },
+    {
+      "id": "person_julia_reed",
+      "type": "person",
+      "name": "Julia Reed",
+      "subtype": "editor"
+    },
+    {
+      "id": "person_daniel_price",
+      "type": "person",
+      "name": "Daniel Price",
+      "subtype": "finance director"
+    },
+    {
+      "id": "person_owen_blake",
+      "type": "person",
+      "name": "Owen Blake",
+      "subtype": "security manager"
+    },
+    {
+      "id": "org_river_city_ledger",
+      "type": "organization",
+      "name": "River City Ledger",
+      "subtype": "newspaper"
+    },
+    {
+      "id": "org_city_housing_office",
+      "type": "organization",
+      "name": "River City Housing Office",
+      "subtype": "city agency"
+    },
+    {
+      "id": "org_harbor_point_program",
+      "type": "organization",
+      "name": "Harbor Point Redevelopment Program",
+      "subtype": "city program"
+    },
+    {
+      "id": "org_calder_development",
+      "type": "organization",
+      "name": "Calder Development Group",
+      "subtype": "contractor"
+    },
+    {
+      "id": "org_northline_survey",
+      "type": "organization",
+      "name": "Northline Survey LLC",
+      "subtype": "survey vendor"
+    },
+    {
+      "id": "org_river_city_police",
+      "type": "organization",
+      "name": "River City Police Department",
+      "subtype": "police department"
+    },
+    {
+      "id": "place_press_club_garage",
+      "type": "place",
+      "name": "Press Club Parking Garage",
+      "subtype": "parking garage"
+    },
+    {
+      "id": "place_mason_warehouse",
+      "type": "place",
+      "name": "18 Mason Street",
+      "subtype": "warehouse building"
+    },
+    {
+      "id": "place_mason_unit_3",
+      "type": "place",
+      "name": "18 Mason Street, Unit 3",
+      "subtype": "warehouse unit"
+    },
+    {
+      "id": "object_contract_hp_2025_041",
+      "type": "object",
+      "name": "Harbor Point Site Preparation Contract",
+      "subtype": "public contract"
+    },
+    {
+      "id": "object_invoice_inv_ns_7781",
+      "type": "object",
+      "name": "Northline Invoice INV-NS-7781",
+      "subtype": "invoice"
+    },
+    {
+      "id": "object_van_gkt_482",
+      "type": "object",
+      "name": "Calder Service Van GKT-482",
+      "subtype": "vehicle"
+    },
+    {
+      "id": "object_maya_research_folder",
+      "type": "object",
+      "name": "Maya Chen Shared Research",
+      "subtype": "research folder"
+    },
+    {
+      "id": "event_contract_award",
+      "type": "event",
+      "name": "Harbor Point Contract Award",
+      "subtype": "contract award"
+    },
+    {
+      "id": "event_false_invoice_payment",
+      "type": "event",
+      "name": "Northline Invoice Approval",
+      "subtype": "payment approval"
+    },
+    {
+      "id": "event_maya_abduction",
+      "type": "event",
+      "name": "Maya Chen Disappearance",
+      "subtype": "kidnapping"
+    },
+    {
+      "id": "event_warehouse_arrival",
+      "type": "event",
+      "name": "Calder Van Warehouse Arrival",
+      "subtype": "vehicle arrival"
+    },
+    {
+      "id": "event_maya_rescue",
+      "type": "event",
+      "name": "Maya Chen Rescue",
+      "subtype": "police rescue"
+    },
+    {
+      "id": "site_ledger_archive",
+      "type": "site",
+      "name": "River City Ledger Story Archive",
+      "subtype": "news archive"
+    },
+    {
+      "id": "site_city_procurement",
+      "type": "site",
+      "name": "River City Contract Search",
+      "subtype": "contract database"
+    },
+    {
+      "id": "site_company_registry",
+      "type": "site",
+      "name": "River City Company Registry",
+      "subtype": "company database"
+    },
+    {
+      "id": "site_payment_files",
+      "type": "site",
+      "name": "Harbor Point Payment Files",
+      "subtype": "file repository"
+    },
+    {
+      "id": "site_parking_records",
+      "type": "site",
+      "name": "Press Club Parking Records",
+      "subtype": "parking lookup"
+    },
+    {
+      "id": "site_city_camera_log",
+      "type": "site",
+      "name": "River City Traffic Camera Log",
+      "subtype": "camera database"
+    },
+    {
+      "id": "site_property_directory",
+      "type": "site",
+      "name": "Mason Street Property Directory",
+      "subtype": "property directory"
+    },
+    {
+      "id": "site_police_tip_portal",
+      "type": "site",
+      "name": "River City Police Case Portal",
+      "subtype": "evidence portal"
+    }
+  ],
+  "facts": [
+    {
+      "id": "fact_maya_employer",
+      "subjectId": "person_maya_chen",
+      "relation": "employedBy",
+      "value": {
+        "kind": "entity",
+        "entityId": "org_river_city_ledger"
+      }
+    },
+    {
+      "id": "fact_julia_employer",
+      "subjectId": "person_julia_reed",
+      "relation": "employedBy",
+      "value": {
+        "kind": "entity",
+        "entityId": "org_river_city_ledger"
+      }
+    },
+    {
+      "id": "fact_contract_identifier",
+      "subjectId": "object_contract_hp_2025_041",
+      "relation": "publicContractId",
+      "value": {
+        "kind": "literal",
+        "value": "HP-2025-041"
+      }
+    },
+    {
+      "id": "fact_contract_program",
+      "subjectId": "object_contract_hp_2025_041",
+      "relation": "belongsTo",
+      "value": {
+        "kind": "entity",
+        "entityId": "org_harbor_point_program"
+      }
+    },
+    {
+      "id": "fact_contract_prime",
+      "subjectId": "object_contract_hp_2025_041",
+      "relation": "awardedTo",
+      "value": {
+        "kind": "entity",
+        "entityId": "org_calder_development"
+      }
+    },
+    {
+      "id": "fact_contract_award_date",
+      "subjectId": "event_contract_award",
+      "relation": "date",
+      "value": {
+        "kind": "literal",
+        "value": "2025-06-12"
+      }
+    },
+    {
+      "id": "fact_contract_record",
+      "subjectId": "event_contract_award",
+      "relation": "documentedBy",
+      "value": {
+        "kind": "entity",
+        "entityId": "object_contract_hp_2025_041"
+      }
+    },
+    {
+      "id": "fact_contract_subcontractor",
+      "subjectId": "object_contract_hp_2025_041",
+      "relation": "listsSubcontractor",
+      "value": {
+        "kind": "entity",
+        "entityId": "org_northline_survey"
+      }
+    },
+    {
+      "id": "fact_northline_controller",
+      "subjectId": "org_northline_survey",
+      "relation": "controlledBy",
+      "value": {
+        "kind": "entity",
+        "entityId": "person_daniel_price"
+      }
+    },
+    {
+      "id": "fact_northline_address",
+      "subjectId": "org_northline_survey",
+      "relation": "registeredAddress",
+      "value": {
+        "kind": "entity",
+        "entityId": "place_mason_unit_3"
+      }
+    },
+    {
+      "id": "fact_price_employer",
+      "subjectId": "person_daniel_price",
+      "relation": "employedBy",
+      "value": {
+        "kind": "entity",
+        "entityId": "org_calder_development"
+      }
+    },
+    {
+      "id": "fact_price_title",
+      "subjectId": "person_daniel_price",
+      "relation": "jobTitle",
+      "value": {
+        "kind": "literal",
+        "value": "Finance Director"
+      }
+    },
+    {
+      "id": "fact_invoice_identifier",
+      "subjectId": "object_invoice_inv_ns_7781",
+      "relation": "fileIdentifier",
+      "value": {
+        "kind": "literal",
+        "value": "INV-NS-7781"
+      }
+    },
+    {
+      "id": "fact_invoice_vendor",
+      "subjectId": "object_invoice_inv_ns_7781",
+      "relation": "submittedBy",
+      "value": {
+        "kind": "entity",
+        "entityId": "org_northline_survey"
+      }
+    },
+    {
+      "id": "fact_invoice_contract",
+      "subjectId": "object_invoice_inv_ns_7781",
+      "relation": "chargesContract",
+      "value": {
+        "kind": "entity",
+        "entityId": "object_contract_hp_2025_041"
+      }
+    },
+    {
+      "id": "fact_invoice_approver",
+      "subjectId": "object_invoice_inv_ns_7781",
+      "relation": "approvedBy",
+      "value": {
+        "kind": "entity",
+        "entityId": "person_daniel_price"
+      }
+    },
+    {
+      "id": "fact_invoice_approval_date",
+      "subjectId": "event_false_invoice_payment",
+      "relation": "date",
+      "value": {
+        "kind": "literal",
+        "value": "2025-09-16"
+      }
+    },
+    {
+      "id": "fact_invoice_event_file",
+      "subjectId": "event_false_invoice_payment",
+      "relation": "documentedBy",
+      "value": {
+        "kind": "entity",
+        "entityId": "object_invoice_inv_ns_7781"
+      }
+    },
+    {
+      "id": "fact_invoice_service_date",
+      "subjectId": "object_invoice_inv_ns_7781",
+      "relation": "claimedServiceDate",
+      "value": {
+        "kind": "literal",
+        "value": "2025-09-14"
+      }
+    },
+    {
+      "id": "fact_inspection_conflict",
+      "subjectId": "object_invoice_inv_ns_7781",
+      "relation": "inspectionFinding",
+      "value": {
+        "kind": "literal",
+        "value": "No survey crew was present on 2025-09-14"
+      }
+    },
+    {
+      "id": "fact_disappearance_date",
+      "subjectId": "event_maya_abduction",
+      "relation": "date",
+      "value": {
+        "kind": "literal",
+        "value": "2025-09-18"
+      }
+    },
+    {
+      "id": "fact_disappearance_time",
+      "subjectId": "event_maya_abduction",
+      "relation": "time",
+      "value": {
+        "kind": "literal",
+        "value": "18:40"
+      }
+    },
+    {
+      "id": "fact_disappearance_actor",
+      "subjectId": "event_maya_abduction",
+      "relation": "actor",
+      "value": {
+        "kind": "entity",
+        "entityId": "person_owen_blake"
+      }
+    },
+    {
+      "id": "fact_disappearance_vehicle",
+      "subjectId": "event_maya_abduction",
+      "relation": "vehicle",
+      "value": {
+        "kind": "entity",
+        "entityId": "object_van_gkt_482"
+      }
+    },
+    {
+      "id": "fact_disappearance_location",
+      "subjectId": "event_maya_abduction",
+      "relation": "location",
+      "value": {
+        "kind": "entity",
+        "entityId": "place_press_club_garage"
+      }
+    },
+    {
+      "id": "fact_parking_reference",
+      "subjectId": "event_maya_abduction",
+      "relation": "publicParkingReference",
+      "value": {
+        "kind": "literal",
+        "value": "PARK-0918-664"
+      }
+    },
+    {
+      "id": "fact_van_plate",
+      "subjectId": "object_van_gkt_482",
+      "relation": "licensePlate",
+      "value": {
+        "kind": "literal",
+        "value": "GKT-482"
+      }
+    },
+    {
+      "id": "fact_van_owner",
+      "subjectId": "object_van_gkt_482",
+      "relation": "ownedBy",
+      "value": {
+        "kind": "entity",
+        "entityId": "org_calder_development"
+      }
+    },
+    {
+      "id": "fact_van_assigned_driver",
+      "subjectId": "object_van_gkt_482",
+      "relation": "assignedTo",
+      "value": {
+        "kind": "entity",
+        "entityId": "person_owen_blake"
+      }
+    },
+    {
+      "id": "fact_blake_employer",
+      "subjectId": "person_owen_blake",
+      "relation": "employedBy",
+      "value": {
+        "kind": "entity",
+        "entityId": "org_calder_development"
+      }
+    },
+    {
+      "id": "fact_arrival_date",
+      "subjectId": "event_warehouse_arrival",
+      "relation": "date",
+      "value": {
+        "kind": "literal",
+        "value": "2025-09-18"
+      }
+    },
+    {
+      "id": "fact_arrival_time",
+      "subjectId": "event_warehouse_arrival",
+      "relation": "time",
+      "value": {
+        "kind": "literal",
+        "value": "19:12"
+      }
+    },
+    {
+      "id": "fact_arrival_actor",
+      "subjectId": "event_warehouse_arrival",
+      "relation": "driver",
+      "value": {
+        "kind": "entity",
+        "entityId": "person_owen_blake"
+      }
+    },
+    {
+      "id": "fact_arrival_vehicle",
+      "subjectId": "event_warehouse_arrival",
+      "relation": "vehicle",
+      "value": {
+        "kind": "entity",
+        "entityId": "object_van_gkt_482"
+      }
+    },
+    {
+      "id": "fact_arrival_location",
+      "subjectId": "event_warehouse_arrival",
+      "relation": "location",
+      "value": {
+        "kind": "entity",
+        "entityId": "place_mason_warehouse"
+      }
+    },
+    {
+      "id": "fact_camera_record",
+      "subjectId": "event_warehouse_arrival",
+      "relation": "publicCameraRecord",
+      "value": {
+        "kind": "literal",
+        "value": "CAM-0918-221"
+      }
+    },
+    {
+      "id": "fact_unit_parent",
+      "subjectId": "place_mason_unit_3",
+      "relation": "inside",
+      "value": {
+        "kind": "entity",
+        "entityId": "place_mason_warehouse"
+      }
+    },
+    {
+      "id": "fact_unit_tenant",
+      "subjectId": "place_mason_unit_3",
+      "relation": "leasedTo",
+      "value": {
+        "kind": "entity",
+        "entityId": "org_northline_survey"
+      }
+    },
+    {
+      "id": "fact_unit_entrance",
+      "subjectId": "place_mason_unit_3",
+      "relation": "publicEntranceDescription",
+      "value": {
+        "kind": "literal",
+        "value": "rear loading entrance"
+      }
+    },
+    {
+      "id": "fact_kidnapping_order",
+      "subjectId": "person_daniel_price",
+      "relation": "directed",
+      "value": {
+        "kind": "entity",
+        "entityId": "event_maya_abduction"
+      }
+    },
+    {
+      "id": "fact_maya_held_at",
+      "subjectId": "person_maya_chen",
+      "relation": "heldAt",
+      "value": {
+        "kind": "entity",
+        "entityId": "place_mason_unit_3"
+      },
+      "validFrom": "2025-09-18",
+      "validTo": "2025-09-19"
+    },
+    {
+      "id": "fact_rescue_date",
+      "subjectId": "event_maya_rescue",
+      "relation": "date",
+      "value": {
+        "kind": "literal",
+        "value": "2025-09-19"
+      }
+    },
+    {
+      "id": "fact_rescue_time",
+      "subjectId": "event_maya_rescue",
+      "relation": "time",
+      "value": {
+        "kind": "literal",
+        "value": "09:25"
+      }
+    },
+    {
+      "id": "fact_rescue_actor",
+      "subjectId": "event_maya_rescue",
+      "relation": "actor",
+      "value": {
+        "kind": "entity",
+        "entityId": "org_river_city_police"
+      }
+    },
+    {
+      "id": "fact_rescue_location",
+      "subjectId": "event_maya_rescue",
+      "relation": "location",
+      "value": {
+        "kind": "entity",
+        "entityId": "place_mason_unit_3"
+      }
+    },
+    {
+      "id": "fact_rescue_person",
+      "subjectId": "event_maya_rescue",
+      "relation": "rescuedPerson",
+      "value": {
+        "kind": "entity",
+        "entityId": "person_maya_chen"
+      }
+    }
+  ],
+  "schemaVersion": "1.0.0",
+  "revision": "1"
+}

@@ -1,0 +1,110 @@
+{
+  "id": "puzzle_directory_unit",
+  "puzzleType": "hidden-information",
+  "subtype": "anomalous-phrase",
+  "inputs": [
+    {
+      "key": "document_template",
+      "valueType": "natural-language-document-template",
+      "description": "The normal-looking document template containing one anomaly placeholder.",
+      "required": true,
+      "constraints": {
+        "genre": "commercial property tenant directory",
+        "placeholder": "{{ANOMALY}}",
+        "maximumCharacters": 12000,
+        "ruleVersion": "artifact-grounded-semantic-anomaly-v2"
+      },
+      "value": "18 Mason Street tenant directory\nUnit 1 — Mason Tool Repair — Front shop entrance\nUnit 2 — City Parcel Storage — East side entrance\n{{ANOMALY}}\nUnit 4 — Green Table Catering — Courtyard entrance\nUnit 5 — Vacant — No public access"
+    },
+    {
+      "key": "anomalous_phrase",
+      "valueType": "semantic-anomaly",
+      "description": "The phrase, fact, entity, date, or location inserted as the semantic anomaly.",
+      "required": true,
+      "constraints": {
+        "anomalyKind": "out-of-context-entity",
+        "maximumCharacters": 240
+      },
+      "value": "Unit 3 — Northline Survey — Rear loading entrance"
+    },
+    {
+      "key": "normality_context",
+      "valueType": "document-context",
+      "description": "Private design justification for why the inserted phrase is anomalous.",
+      "required": true,
+      "constraints": {
+        "maximumCharacters": 2000
+      },
+      "value": "The directory lists each warehouse unit in numeric order with its tenant and assigned entrance. The Northline row is the only listing relevant to the company address in the carried filing."
+    },
+    {
+      "key": "normal_pattern_evidence",
+      "valueType": "document-excerpts",
+      "description": "Excerpts present in the artifact that establish the normal pattern or conflicting fact.",
+      "required": true,
+      "constraints": {
+        "minimumItems": 2,
+        "maximumItems": 8,
+        "maximumCharactersPerItem": 240
+      },
+      "value": [
+        "Unit 1 — Mason Tool Repair — Front shop entrance",
+        "Unit 2 — City Parcel Storage — East side entrance",
+        "Unit 4 — Green Table Catering — Courtyard entrance",
+        "Unit 5 — Vacant — No public access"
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "key": "discovered_clue",
+      "valueType": "plain-text",
+      "description": "The text recovered by identifying the anomalous phrase or fact.",
+      "value": "UNIT 3"
+    }
+  ],
+  "artifact": {
+    "kind": "text",
+    "mediaType": "text/plain",
+    "source": "18 Mason Street tenant directory\nUnit 1 — Mason Tool Repair — Front shop entrance\nUnit 2 — City Parcel Storage — East side entrance\nUnit 3 — Northline Survey — Rear loading entrance\nUnit 4 — Green Table Catering — Courtyard entrance\nUnit 5 — Vacant — No public access"
+  },
+  "prompt": "Review the commercial property tenant directory and report the semantic anomaly supported by evidence in the document.\n\nDocument:\n\n18 Mason Street tenant directory\nUnit 1 — Mason Tool Repair — Front shop entrance\nUnit 2 — City Parcel Storage — East side entrance\nUnit 3 — Northline Survey — Rear loading entrance\nUnit 4 — Green Table Catering — Courtyard entrance\nUnit 5 — Vacant — No public access",
+  "solution": {
+    "valueType": "text",
+    "canonical": "UNIT 3",
+    "normalization": [
+      "trim",
+      "case-insensitive",
+      "collapse-whitespace"
+    ]
+  },
+  "validator": {
+    "kind": "normalized-text",
+    "mode": "deterministic",
+    "options": {
+      "trim": true,
+      "caseInsensitive": true,
+      "collapseWhitespace": true
+    }
+  },
+  "externalKnowledge": {
+    "required": false
+  },
+  "extensions": {
+    "anomalousPhrase": {
+      "genre": "commercial property tenant directory",
+      "anomalyKind": "out-of-context-entity",
+      "placeholder": "{{ANOMALY}}",
+      "ruleVersion": "artifact-grounded-semantic-anomaly-v2",
+      "normalityContext": "The directory lists each warehouse unit in numeric order with its tenant and assigned entrance. The Northline row is the only listing relevant to the company address in the carried filing.",
+      "normalPatternEvidence": [
+        "Unit 1 — Mason Tool Repair — Front shop entrance",
+        "Unit 2 — City Parcel Storage — East side entrance",
+        "Unit 4 — Green Table Catering — Courtyard entrance",
+        "Unit 5 — Vacant — No public access"
+      ],
+      "anomalousPhrase": "Unit 3 — Northline Survey — Rear loading entrance",
+      "documentSha256": "7fc6cf03d230531fca1e9fc3672f0ce9e4c8831ceba2ba09426d1eea61dc532f"
+    }
+  }
+}

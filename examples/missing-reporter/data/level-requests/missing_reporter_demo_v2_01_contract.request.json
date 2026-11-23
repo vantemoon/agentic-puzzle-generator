@@ -1,0 +1,115 @@
+{
+  "levelId": "missing_reporter_demo_v2_01_contract",
+  "investigationQuestion": "Which Harbor Point contract was Maya tracing, and which subcontractor made her suspect diverted public money?",
+  "titleHint": "Maya’s Contract Lead",
+  "genre": "online-investigation",
+  "theme": "Tracing a reporter’s public lead",
+  "setting": "The Ledger archive and city contract search",
+  "startingSituation": "Julia has opened Maya Chen Shared Research. Open Maya’s saved story, click “Related records,” and enter the contract reference you find in the Contract ID field on River City Contract Search.",
+  "playerRole": "You are Maya Chen’s trusted friend, using the newsroom research Julia Reed shared with you to identify the public contract Maya followed.",
+  "playerCapabilities": [
+    "Browse the shared research and cited records.",
+    "Enter a reference in the Contract ID field.",
+    "Inspect the matched contract result."
+  ],
+  "playerConstraints": [
+    "Use only the fictional records provided.",
+    "Do not contact real people or use private systems.",
+    "Do not assume the fraud allegation is proved."
+  ],
+  "environment": {
+    "mode": "self-contained"
+  },
+  "narrativeContext": [
+    "The Ledger archive lists stories, corrections, and cited records; the city search presents comparable awards and subcontractors.",
+    "Maya’s story and correction lead to one contract whose result names Northline Survey LLC.",
+    "Opening the record identifies the vendor needed next; the result has a visible “Payment files” link."
+  ],
+  "startingInputs": [
+    {
+      "id": "input_maya_shared_research",
+      "semanticRole": "initial-evidence",
+      "description": "Project-hosted bundle containing Maya’s saved story and a note to begin with its related records.",
+      "kind": "bundle-entry",
+      "resourceKind": "newsroom-research-folder"
+    }
+  ],
+  "externalContentRequirements": [],
+  "requiredDiscoveries": [
+    {
+      "id": "discovery_northline_vendor",
+      "semanticRole": "organization-identifier",
+      "description": "Name of the subcontractor listed on Maya’s contract record.",
+      "dataType": "string",
+      "value": "Northline Survey LLC"
+    }
+  ],
+  "terminalAction": {
+    "actionType": "database-search",
+    "description": "Search for the exact award record in the Contract ID field. Format: HP-YYYY-NNN.",
+    "requiredOutputs": [
+      {
+        "id": "output_contract_id",
+        "semanticRole": "record-selector",
+        "dataType": "string",
+        "requiredValue": "HP-2025-041"
+      }
+    ]
+  },
+  "config": {
+    "structuralDifficulty": {
+      "preset": "easy",
+      "puzzleCount": {
+        "minimum": 3,
+        "maximum": 4
+      },
+      "phaseCount": {
+        "minimum": 2,
+        "maximum": 3
+      },
+      "linearity": 0.85,
+      "maxParallelPuzzles": 1
+    },
+    "puzzleDifficulty": {
+      "preset": "easy"
+    },
+    "transformationPolicy": {
+      "enabled": true,
+      "maxCount": 1,
+      "maxDifficulty": "easy"
+    },
+    "reviewRetryLimit": 3,
+    "concealUnreachedContent": true,
+    "encourageSubtypeVariety": true
+  },
+  "world": {
+    "entityIds": [
+      "person_maya_chen",
+      "person_julia_reed",
+      "org_river_city_ledger",
+      "org_harbor_point_program",
+      "org_calder_development",
+      "org_northline_survey",
+      "object_contract_hp_2025_041",
+      "object_maya_research_folder",
+      "event_contract_award",
+      "site_ledger_archive",
+      "site_city_procurement",
+      "site_payment_files"
+    ],
+    "factIds": [
+      "fact_maya_employer",
+      "fact_julia_employer",
+      "fact_contract_identifier",
+      "fact_contract_program",
+      "fact_contract_prime",
+      "fact_contract_award_date",
+      "fact_contract_record",
+      "fact_contract_subcontractor"
+    ],
+    "asOf": "2025-09-19",
+    "id": "world_missing_reporter_demo_v2",
+    "revision": "1"
+  },
+  "catalogVersion": "repository-puzzles-2.0.0"
+}

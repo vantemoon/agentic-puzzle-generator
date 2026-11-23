@@ -1,0 +1,183 @@
+{
+  "schemaVersion": "1.0.0",
+  "levelId": "missing_reporter_demo_v2_04_rescue",
+  "sites": [
+    {
+      "name": "River City Police Case Portal",
+      "basePath": "/case-portal"
+    },
+    {
+      "name": "Northline Evidence Package",
+      "basePath": "/northline-records"
+    },
+    {
+      "name": "Mason Street Property Directory",
+      "basePath": "/property-directory"
+    }
+  ],
+  "routes": [
+    {
+      "path": "/",
+      "mediaType": "text/html",
+      "sha256": "9e859fcd7ca93aa461ca03cc78d366a6c5a9e4f665eb2c116ff5ec0e998e52e8"
+    },
+    {
+      "path": "/case-portal",
+      "mediaType": "text/html",
+      "sha256": "789c309e0a5653edbcde41fc7f9ac10eccfd17d328da38bab74f9e765f6564e3"
+    },
+    {
+      "path": "/case-portal/about",
+      "mediaType": "text/html",
+      "sha256": "b2f080d1b691a30f14f56ac7168bc629df087c5c51cf0edee76d1d7bf5ca2429"
+    },
+    {
+      "path": "/case-portal/camera-evidence",
+      "mediaType": "text/html",
+      "sha256": "b89ae8c1ec07a5510cdc76a0523275995515cccfe6e9986b34ae82e028ad80c0"
+    },
+    {
+      "path": "/case-portal/contact",
+      "mediaType": "text/html",
+      "sha256": "82f65814904dd1e5f73b142128930388a013b7d684fdf95d06a908418535f381"
+    },
+    {
+      "path": "/case-portal/evidence-guide",
+      "mediaType": "text/html",
+      "sha256": "134f7efab94765c3cd1bdafc820fb62729331e8b1a69d0dcd5929565a06a5a2b"
+    },
+    {
+      "path": "/case-portal/location-review",
+      "mediaType": "text/html",
+      "sha256": "3213b7a8e99d414817e8c99727e9437054e8ee4d341d4d00daa383f5d49542aa"
+    },
+    {
+      "path": "/case-portal/privacy",
+      "mediaType": "text/html",
+      "sha256": "c639716161ceaf6fec171482c96c0b9895a44acac98d0246190dc3fe326cbc6b"
+    },
+    {
+      "path": "/case-portal/send-location",
+      "mediaType": "text/html",
+      "sha256": "67e4456e017c04589a816aca0fd2b2ddaf167509079bcb5555c4a2a6ddd23b2b"
+    },
+    {
+      "path": "/northline-records",
+      "mediaType": "text/html",
+      "sha256": "b5cdd33db20fc90599030ee377c021b65a1b34269cc6b8e9a80e2a42cdfc8276"
+    },
+    {
+      "path": "/northline-records/accessibility",
+      "mediaType": "text/html",
+      "sha256": "9f7d96cc776fcd857d2dfc09b33076ada27143be6f6d23c166500bb382da51d5"
+    },
+    {
+      "path": "/northline-records/company-filing",
+      "mediaType": "text/html",
+      "sha256": "99d893c1093a7e43e297904b98fe183113520ae75b2bb58a4653d59f0314a0a5"
+    },
+    {
+      "path": "/northline-records/invoice",
+      "mediaType": "text/html",
+      "sha256": "a1b0b15782ff2df6d33f7cfcf712c6e6f51959be20bc790dc5e6c17a0b960266"
+    },
+    {
+      "path": "/northline-records/package-notes",
+      "mediaType": "text/html",
+      "sha256": "dd51b6f31aaf593d0a3b9c6c2e94b8862e6917ca84079df7a2fde510dcddd287"
+    },
+    {
+      "path": "/northline-records/terms",
+      "mediaType": "text/html",
+      "sha256": "4511f8528d947c6c0c52ad0340ce2890a475833ee386cd3e05f11751c9fa35a2"
+    },
+    {
+      "path": "/property-directory",
+      "mediaType": "text/html",
+      "sha256": "518aa2d8fba85a9c03bfe828519c90d5f9658c6a1e490bfe669f210337e4ef71"
+    },
+    {
+      "path": "/property-directory/about",
+      "mediaType": "text/html",
+      "sha256": "e173b0f7fcad35a80642f06c8c4a56ff5ee73b552792c53fa16cf054610b5a5d"
+    },
+    {
+      "path": "/property-directory/entrance-notice",
+      "mediaType": "text/html",
+      "sha256": "94e36cc550a20f8a3f7b146c0607e5c93abd95d38daeedfe7337e93585efe667"
+    },
+    {
+      "path": "/property-directory/entrance-policy",
+      "mediaType": "text/html",
+      "sha256": "2dd7fc37601f5c4ffc0365d8c47e90b2c3e130ee017cedd74951b4b96c2c6ae4"
+    },
+    {
+      "path": "/property-directory/office",
+      "mediaType": "text/html",
+      "sha256": "7162ac2bf640c7dfeb51335df790b1189c0ba0579d75d6b27ba4d5fddd166084"
+    },
+    {
+      "path": "/property-directory/property-record",
+      "mediaType": "text/html",
+      "sha256": "556b462915b96c1b2a1a7f0b74914db63c060a84b65e0b9506ab45eefe994764"
+    },
+    {
+      "path": "/property-directory/tenant-record",
+      "mediaType": "text/html",
+      "sha256": "5a2ee9227ff787448327a789f8208375de2945ed5fa4b1975182de39bc3d17b2"
+    },
+    {
+      "path": "/property-directory/tenant-records",
+      "mediaType": "text/html",
+      "sha256": "416f140c5387dc0912d4a51e2f8ef8171b272a7b16d19cd51337b1858fbe3a43"
+    }
+  ],
+  "assets": [
+    {
+      "path": "/assets/camera-evidence-card.svg",
+      "mediaType": "image/svg+xml",
+      "sha256": "0a70114e5b19badf4c5a4d2ef2f36b1e3b9356069daf26d51380af919876b01f"
+    },
+    {
+      "path": "/assets/site-1.css",
+      "mediaType": "text/css",
+      "sha256": "a1c6c721953806f91dd6a999bb4f48d50cda867d50373ca657315f5cfb8a2af0"
+    },
+    {
+      "path": "/assets/site-2.css",
+      "mediaType": "text/css",
+      "sha256": "7819aab32f0a2e62dd283b195a1067c5ada17eb62f47229e22758c2a539c2f2f"
+    },
+    {
+      "path": "/assets/site-3.css",
+      "mediaType": "text/css",
+      "sha256": "79f9bdfd0f703aff1b3ac84fbca132c4278a6316d4b080d9d2017e61f141e268"
+    },
+    {
+      "path": "/assets/site.css",
+      "mediaType": "text/css",
+      "sha256": "6dce69ebb961d990cac4840bb62622293a36f5331f4f9d16b21e1898bb0e09f0"
+    },
+    {
+      "path": "/property-directory/tenant-record/_artifact/index.html",
+      "mediaType": "text/html",
+      "sha256": "b1654d311b7ab10a8c6f03132322dc660275f7d312f58d2ed3a02508e3b2865c"
+    },
+    {
+      "path": "/property-directory/tenant-record/_artifact/versions/2025-01-10.html",
+      "mediaType": "text/html",
+      "sha256": "4ca3636c147703e43c0f33bdc8b6004f4c5984232eba9fb16967affceb52dca7"
+    },
+    {
+      "path": "/property-directory/tenant-record/_artifact/versions/2025-08-29.html",
+      "mediaType": "text/html",
+      "sha256": "be9151a1635ea0e28fce9579e9ae9a9dd23149aa88b156c66a5c45ad4cf72540"
+    }
+  ],
+  "headers": {
+    "content-security-policy": "default-src 'self' data:; script-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+    "referrer-policy": "no-referrer",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY"
+  }
+}

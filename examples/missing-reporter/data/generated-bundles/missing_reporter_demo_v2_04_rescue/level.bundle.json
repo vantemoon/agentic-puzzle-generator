@@ -1,0 +1,938 @@
+{
+  "sites": [
+    {
+      "id": "site_police_portal",
+      "name": "River City Police Case Portal",
+      "worldEntityId": "site_police_tip_portal",
+      "archetype": "records",
+      "visualProfile": {
+        "tone": "formal",
+        "fontStyle": "sans",
+        "density": "compact",
+        "accentColor": "#1F4E79",
+        "mediaStyle": "Clear evidence cards, restrained blue headers, and accessible record labels"
+      },
+      "basePath": "/case-portal",
+      "routes": [
+        {
+          "role": "structural",
+          "path": "/",
+          "navigation": "primary",
+          "content": {
+            "title": "Case Update",
+            "description": "Restricted public-submission update for the reported vehicle connected with Maya Chen’s disappearance.",
+            "blocks": [
+              {
+                "kind": "records",
+                "heading": "Vehicle camera update",
+                "entries": [
+                  {
+                    "label": "Date",
+                    "value": "2025-09-18"
+                  },
+                  {
+                    "label": "Status",
+                    "value": "Property and unit confirmation requested"
+                  }
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Case actions",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Camera evidence card",
+                    "summary": "Open the evidence card associated with the recorded vehicle arrival.",
+                    "href": "/case-portal/camera-evidence"
+                  },
+                  {
+                    "title": "Check property directory",
+                    "summary": "Search the commercial property directory for the address shown in the evidence.",
+                    "href": "/property-directory"
+                  },
+                  {
+                    "title": "Report verified location",
+                    "summary": "Open the case location review after checking the property and unit records.",
+                    "href": "/case-portal/location-review"
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "starting-input:input_police_camera_update"
+            ],
+            "cue": "Open starting page displays this case update.",
+            "linkReason": "The police supplied this case-update page to the reporting party.",
+            "queryInputId": "input_case_update"
+          }
+        },
+        {
+          "role": "puzzle",
+          "path": "/camera-evidence",
+          "navigation": "contextual",
+          "content": {
+            "title": "Camera Record",
+            "description": "Police camera evidence card for a van arrival recorded at the property.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Vehicle camera update",
+                "paragraphs": [
+                  "A city camera captured the reported van arriving at the listed property. Scan the machine-readable code on the evidence card to recover its record identifier."
+                ]
+              }
+            ]
+          },
+          "puzzleId": "puzzle_camera_record",
+          "placement": "media-viewer",
+          "directAssetPath": "/assets/camera-evidence-card.svg",
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/case-portal"
+            ],
+            "cue": "Click the visible Camera evidence card action.",
+            "linkReason": "The case update publishes the evidence card as an attached case record.",
+            "queryInputId": "input_case_update"
+          }
+        },
+        {
+          "role": "puzzle",
+          "path": "/location-review",
+          "navigation": "contextual",
+          "content": {
+            "title": "Police Location Report",
+            "description": "Review the corroborated property and unit before sending a location to police.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Location review",
+                "paragraphs": [
+                  "This page records the property street address and separately verified unit designation in machine-readable review metadata before submission. Inspect the page source to recover the verified-location value."
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Submit reviewed location",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Send location to police",
+                    "summary": "Open the case form and enter the complete reviewed location.",
+                    "href": "/case-portal/send-location"
+                  }
+                ]
+              }
+            ]
+          },
+          "puzzleId": "puzzle_rescue_location",
+          "placement": "native-html",
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/case-portal"
+            ],
+            "cue": "Use the Report verified location link in the case action list after confirming the unit.",
+            "linkReason": "The case portal navigation provides the police location-review action.",
+            "queryInputId": "input_report_unit"
+          }
+        },
+        {
+          "role": "terminal",
+          "path": "/send-location",
+          "navigation": "contextual",
+          "content": {
+            "title": "Send Police the Verified Location",
+            "description": "Send the full property address and corroborated unit to the case team.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Location submission",
+                "paragraphs": [
+                  "Enter the reviewed location exactly as shown on the location report. Include the street address and unit designation in the single Location field."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/case-portal/location-review"
+            ],
+            "cue": "Click Send location to police on the reviewed report.",
+            "linkReason": "The reviewed location record offers the evidence-submission form as its next case action.",
+            "queryInputId": "output_rescue_location"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/about",
+          "navigation": "footer",
+          "content": {
+            "title": "About the Case Portal",
+            "description": "How River City Police accepts and reviews public case information.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Portal purpose",
+                "paragraphs": [
+                  "The portal gives authorized reporting parties access to selected case updates and secure evidence forms. It does not publish full case files."
+                ]
+              },
+              {
+                "kind": "list",
+                "heading": "Before sending information",
+                "items": [
+                  "Use only records you can identify.",
+                  "Include exact locations when requested.",
+                  "Do not contact a suspect or enter a private property."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/case-portal"
+            ],
+            "cue": "Use the About link in the footer.",
+            "linkReason": "The portal footer provides standard service information.",
+            "queryInputId": "input_case_update"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/evidence-guide",
+          "navigation": "secondary",
+          "content": {
+            "title": "Evidence Submission Guide",
+            "description": "Basic requirements for records sent through the case portal.",
+            "blocks": [
+              {
+                "kind": "table",
+                "heading": "Accepted details",
+                "columns": [
+                  "Detail",
+                  "How to provide it"
+                ],
+                "rows": [
+                  [
+                    "Location",
+                    "Street address and unit when available"
+                  ],
+                  [
+                    "Record reference",
+                    "Copy the identifier exactly"
+                  ],
+                  [
+                    "Date and time",
+                    "Use the date and time printed by the source"
+                  ]
+                ]
+              },
+              {
+                "kind": "prose",
+                "heading": "Safety",
+                "paragraphs": [
+                  "Send records through the portal. Do not visit a location or attempt to verify occupancy in person."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/case-portal"
+            ],
+            "cue": "Use the Evidence guide link in secondary navigation.",
+            "linkReason": "The case portal provides general submission requirements.",
+            "queryInputId": "input_case_update"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/privacy",
+          "navigation": "footer",
+          "content": {
+            "title": "Privacy Notice",
+            "description": "How information submitted through the portal is handled.",
+            "blocks": [
+              {
+                "kind": "list",
+                "heading": "Information handling",
+                "items": [
+                  "Submissions are attached to the relevant case record.",
+                  "Access is limited to authorized staff.",
+                  "Contact details are not shown on public case updates."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/case-portal"
+            ],
+            "cue": "Use the Privacy link in the footer.",
+            "linkReason": "The police portal publishes a standard privacy notice.",
+            "queryInputId": "input_case_update"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/contact",
+          "navigation": "footer",
+          "content": {
+            "title": "Contact Information",
+            "description": "Routine contact options for River City Police.",
+            "blocks": [
+              {
+                "kind": "records",
+                "heading": "Public contacts",
+                "entries": [
+                  {
+                    "label": "Emergency",
+                    "value": "Use local emergency services"
+                  },
+                  {
+                    "label": "Records desk",
+                    "value": "records@rivercitypolice.test"
+                  },
+                  {
+                    "label": "Portal support",
+                    "value": "support@rivercitypolice.test"
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/case-portal"
+            ],
+            "cue": "Use the Contact link in the footer.",
+            "linkReason": "The portal includes routine agency contact details.",
+            "queryInputId": "input_case_update"
+          }
+        }
+      ]
+    },
+    {
+      "id": "site_vendor_package",
+      "name": "Northline Evidence Package",
+      "worldEntityId": "org_northline_survey",
+      "archetype": "records",
+      "visualProfile": {
+        "tone": "neutral",
+        "fontStyle": "mixed",
+        "density": "comfortable",
+        "accentColor": "#6B5543",
+        "mediaStyle": "Document scans on plain paper backgrounds with clear captions"
+      },
+      "basePath": "/northline-records",
+      "routes": [
+        {
+          "role": "structural",
+          "path": "/",
+          "navigation": "primary",
+          "content": {
+            "title": "Northline Evidence Package",
+            "description": "Carried company records saved for review, including a filing and invoice.",
+            "blocks": [
+              {
+                "kind": "records",
+                "heading": "Package contents",
+                "entries": [
+                  {
+                    "label": "Company filing",
+                    "value": "Operating address and controller fields"
+                  },
+                  {
+                    "label": "Invoice",
+                    "value": "INV-NS-7781"
+                  },
+                  {
+                    "label": "Package status",
+                    "value": "Preserved copy"
+                  }
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Documents",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Northline Survey company filing",
+                    "summary": "Open the filing image and its accessible description.",
+                    "href": "/northline-records/company-filing"
+                  },
+                  {
+                    "title": "Invoice record",
+                    "summary": "Review the routine invoice included with the filing.",
+                    "href": "/northline-records/invoice"
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "starting-input:input_carried_vendor_evidence"
+            ],
+            "cue": "Open starting page displays the carried evidence package.",
+            "linkReason": "The investigator already holds this preserved Northline record package.",
+            "queryInputId": "input_vendor_package"
+          }
+        },
+        {
+          "role": "puzzle",
+          "path": "/company-filing",
+          "navigation": "contextual",
+          "content": {
+            "title": "Northline Survey Company Filing",
+            "description": "The carried evidence package includes a filing image whose accessible description preserves faint printed fields.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Filing image",
+                "paragraphs": [
+                  "Review the filing scan and its accessible image description to read the company’s operating address."
+                ]
+              }
+            ]
+          },
+          "puzzleId": "puzzle_vendor_address",
+          "placement": "native-html",
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/northline-records"
+            ],
+            "cue": "Click Northline Survey company filing in the document list.",
+            "linkReason": "The package index links to each preserved document.",
+            "queryInputId": "input_vendor_package"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/invoice",
+          "navigation": "contextual",
+          "content": {
+            "title": "Invoice Record",
+            "description": "Routine invoice preserved with the Northline company filing.",
+            "blocks": [
+              {
+                "kind": "records",
+                "heading": "Invoice summary",
+                "entries": [
+                  {
+                    "label": "Reference",
+                    "value": "INV-NS-7781"
+                  },
+                  {
+                    "label": "Vendor",
+                    "value": "Northline Survey LLC"
+                  },
+                  {
+                    "label": "Document type",
+                    "value": "Service invoice"
+                  },
+                  {
+                    "label": "Status",
+                    "value": "Preserved copy"
+                  }
+                ]
+              },
+              {
+                "kind": "prose",
+                "heading": "Package note",
+                "paragraphs": [
+                  "This invoice was stored with the company filing so the two documents can be reviewed as one evidence package."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/northline-records"
+            ],
+            "cue": "Click Invoice record in the package document list.",
+            "linkReason": "The package index links to each preserved document.",
+            "queryInputId": "input_vendor_package"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/package-notes",
+          "navigation": "secondary",
+          "content": {
+            "title": "Package Notes",
+            "description": "Origin and handling notes for the carried company records.",
+            "blocks": [
+              {
+                "kind": "records",
+                "heading": "Handling record",
+                "entries": [
+                  {
+                    "label": "Contents",
+                    "value": "One company filing and one invoice"
+                  },
+                  {
+                    "label": "Format",
+                    "value": "Preserved web copies"
+                  },
+                  {
+                    "label": "Review status",
+                    "value": "Not independently certified"
+                  }
+                ]
+              },
+              {
+                "kind": "prose",
+                "heading": "Use",
+                "paragraphs": [
+                  "Compare names, addresses, and document references with records published by the responsible property office."
+                ]
+              },
+              {
+                "kind": "prose",
+                "paragraphs": [
+                  "These preserved copies bring together a public Northline company filing and invoice for comparison with records maintained by the responsible property office."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/northline-records"
+            ],
+            "cue": "Use Package notes in secondary navigation.",
+            "linkReason": "The evidence package provides routine handling context.",
+            "queryInputId": "input_vendor_package"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/accessibility",
+          "navigation": "footer",
+          "content": {
+            "title": "Accessibility",
+            "description": "Accessible formats used for preserved company records.",
+            "blocks": [
+              {
+                "kind": "list",
+                "heading": "Document access",
+                "items": [
+                  "Images include useful text descriptions.",
+                  "Headings follow document order.",
+                  "Record labels remain available as text."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/northline-records"
+            ],
+            "cue": "Use Accessibility in the footer.",
+            "linkReason": "The record package explains its accessible document treatment.",
+            "queryInputId": "input_vendor_package"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/terms",
+          "navigation": "footer",
+          "content": {
+            "title": "Use of Preserved Records",
+            "description": "Limits on the copied records in this package.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Record status",
+                "paragraphs": [
+                  "These pages preserve the documents as received. They do not replace certified filings or current property-office records."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/northline-records"
+            ],
+            "cue": "Use Use of preserved records in the footer.",
+            "linkReason": "The package states the limits of copied records.",
+            "queryInputId": "input_vendor_package"
+          }
+        }
+      ]
+    },
+    {
+      "id": "site_property_directory",
+      "name": "Mason Street Property Directory",
+      "worldEntityId": "site_property_directory",
+      "archetype": "directory",
+      "visualProfile": {
+        "tone": "neutral",
+        "fontStyle": "sans",
+        "density": "compact",
+        "accentColor": "#356859",
+        "mediaStyle": "Practical building diagrams, tenant tables, and property-office notices"
+      },
+      "basePath": "/property-directory",
+      "routes": [
+        {
+          "role": "structural",
+          "path": "/",
+          "navigation": "primary",
+          "content": {
+            "title": "Commercial Property Directory",
+            "description": "Search commercial properties managed by the Mason Street property office. Matched pages list all units, tenants, and assigned entrances.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Property search",
+                "paragraphs": [
+                  "Enter a full street address in the Property address field. A matched property page includes current unit and entrance records. If there is no exact match, the form reports that no managed property was found."
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Directory information",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Directory scope",
+                    "summary": "Read what the public directory includes and how records are maintained.",
+                    "href": "/property-directory/about"
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/case-portal"
+            ],
+            "cue": "Click Check property directory on the police case update.",
+            "linkReason": "Police cite the property office directory so reporters can verify a unit before submitting a location.",
+            "queryInputId": "input_directory_camera_context"
+          }
+        },
+        {
+          "role": "puzzle",
+          "path": "/property-record",
+          "navigation": "hidden",
+          "content": {
+            "title": "Warehouse Unit Directory",
+            "description": "Complete tenant and assigned-entrance listing for the matched commercial property.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Matched property",
+                "paragraphs": [
+                  "The result contains every commercial unit at the matched address in numeric order. Compare the tenant rows with the carried company filing."
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Tenant records",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Northline Survey tenant registry record",
+                    "summary": "View the dated lease record and assigned entrance for the matching tenant.",
+                    "href": "/property-directory/tenant-record"
+                  }
+                ]
+              }
+            ]
+          },
+          "puzzleId": "puzzle_directory_unit",
+          "placement": "page-body",
+          "discovery": {
+            "kind": "lookup",
+            "from": [
+              "/property-directory"
+            ],
+            "cue": "Type the filing’s street address into the Property address field to receive the complete matching property record.",
+            "linkReason": "The directory resolves exact managed-property addresses to their complete unit listings.",
+            "queryInputId": "input_directory_address"
+          }
+        },
+        {
+          "role": "puzzle",
+          "path": "/tenant-record",
+          "navigation": "contextual",
+          "content": {
+            "title": "Northline Survey Tenant Registry Record",
+            "description": "Dated property-office versions for an active commercial lease.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Record history",
+                "paragraphs": [
+                  "Compare the January and August versions to find the responsible manager in the latest annual review."
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Entrance record",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Rear loading entrance notice",
+                    "summary": "Open the official dated notice associated with this lease’s entrance assignment.",
+                    "href": "/property-directory/entrance-notice"
+                  }
+                ]
+              }
+            ]
+          },
+          "puzzleId": "puzzle_tenant_registry",
+          "placement": "version-set",
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/property-directory/property-record"
+            ],
+            "cue": "Use the Tenant registry record link on the matching tenant row.",
+            "linkReason": "The property record provides navigation to the active tenant’s dated registry record.",
+            "queryInputId": "input_unit_registry_link"
+          }
+        },
+        {
+          "role": "puzzle",
+          "path": "/entrance-notice",
+          "navigation": "contextual",
+          "content": {
+            "title": "Entrance Assignment Notice",
+            "description": "Property-office notice for the assigned rear loading entrance.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Rear loading entrance assignment",
+                "paragraphs": [
+                  "Read the dated notice and identify the unit number shown in the large monospace lettering."
+                ]
+              }
+            ]
+          },
+          "puzzleId": "puzzle_entrance_notice",
+          "placement": "page-body",
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/property-directory/tenant-record"
+            ],
+            "cue": "Use the Rear loading entrance notice link beside the entrance assignment.",
+            "linkReason": "The tenant record provides navigation to the official entrance-assignment notice.",
+            "queryInputId": "input_entrance_notice_link"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/about",
+          "navigation": "primary",
+          "content": {
+            "title": "About the Directory",
+            "description": "Scope and maintenance of the commercial property directory.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Coverage",
+                "paragraphs": [
+                  "The directory covers commercial properties managed by the Mason Street property office. Each matched property shows every current unit, listed tenant, and assigned public or service entrance."
+                ]
+              },
+              {
+                "kind": "list",
+                "heading": "Record maintenance",
+                "items": [
+                  "Tenant records are reviewed annually.",
+                  "Entrance changes are published as dated notices.",
+                  "Vacant units remain listed to keep unit sequences complete."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/property-directory"
+            ],
+            "cue": "Click Directory scope on the search page.",
+            "linkReason": "The directory search page links to its coverage statement.",
+            "queryInputId": "input_directory_camera_context"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/tenant-records",
+          "navigation": "primary",
+          "content": {
+            "title": "Tenant Records",
+            "description": "How active commercial tenant records are published.",
+            "blocks": [
+              {
+                "kind": "table",
+                "heading": "Published fields",
+                "columns": [
+                  "Field",
+                  "Purpose"
+                ],
+                "rows": [
+                  [
+                    "Tenant name",
+                    "Identifies the current listed occupant"
+                  ],
+                  [
+                    "Lease status",
+                    "Shows whether the listing is active"
+                  ],
+                  [
+                    "Responsible manager",
+                    "Names the current office contact after review"
+                  ],
+                  [
+                    "Entrance assignment",
+                    "Links the unit to an official entrance notice"
+                  ]
+                ]
+              },
+              {
+                "kind": "prose",
+                "heading": "Versions",
+                "paragraphs": [
+                  "When an annual review changes a published field, the prior dated version remains available from the tenant record."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/property-directory"
+            ],
+            "cue": "Use Tenant records in primary navigation.",
+            "linkReason": "The directory explains its tenant-record publication policy.",
+            "queryInputId": "input_directory_camera_context"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/entrance-policy",
+          "navigation": "secondary",
+          "content": {
+            "title": "Entrance Assignment Policy",
+            "description": "How entrances are assigned and documented for warehouse units.",
+            "blocks": [
+              {
+                "kind": "list",
+                "heading": "Assignment rules",
+                "items": [
+                  "Each occupied unit has one listed routine entrance.",
+                  "Shared loading areas require a dated office notice.",
+                  "Changes take effect on the date printed on the notice."
+                ]
+              },
+              {
+                "kind": "prose",
+                "heading": "Public notices",
+                "paragraphs": [
+                  "A tenant record links to the current notice when a service entrance is assigned."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/property-directory"
+            ],
+            "cue": "Use Entrance policy in secondary navigation.",
+            "linkReason": "The directory publishes routine property-access rules.",
+            "queryInputId": "input_directory_camera_context"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/office",
+          "navigation": "footer",
+          "content": {
+            "title": "Property Office",
+            "description": "Contact and service information for the commercial directory.",
+            "blocks": [
+              {
+                "kind": "records",
+                "heading": "Office details",
+                "entries": [
+                  {
+                    "label": "Service",
+                    "value": "Commercial tenant directory"
+                  },
+                  {
+                    "label": "Email",
+                    "value": "records@masonstreetproperty.test"
+                  },
+                  {
+                    "label": "Availability",
+                    "value": "Weekdays during regular business hours"
+                  }
+                ]
+              },
+              {
+                "kind": "list",
+                "heading": "Requests",
+                "items": [
+                  "Report a tenant-name correction.",
+                  "Request an accessible notice format.",
+                  "Ask about a directory search that returned no match."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/property-directory"
+            ],
+            "cue": "Use Property office in the footer.",
+            "linkReason": "The directory includes routine publisher contact information.",
+            "queryInputId": "input_directory_camera_context"
+          }
+        }
+      ]
+    }
+  ],
+  "worldAdditions": {
+    "entities": [],
+    "facts": []
+  },
+  "mediaRequests": [],
+  "terminal": {
+    "siteId": "site_police_portal",
+    "routePath": "/send-location",
+    "mode": "validation-api"
+  },
+  "schemaVersion": "2.0.0",
+  "levelId": "missing_reporter_demo_v2_04_rescue",
+  "world": {
+    "id": "world_missing_reporter_demo_v2",
+    "revision": "1",
+    "asOf": "2025-09-19"
+  },
+  "seed": "missing_reporter_demo_v2_04_rescue-bundle-v1"
+}

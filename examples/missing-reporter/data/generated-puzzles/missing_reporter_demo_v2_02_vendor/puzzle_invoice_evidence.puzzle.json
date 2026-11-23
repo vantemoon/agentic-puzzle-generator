@@ -1,0 +1,82 @@
+{
+  "id": "puzzle_invoice_evidence",
+  "puzzleType": "hidden-information",
+  "subtype": "html-source-inspection",
+  "inputs": [
+    {
+      "key": "visible_page_text",
+      "valueType": "html-visible-text",
+      "description": "The text visible in the rendered webpage.",
+      "required": true,
+      "value": {
+        "title": "Northline survey invoice",
+        "body": "File ID: INV-NS-7781. Vendor: Northline Survey LLC. Registered address: 18 Mason Street, Unit 3. Contract: HP-2025-041. Service date: 2025-09-14. Approved by Daniel Price on 2025-09-15. Status: Paid. Attachment: inspection note for 2025-09-14. Public control: Open parking record."
+      }
+    },
+    {
+      "key": "source_code_payload",
+      "valueType": "source-code-hidden-text",
+      "description": "The hidden message embedded in static HTML, CSS, JavaScript-like source text, or source references.",
+      "required": true,
+      "value": "No survey crew attended"
+    },
+    {
+      "key": "source_code_carrier",
+      "valueType": "source-code-carrier",
+      "description": "The kind of source material that carries the hidden message.",
+      "required": true,
+      "value": "html-attribute"
+    }
+  ],
+  "outputs": [
+    {
+      "key": "extracted_message",
+      "valueType": "plain-text",
+      "description": "The hidden message recovered from static html source inspection.",
+      "value": "No survey crew attended"
+    }
+  ],
+  "artifact": {
+    "kind": "html",
+    "mediaType": "text/html",
+    "entryPath": "/index.html",
+    "files": [
+      {
+        "path": "/index.html",
+        "mediaType": "text/html",
+        "source": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <title>Northline survey invoice</title>\n    <meta data-puzzle-role=\"source-code-payload\" data-inspection-finding=\"No survey crew attended\">\n  </head>\n  <body>\n    <main>\n      <h1>Northline survey invoice</h1>\n      <p>File ID: INV-NS-7781. Vendor: Northline Survey LLC. Registered address: 18 Mason Street, Unit 3. Contract: HP-2025-041. Service date: 2025-09-14. Approved by Daniel Price on 2025-09-15. Status: Paid. Attachment: inspection note for 2025-09-14. Public control: Open parking record.</p>\n    </main>\n  </body>\n</html>"
+      }
+    ]
+  },
+  "prompt": "Open the webpage artifact and recover the message hidden in the page html source inspection.",
+  "solution": {
+    "valueType": "text",
+    "canonical": "No survey crew attended",
+    "normalization": [
+      "trim",
+      "collapse-whitespace"
+    ]
+  },
+  "validator": {
+    "kind": "normalized-text",
+    "mode": "deterministic",
+    "options": {
+      "trim": true,
+      "caseInsensitive": false,
+      "collapseWhitespace": true
+    }
+  },
+  "externalKnowledge": {
+    "required": false
+  },
+  "extensions": {
+    "htmlSourceInspection": {
+      "templateVersion": "safe-static-source-code-v1",
+      "carrier": "html-attribute",
+      "codeLabel": "inspection-finding",
+      "requiresJavaScriptExecution": false,
+      "liveNavigationSupported": false,
+      "artifactSha256": "5558d5dc88bb0891dfa90512d98d7b04f5deae9ee135c44e032f3cf0040d9bc9"
+    }
+  }
+}

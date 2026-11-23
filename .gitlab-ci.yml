@@ -1,0 +1,13 @@
+image: node:26
+
+stages:
+  - test
+
+verify:
+  stage: test
+  script:
+    - npm ci
+    - npm audit --audit-level=low
+    - npm run typecheck
+    - npm test
+    - npm run example:reporter:verify

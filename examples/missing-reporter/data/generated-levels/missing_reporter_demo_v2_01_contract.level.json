@@ -1,0 +1,363 @@
+{
+  "title": "Maya’s Contract Lead",
+  "summary": "The investigator opens Maya’s saved Ledger story, inspects its archived correction to recover contract ID HP-2025-041, searches River City Contract Search with that reference, and verifies the matched award record. The record names Calder Development as prime contractor and Northline Survey LLC as the subcontractor Maya was tracing. The terminal action is the credible city database search using the contract ID; the subcontractor remains an investigation finding and points toward the visible Payment files handoff.",
+  "setting": {
+    "theme": "Tracing a reporter’s public lead",
+    "location": "The Ledger archive and city contract search",
+    "tone": "Grounded public-record investigation"
+  },
+  "phases": [
+    {
+      "id": "phase_newsroom",
+      "order": 0,
+      "title": "Maya’s Saved Story",
+      "summary": "Follow the saved story’s related-record links and compare the archived correction to identify the contract reference."
+    },
+    {
+      "id": "phase_contract",
+      "order": 1,
+      "title": "City Contract Record",
+      "summary": "Use the reference in the city contract search and inspect the matched award and subcontractor details."
+    }
+  ],
+  "puzzles": [
+    {
+      "id": "puzzle_saved_story",
+      "phaseId": "phase_newsroom",
+      "title": "Saved Ledger Story",
+      "purpose": "Examine Maya’s saved Ledger story, confirm the waterfront program lead, and use its Related records control to open the archived correction that identifies the relevant public record.",
+      "design": {
+        "puzzleType": "hidden-information",
+        "subtype": "alt-text",
+        "difficulty": "easy",
+        "generationSpec": {
+          "mode": "production",
+          "id": "puzzle_saved_story",
+          "intendedSolution": "Harbor Point",
+          "visibleTitle": "Delays Continue in Waterfront Utility Work",
+          "visibleBody": "Maya Chen’s saved Ledger story reviews delays and rising costs in a city waterfront utility program. The page includes a project map and a Related records section with a link labeled Archived correction.",
+          "imageLabel": "Waterfront utility project map",
+          "altText": "Map of the waterfront utility work area, with the program name Harbor Point shown in the image description.",
+          "imageCaption": "Project area supplied with the saved story."
+        },
+        "verification": {
+          "prompt": "What city program is named in the saved story’s project map description? Enter the program name.",
+          "dataType": "string",
+          "expectedValue": "Harbor Point"
+        },
+        "inputs": [
+          {
+            "id": "input_saved_research",
+            "source": {
+              "kind": "starting-input",
+              "inputId": "input_maya_shared_research"
+            },
+            "use": "In Maya Chen Shared Research, open the saved story titled “Delays Continue in Waterfront Utility Work.” The story’s project-map description confirms the program, and its Related records section provides a clickable “Archived correction” link.",
+            "access": {
+              "kind": "navigation"
+            }
+          }
+        ],
+        "outputs": [
+          {
+            "id": "output_program_name",
+            "semanticRole": "program-identifier",
+            "description": "The program name found in the accessible description of the saved story’s project map.",
+            "from": "verification"
+          }
+        ]
+      },
+      "generatedContent": {
+        "status": "mockup",
+        "preview": {
+          "kind": "text",
+          "title": "Saved story preview",
+          "body": "The saved Ledger article describes delays in waterfront utility work. A project map has an accessible description naming the program. Below the article, Related records includes a visible link labeled “Archived correction,” giving a direct route to the story’s earlier record note.",
+          "emphasis": "plain"
+        }
+      }
+    },
+    {
+      "id": "puzzle_archived_correction",
+      "phaseId": "phase_newsroom",
+      "title": "Archived Story Correction",
+      "purpose": "Compare the two dated versions of the Ledger correction to recover the contract reference that was removed from the newer text and is needed for the city search.",
+      "design": {
+        "puzzleType": "hidden-information",
+        "subtype": "page-version",
+        "difficulty": "easy",
+        "generationSpec": {
+          "mode": "production",
+          "id": "puzzle_archived_correction",
+          "intendedSolution": "HP-2025-041",
+          "pageTitle": "Correction: Waterfront Utility Contract Reference",
+          "baselineBody": "Correction published June 18, 2025: An earlier version misstated the award date. The corrected award date is May 14, 2025. The cited city record is contract HP-2025-041. Readers can verify the award in River City Contract Search.",
+          "currentBody": "Correction updated June 20, 2025: An earlier version misstated the award date. The corrected award date is May 14, 2025. Readers can verify the award in River City Contract Search using the Contract ID field.",
+          "changeKind": "removed-content",
+          "baselineDate": "2025-06-18",
+          "currentDate": "2025-06-20",
+          "baselineLabel": "Published June 18",
+          "currentLabel": "Updated June 20"
+        },
+        "verification": {
+          "prompt": "What contract reference appears in the June 18 version but not the June 20 update? Enter it as HP-YYYY-NNN.",
+          "dataType": "string",
+          "expectedValue": "HP-2025-041"
+        },
+        "inputs": [
+          {
+            "id": "input_correction_link",
+            "source": {
+              "kind": "puzzle-output",
+              "puzzleId": "puzzle_saved_story",
+              "outputId": "output_program_name"
+            },
+            "use": "After confirming the waterfront program in Maya’s saved Ledger story, click the visible “Archived correction” link under Related records. On the correction page, compare “Published June 18” with “Updated June 20” to find the contract reference used by River City Contract Search.",
+            "access": {
+              "kind": "direct-link"
+            },
+            "expectedSemanticRoles": [
+              "program-identifier"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "id": "output_contract_id",
+            "semanticRole": "record-selector",
+            "description": "The exact contract reference printed in the June 18 correction for lookup in the Contract ID field on River City Contract Search.",
+            "from": "verification"
+          }
+        ]
+      },
+      "generatedContent": {
+        "status": "mockup",
+        "preview": {
+          "kind": "structured",
+          "data": {
+            "page": "Correction: Waterfront Utility Contract Reference",
+            "versions": [
+              {
+                "label": "Published June 18",
+                "detail": "Names a city contract reference and corrects the award date."
+              },
+              {
+                "label": "Updated June 20",
+                "detail": "Keeps the date correction but removes the reference."
+              }
+            ],
+            "nextAction": "Enter the removed reference in the Contract ID field on River City Contract Search."
+          }
+        }
+      }
+    },
+    {
+      "id": "puzzle_contract_record",
+      "phaseId": "phase_contract",
+      "title": "Harbor Point Award Record",
+      "purpose": "Inspect the city’s matched award record to identify the subcontractor Maya was tracing and distinguish it from the prime contractor before following the payment evidence.",
+      "design": {
+        "puzzleType": "hidden-information",
+        "subtype": "visual-clue",
+        "difficulty": "easy",
+        "generationSpec": {
+          "mode": "production",
+          "id": "puzzle_contract_record",
+          "intendedSolution": "Northline Survey LLC",
+          "sceneTitle": "Harbor Point Award Record",
+          "sceneTheme": "River City public contract result with award and subcontractor sections",
+          "sceneDescription": "A city procurement record shows a Harbor Point award, its prime contractor, award date, subcontractor table, and a visible Payment files link. The subcontractor name is represented in the table artwork and clue metadata rather than this general description.",
+          "clueKind": "text",
+          "clueLabel": "Northline Survey LLC",
+          "imageCaption": "Matched award record with prime contractor and subcontractor details."
+        },
+        "verification": {
+          "prompt": "Which organization is listed in the Subcontractors section of the matched city award record? Enter the full organization name.",
+          "dataType": "string",
+          "expectedValue": "Northline Survey LLC"
+        },
+        "inputs": [
+          {
+            "id": "input_contract_lookup",
+            "source": {
+              "kind": "puzzle-output",
+              "puzzleId": "puzzle_archived_correction",
+              "outputId": "output_contract_id"
+            },
+            "use": "The investigator finds the contract reference in the June 18 Ledger correction, understands it as a city award identifier, and enters it unchanged in the Contract ID field on River City Contract Search to open the matched Harbor Point award record.",
+            "access": {
+              "kind": "lookup",
+              "fieldLabel": "Contract ID"
+            },
+            "expectedSemanticRoles": [
+              "record-selector"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "id": "output_northline_vendor",
+            "semanticRole": "organization-identifier",
+            "description": "The full subcontractor name shown in the matched award record’s Subcontractors section; the same record provides a visible Payment files link for the next evidence handoff.",
+            "from": "verification",
+            "requiredDiscoveryId": "discovery_northline_vendor"
+          },
+          {
+            "id": "output_prime_contractor",
+            "semanticRole": "organization-identifier",
+            "description": "The prime contractor displayed separately on the award record, which prevents confusing the award recipient with the subcontractor under review.",
+            "from": "revealed",
+            "dataType": "string",
+            "value": "Calder Development"
+          }
+        ],
+        "revealContext": "The matched River City award record displays the prime contractor in its award summary, the subcontractor in a separate table, and a visible Payment files link beneath the financial section."
+      },
+      "generatedContent": {
+        "status": "mockup",
+        "preview": {
+          "kind": "structured",
+          "data": {
+            "record": "Matched Harbor Point award",
+            "awardDate": "May 14, 2025",
+            "primeContractor": "Calder Development",
+            "subcontractors": "A clearly labeled table contains one organization name as the clue text.",
+            "control": "Payment files"
+          }
+        }
+      }
+    }
+  ],
+  "requiredResources": [
+    {
+      "id": "resource_maya_shared_research",
+      "kind": "newsroom-research-folder",
+      "description": "Project-hosted shared research entry containing Maya’s saved story and the note to begin with its related records."
+    },
+    {
+      "id": "resource_ledger_saved_story",
+      "kind": "archived-news-story",
+      "description": "Accessible Ledger story with a project map description and a Related records section linking to the archived correction."
+    },
+    {
+      "id": "resource_ledger_correction_history",
+      "kind": "page-version-history",
+      "description": "Two dated snapshots of the same Ledger correction, with the contract reference present only in the June 18 version."
+    },
+    {
+      "id": "resource_city_contract_search",
+      "kind": "public-record-search",
+      "description": "River City Contract Search with a Contract ID field, useful miss feedback, and a matched award result."
+    },
+    {
+      "id": "resource_contract_award_record",
+      "kind": "contract-record-page",
+      "description": "Award record separating program, award date, prime contractor, and subcontractors, with a visible Payment files link."
+    }
+  ],
+  "terminalAction": {
+    "id": "terminal_contract_search",
+    "title": "Find the Harbor Point Award",
+    "interaction": "exact-field-form",
+    "fields": [
+      {
+        "id": "output_contract_id",
+        "label": "Contract ID",
+        "hint": "From the Ledger correction history. Format: HP-YYYY-NNN.",
+        "semanticRole": "record-selector",
+        "source": {
+          "puzzleId": "puzzle_archived_correction",
+          "outputId": "output_contract_id"
+        }
+      }
+    ],
+    "successOutcome": "River City Contract Search returns the exact Harbor Point award record. The result confirms Calder Development as the prime contractor and Northline Survey LLC as the listed subcontractor Maya was tracing, while preserving the distinction that the records support further review rather than prove diverted funds. The visible Payment files link provides the next evidence handoff.",
+    "actionType": "database-search",
+    "description": "Search for the exact award record in the Contract ID field. Format: HP-YYYY-NNN."
+  },
+  "schemaVersion": "5.0.0",
+  "catalogVersion": "repository-puzzles-2.0.0",
+  "id": "missing_reporter_demo_v2_01_contract",
+  "investigationQuestion": "Which Harbor Point contract was Maya tracing, and which subcontractor made her suspect diverted public money?",
+  "world": {
+    "entityIds": [
+      "person_maya_chen",
+      "person_julia_reed",
+      "org_river_city_ledger",
+      "org_harbor_point_program",
+      "org_calder_development",
+      "org_northline_survey",
+      "object_contract_hp_2025_041",
+      "object_maya_research_folder",
+      "event_contract_award",
+      "site_ledger_archive",
+      "site_city_procurement",
+      "site_payment_files"
+    ],
+    "factIds": [
+      "fact_maya_employer",
+      "fact_julia_employer",
+      "fact_contract_identifier",
+      "fact_contract_program",
+      "fact_contract_prime",
+      "fact_contract_award_date",
+      "fact_contract_record",
+      "fact_contract_subcontractor"
+    ],
+    "asOf": "2025-09-19",
+    "id": "world_missing_reporter_demo_v2",
+    "revision": "1"
+  },
+  "genre": "online-investigation",
+  "environment": {
+    "mode": "self-contained"
+  },
+  "startingSituation": "Julia has opened Maya Chen Shared Research. Open Maya’s saved story, click “Related records,” and enter the contract reference you find in the Contract ID field on River City Contract Search.",
+  "playerRole": "You are Maya Chen’s trusted friend, using the newsroom research Julia Reed shared with you to identify the public contract Maya followed.",
+  "playerCapabilities": [
+    "Browse the shared research and cited records.",
+    "Enter a reference in the Contract ID field.",
+    "Inspect the matched contract result."
+  ],
+  "playerConstraints": [
+    "Use only the fictional records provided.",
+    "Do not contact real people or use private systems.",
+    "Do not assume the fraud allegation is proved."
+  ],
+  "startingInputs": [
+    {
+      "id": "input_maya_shared_research",
+      "semanticRole": "initial-evidence",
+      "description": "Project-hosted bundle containing Maya’s saved story and a note to begin with its related records.",
+      "kind": "bundle-entry",
+      "resourceKind": "newsroom-research-folder"
+    }
+  ],
+  "generationConfig": {
+    "structuralDifficulty": {
+      "preset": "easy",
+      "puzzleCount": {
+        "minimum": 3,
+        "maximum": 4
+      },
+      "phaseCount": {
+        "minimum": 2,
+        "maximum": 3
+      },
+      "linearity": 0.85,
+      "maxParallelPuzzles": 1
+    },
+    "puzzleDifficulty": {
+      "preset": "easy"
+    },
+    "transformationPolicy": {
+      "enabled": true,
+      "maxCount": 1,
+      "maxDifficulty": "easy"
+    },
+    "reviewRetryLimit": 3,
+    "concealUnreachedContent": true,
+    "encourageSubtypeVariety": true
+  },
+  "externalContentRequirements": []
+}

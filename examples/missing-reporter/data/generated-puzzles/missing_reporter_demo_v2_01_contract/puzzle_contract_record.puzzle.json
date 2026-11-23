@@ -1,0 +1,84 @@
+{
+  "id": "puzzle_contract_record",
+  "puzzleType": "hidden-information",
+  "subtype": "visual-clue",
+  "inputs": [
+    {
+      "key": "visible_scene",
+      "valueType": "svg-visual-scene",
+      "description": "The static SVG scene containing a visible but subtle clue.",
+      "required": true,
+      "constraints": {
+        "imageFormat": "svg",
+        "clueKind": "text",
+        "maximumClueLabelCharacters": 80
+      },
+      "value": {
+        "sceneTitle": "Harbor Point Award Record",
+        "sceneTheme": "River City public contract result with award and subcontractor sections",
+        "sceneDescription": "A city procurement record shows a Harbor Point award, its prime contractor, award date, subcontractor table, and a visible Payment files link. The subcontractor name is represented in the table artwork and clue metadata rather than this general description.",
+        "imageCaption": "Matched award record with prime contractor and subcontractor details.",
+        "showClueLabel": true,
+        "backgroundRenderer": "llm-authored-drawing-plan",
+        "clueRenderer": "llm-authored-drawing-plan"
+      }
+    },
+    {
+      "key": "visual_clue_payload",
+      "valueType": "visual-clue-answer",
+      "description": "The answer represented by the subtle visual clue in the SVG image.",
+      "required": true,
+      "value": "Northline Survey LLC"
+    }
+  ],
+  "outputs": [
+    {
+      "key": "identified_clue",
+      "valueType": "plain-text",
+      "description": "The text answer identified from the visual clue.",
+      "value": "Northline Survey LLC"
+    }
+  ],
+  "artifact": {
+    "kind": "image",
+    "mediaType": "image/svg+xml",
+    "source": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"420\" height=\"220\" viewBox=\"0 0 420 220\" role=\"img\">\n  <title>Harbor Point Award Record</title>\n  <desc>A city procurement record shows a Harbor Point award, its prime contractor, award date, subcontractor table, and a visible Payment files link. The subcontractor name is represented in the table artwork and clue metadata rather than this general description.</desc>\n<rect x=\"0\" y=\"0\" width=\"420\" height=\"220\" fill=\"#e9eef2\" stroke=\"none\" stroke-width=\"0\" opacity=\"1\" rx=\"0\" ry=\"0\"/>\n<rect x=\"20\" y=\"10\" width=\"380\" height=\"200\" fill=\"#ffffff\" stroke=\"#9aa8b3\" stroke-width=\"1\" opacity=\"1\" rx=\"4\" ry=\"4\"/>\n<rect x=\"20\" y=\"10\" width=\"380\" height=\"30\" fill=\"#24506f\" stroke=\"none\" stroke-width=\"0\" opacity=\"1\" rx=\"4\" ry=\"4\"/>\n<text x=\"34\" y=\"30\" font-size=\"15\" fill=\"#ffffff\" text-anchor=\"start\" font-family=\"sans-serif\">River City Procurement</text>\n<text x=\"385\" y=\"29\" font-size=\"10\" fill=\"#dce8ef\" text-anchor=\"end\" font-family=\"sans-serif\">Award record</text>\n<text x=\"34\" y=\"59\" font-size=\"16\" fill=\"#24333d\" text-anchor=\"start\" font-family=\"sans-serif\">Harbor Point Award Record</text>\n<line x1=\"34\" y1=\"67\" x2=\"386\" y2=\"67\" stroke=\"#c5ced5\" stroke-width=\"1\" opacity=\"1\"/>\n<text x=\"34\" y=\"84\" font-size=\"10\" fill=\"#64717a\" text-anchor=\"start\" font-family=\"sans-serif\">Project</text>\n<text x=\"112\" y=\"84\" font-size=\"11\" fill=\"#25343d\" text-anchor=\"start\" font-family=\"sans-serif\">Harbor Point access improvements</text>\n<text x=\"34\" y=\"101\" font-size=\"10\" fill=\"#64717a\" text-anchor=\"start\" font-family=\"sans-serif\">Prime contractor</text>\n<text x=\"112\" y=\"101\" font-size=\"11\" fill=\"#25343d\" text-anchor=\"start\" font-family=\"sans-serif\">Calder Development</text>\n<text x=\"34\" y=\"118\" font-size=\"10\" fill=\"#64717a\" text-anchor=\"start\" font-family=\"sans-serif\">Award date</text>\n<text x=\"112\" y=\"118\" font-size=\"11\" fill=\"#25343d\" text-anchor=\"start\" font-family=\"sans-serif\">May 14, 2025</text>\n<text x=\"34\" y=\"139\" font-size=\"12\" fill=\"#24333d\" text-anchor=\"start\" font-family=\"sans-serif\">Subcontractors</text>\n<rect x=\"34\" y=\"147\" width=\"352\" height=\"18\" fill=\"#dfe8ee\" stroke=\"#aab6bf\" stroke-width=\"1\" opacity=\"1\" rx=\"0\" ry=\"0\"/>\n<text x=\"42\" y=\"160\" font-size=\"9\" fill=\"#45545e\" text-anchor=\"start\" font-family=\"sans-serif\">Company</text>\n<text x=\"238\" y=\"160\" font-size=\"9\" fill=\"#45545e\" text-anchor=\"start\" font-family=\"sans-serif\">Work</text>\n<text x=\"334\" y=\"160\" font-size=\"9\" fill=\"#45545e\" text-anchor=\"start\" font-family=\"sans-serif\">Amount</text>\n<rect x=\"34\" y=\"165\" width=\"352\" height=\"25\" fill=\"#ffffff\" stroke=\"#c6cfd5\" stroke-width=\"1\" opacity=\"1\" rx=\"0\" ry=\"0\"/>\n<line x1=\"226\" y1=\"147\" x2=\"226\" y2=\"190\" stroke=\"#c6cfd5\" stroke-width=\"1\" opacity=\"1\"/>\n<line x1=\"325\" y1=\"147\" x2=\"325\" y2=\"190\" stroke=\"#c6cfd5\" stroke-width=\"1\" opacity=\"1\"/>\n<text x=\"238\" y=\"181\" font-size=\"10\" fill=\"#33444e\" text-anchor=\"start\" font-family=\"sans-serif\">Site survey</text>\n<text x=\"376\" y=\"181\" font-size=\"10\" fill=\"#33444e\" text-anchor=\"end\" font-family=\"sans-serif\">$48,600</text>\n<line x1=\"34\" y1=\"198\" x2=\"386\" y2=\"198\" stroke=\"#d3dbe0\" stroke-width=\"1\" opacity=\"1\"/>\n<text x=\"34\" y=\"207\" font-size=\"10\" fill=\"#1d628f\" text-anchor=\"start\" font-family=\"sans-serif\">Payment files</text>\n<line x1=\"34\" y1=\"209\" x2=\"98\" y2=\"209\" stroke=\"#1d628f\" stroke-width=\"1\" opacity=\"1\"/>\n  <g id=\"visual-clue\" data-puzzle-role=\"visual-clue-payload\">\n    <title>Northline Survey LLC</title>\n<text x=\"42\" y=\"181\" font-size=\"11\" fill=\"#24333d\" text-anchor=\"start\" font-family=\"sans-serif\">Northline Survey LLC</text>\n  </g>\n</svg>"
+  },
+  "prompt": "Open the SVG image artifact and inspect it to identify the hidden visual clue.",
+  "solution": {
+    "valueType": "text",
+    "canonical": "Northline Survey LLC",
+    "acceptedAlternatives": [
+      "Northline Survey"
+    ],
+    "normalization": [
+      "trim",
+      "collapse-whitespace"
+    ]
+  },
+  "validator": {
+    "kind": "normalized-text",
+    "mode": "deterministic",
+    "options": {
+      "trim": true,
+      "caseInsensitive": false,
+      "collapseWhitespace": true
+    }
+  },
+  "externalKnowledge": {
+    "required": false
+  },
+  "extensions": {
+    "visualClue": {
+      "templateVersion": "llm-drawing-visual-clue-v4",
+      "clueKind": "text",
+      "sceneTheme": "River City public contract result with award and subcontractor sections",
+      "backgroundRenderer": "llm-authored-drawing-plan",
+      "clueRenderer": "llm-authored-drawing-plan",
+      "showClueLabel": true,
+      "imageFormat": "svg",
+      "hasImageCaption": true,
+      "artifactSha256": "72d10b431cd509bedc98e5954ef8c0d607c378e6977569401319ca13d9fa7a41"
+    }
+  }
+}

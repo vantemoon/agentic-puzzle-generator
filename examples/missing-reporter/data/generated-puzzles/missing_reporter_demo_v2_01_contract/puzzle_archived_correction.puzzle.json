@@ -1,0 +1,91 @@
+{
+  "id": "puzzle_archived_correction",
+  "puzzleType": "hidden-information",
+  "subtype": "page-version",
+  "inputs": [
+    {
+      "key": "page_version_pair",
+      "valueType": "html-page-version-pair",
+      "description": "Two static HTML page versions that should be compared.",
+      "required": true,
+      "value": {
+        "baselinePath": "/versions/2025-06-18.html",
+        "currentPath": "/versions/2025-06-20.html",
+        "baselineLabel": "Published June 18",
+        "currentLabel": "Updated June 20",
+        "baselineDate": "2025-06-18",
+        "currentDate": "2025-06-20"
+      }
+    },
+    {
+      "key": "version_change_payload",
+      "valueType": "page-version-payload",
+      "description": "The message revealed by comparing the static page versions.",
+      "required": true,
+      "value": "HP-2025-041"
+    }
+  ],
+  "outputs": [
+    {
+      "key": "revealed_message",
+      "valueType": "plain-text",
+      "description": "The text recovered from the meaningful difference between page versions.",
+      "value": "HP-2025-041"
+    }
+  ],
+  "artifact": {
+    "kind": "html",
+    "mediaType": "text/html",
+    "entryPath": "/index.html",
+    "files": [
+      {
+        "path": "/index.html",
+        "mediaType": "text/html",
+        "source": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <title>Correction: Waterfront Utility Contract Reference — page history</title>\n  </head>\n  <body>\n    <main>\n      <h1>Correction: Waterfront Utility Contract Reference page history</h1>\n      <p>Two dated snapshots are available for comparison.</p>\n      <p><time datetime=\"2025-06-20\">June 20, 2025</time> — Updated June 20: <code>/versions/2025-06-20.html</code></p>\n      <p><time datetime=\"2025-06-18\">June 18, 2025</time> — Published June 18: <code>/versions/2025-06-18.html</code></p>\n    </main>\n  </body>\n</html>"
+      },
+      {
+        "path": "/versions/2025-06-18.html",
+        "mediaType": "text/html",
+        "source": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <title>Correction: Waterfront Utility Contract Reference — 2025-06-18</title>\n  </head>\n  <body>\n    <main>\n      <h1>Correction: Waterfront Utility Contract Reference</h1>\n      <p class=\"version-label\"><time datetime=\"2025-06-18\">June 18, 2025</time> — Published June 18</p>\n      <p>Correction published June 18, 2025: An earlier version misstated the award date. The corrected award date is May 14, 2025. The cited city record is contract <span data-puzzle-role=\"page-version-payload\">HP-2025-041</span>. Readers can verify the award in River City Contract Search.</p>\n    </main>\n  </body>\n</html>"
+      },
+      {
+        "path": "/versions/2025-06-20.html",
+        "mediaType": "text/html",
+        "source": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <title>Correction: Waterfront Utility Contract Reference — 2025-06-20</title>\n  </head>\n  <body>\n    <main>\n      <h1>Correction: Waterfront Utility Contract Reference</h1>\n      <p class=\"version-label\"><time datetime=\"2025-06-20\">June 20, 2025</time> — Updated June 20</p>\n      <p>Correction updated June 20, 2025: An earlier version misstated the award date. The corrected award date is May 14, 2025. Readers can verify the award in River City Contract Search using the Contract ID field.</p>\n    </main>\n  </body>\n</html>"
+      }
+    ]
+  },
+  "prompt": "Open the webpage artifact and compare the included page versions to recover the hidden message.",
+  "solution": {
+    "valueType": "text",
+    "canonical": "HP-2025-041",
+    "normalization": [
+      "trim",
+      "collapse-whitespace"
+    ]
+  },
+  "validator": {
+    "kind": "normalized-text",
+    "mode": "deterministic",
+    "options": {
+      "trim": true,
+      "caseInsensitive": false,
+      "collapseWhitespace": true
+    }
+  },
+  "externalKnowledge": {
+    "required": false
+  },
+  "extensions": {
+    "pageVersion": {
+      "templateVersion": "safe-static-page-version-v2",
+      "changeKind": "removed-content",
+      "baselinePath": "/versions/2025-06-18.html",
+      "currentPath": "/versions/2025-06-20.html",
+      "comparisonMode": "static-file-comparison",
+      "requiresJavaScriptExecution": false,
+      "liveNavigationSupported": false,
+      "artifactSha256": "a8f7f400ccd84451ff97f38cd65532f09a9b7139bffe8360da32bc46f98d39a0"
+    }
+  }
+}

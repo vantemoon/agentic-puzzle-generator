@@ -1,0 +1,106 @@
+{
+  "id": "puzzle_driver_assignment",
+  "puzzleType": "hidden-information",
+  "subtype": "anomalous-phrase",
+  "inputs": [
+    {
+      "key": "document_template",
+      "valueType": "natural-language-document-template",
+      "description": "The normal-looking document template containing one anomaly placeholder.",
+      "required": true,
+      "constraints": {
+        "genre": "fleet assignment roster",
+        "placeholder": "{{ANOMALY}}",
+        "maximumCharacters": 12000,
+        "ruleVersion": "artifact-grounded-semantic-anomaly-v2"
+      },
+      "value": "Calder Development — Vehicle assignments for 2025-09-18\nJRM-205 — Priya Shah — Site inspection\nGKT-482 — {{ANOMALY}} — Equipment pickup\nLND-731 — Marcus Reed — Permit delivery\nAssignment records are published for dispatch review."
+    },
+    {
+      "key": "anomalous_phrase",
+      "valueType": "semantic-anomaly",
+      "description": "The phrase, fact, entity, date, or location inserted as the semantic anomaly.",
+      "required": true,
+      "constraints": {
+        "anomalyKind": "out-of-context-entity",
+        "maximumCharacters": 240
+      },
+      "value": "Owen Blake"
+    },
+    {
+      "key": "normality_context",
+      "valueType": "document-context",
+      "description": "Private design justification for why the inserted phrase is anomalous.",
+      "required": true,
+      "constraints": {
+        "maximumCharacters": 2000
+      },
+      "value": "Each fleet row contains a plate, employee name, and work purpose. The parking record identifies which row matters."
+    },
+    {
+      "key": "normal_pattern_evidence",
+      "valueType": "document-excerpts",
+      "description": "Excerpts present in the artifact that establish the normal pattern or conflicting fact.",
+      "required": true,
+      "constraints": {
+        "minimumItems": 2,
+        "maximumItems": 8,
+        "maximumCharactersPerItem": 240
+      },
+      "value": [
+        "JRM-205 — Priya Shah — Site inspection",
+        "LND-731 — Marcus Reed — Permit delivery"
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "key": "discovered_clue",
+      "valueType": "plain-text",
+      "description": "The text recovered by identifying the anomalous phrase or fact.",
+      "value": "OWEN BLAKE"
+    }
+  ],
+  "artifact": {
+    "kind": "text",
+    "mediaType": "text/plain",
+    "source": "Calder Development — Vehicle assignments for 2025-09-18\nJRM-205 — Priya Shah — Site inspection\nGKT-482 — Owen Blake — Equipment pickup\nLND-731 — Marcus Reed — Permit delivery\nAssignment records are published for dispatch review."
+  },
+  "prompt": "Review the fleet assignment roster and report the semantic anomaly supported by evidence in the document.\n\nDocument:\n\nCalder Development — Vehicle assignments for 2025-09-18\nJRM-205 — Priya Shah — Site inspection\nGKT-482 — Owen Blake — Equipment pickup\nLND-731 — Marcus Reed — Permit delivery\nAssignment records are published for dispatch review.",
+  "solution": {
+    "valueType": "text",
+    "canonical": "OWEN BLAKE",
+    "normalization": [
+      "trim",
+      "case-insensitive",
+      "collapse-whitespace"
+    ]
+  },
+  "validator": {
+    "kind": "normalized-text",
+    "mode": "deterministic",
+    "options": {
+      "trim": true,
+      "caseInsensitive": true,
+      "collapseWhitespace": true
+    }
+  },
+  "externalKnowledge": {
+    "required": false
+  },
+  "extensions": {
+    "anomalousPhrase": {
+      "genre": "fleet assignment roster",
+      "anomalyKind": "out-of-context-entity",
+      "placeholder": "{{ANOMALY}}",
+      "ruleVersion": "artifact-grounded-semantic-anomaly-v2",
+      "normalityContext": "Each fleet row contains a plate, employee name, and work purpose. The parking record identifies which row matters.",
+      "normalPatternEvidence": [
+        "JRM-205 — Priya Shah — Site inspection",
+        "LND-731 — Marcus Reed — Permit delivery"
+      ],
+      "anomalousPhrase": "Owen Blake",
+      "documentSha256": "33f3416809b542d25f4f18e0cedf3b53fca6e98e6719202fda5ba2fa36700874"
+    }
+  }
+}

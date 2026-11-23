@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "1.0.0",
+  "gameId": "game_missing_reporter_demo_v2",
+  "title": "The Missing Reporter",
+  "gameFile": "game-design.json",
+  "outputRoot": "data",
+  "campaignBriefing": {
+    "situation": "River City reporter Maya Chen has gone missing, hours before she was due to publish an investigation into how the city spent public money on a redevelopment project.",
+    "goal": "Find Maya and gather evidence you can give the police to help bring her home safely.",
+    "firstLead": "Maya’s editor, Julia Reed, has shared Maya’s newsroom research with you. Start with the story Maya saved.",
+    "title": "The Missing Reporter",
+    "playerRole": "You are Maya Chen’s trusted friend. Julia turned to you because you know Maya well enough to recognize a lead she would follow."
+  },
+  "levels": [
+    {
+      "id": "missing_reporter_demo_v2_01_contract",
+      "title": "Maya’s Contract Lead",
+      "levelFile": "data/generated-levels/missing_reporter_demo_v2_01_contract.level.json",
+      "bundlePlan": "data/generated-bundles/missing_reporter_demo_v2_01_contract/level.bundle.json",
+      "publicDirectory": "data/generated-bundles/missing_reporter_demo_v2_01_contract/public",
+      "privateDirectory": "data/generated-bundles/missing_reporter_demo_v2_01_contract/private"
+    },
+    {
+      "id": "missing_reporter_demo_v2_02_vendor",
+      "title": "The Hidden Vendor",
+      "levelFile": "data/generated-levels/missing_reporter_demo_v2_02_vendor.level.json",
+      "bundlePlan": "data/generated-bundles/missing_reporter_demo_v2_02_vendor/level.bundle.json",
+      "publicDirectory": "data/generated-bundles/missing_reporter_demo_v2_02_vendor/public",
+      "privateDirectory": "data/generated-bundles/missing_reporter_demo_v2_02_vendor/private"
+    },
+    {
+      "id": "missing_reporter_demo_v2_03_vehicle",
+      "title": "Maya’s Last Trip",
+      "levelFile": "data/generated-levels/missing_reporter_demo_v2_03_vehicle.level.json",
+      "bundlePlan": "data/generated-bundles/missing_reporter_demo_v2_03_vehicle/level.bundle.json",
+      "publicDirectory": "data/generated-bundles/missing_reporter_demo_v2_03_vehicle/public",
+      "privateDirectory": "data/generated-bundles/missing_reporter_demo_v2_03_vehicle/private"
+    },
+    {
+      "id": "missing_reporter_demo_v2_04_rescue",
+      "title": "The Warehouse Unit",
+      "levelFile": "data/generated-levels/missing_reporter_demo_v2_04_rescue.level.json",
+      "bundlePlan": "data/generated-bundles/missing_reporter_demo_v2_04_rescue/level.bundle.json",
+      "publicDirectory": "data/generated-bundles/missing_reporter_demo_v2_04_rescue/public",
+      "privateDirectory": "data/generated-bundles/missing_reporter_demo_v2_04_rescue/private"
+    }
+  ]
+}

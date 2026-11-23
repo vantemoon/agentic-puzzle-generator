@@ -1,0 +1,75 @@
+{
+  "id": "puzzle_entrance_notice",
+  "puzzleType": "visual-recognition",
+  "subtype": "ascii-art",
+  "inputs": [
+    {
+      "key": "ascii_art",
+      "valueType": "monospace-text-art",
+      "description": "A five-row monospace ASCII-art subject visible to the solver.",
+      "required": true,
+      "constraints": {
+        "rows": 5,
+        "subjectKind": "text",
+        "glyphWidth": 5,
+        "glyphSpacing": 2,
+        "style": "outline",
+        "artCharacters": "#"
+      },
+      "value": "####\n    #\n ###\n    #\n####"
+    },
+    {
+      "key": "hidden_subject",
+      "valueType": "ascii-art-message",
+      "description": "The text represented by the ASCII-art glyphs.",
+      "required": true,
+      "value": "3"
+    }
+  ],
+  "outputs": [
+    {
+      "key": "decoded_subject",
+      "valueType": "plain-text",
+      "description": "The text or object recognized from the ASCII-art subject.",
+      "value": "3"
+    }
+  ],
+  "artifact": {
+    "kind": "text",
+    "mediaType": "text/plain",
+    "source": "####\n    #\n ###\n    #\n####"
+  },
+  "prompt": "Inspect the monospace ASCII art and identify the hidden subject.",
+  "solution": {
+    "valueType": "text",
+    "canonical": "3",
+    "normalization": [
+      "trim",
+      "case-insensitive",
+      "collapse-whitespace"
+    ]
+  },
+  "validator": {
+    "kind": "normalized-text",
+    "mode": "deterministic",
+    "options": {
+      "trim": true,
+      "caseInsensitive": true,
+      "collapseWhitespace": true
+    }
+  },
+  "externalKnowledge": {
+    "required": false
+  },
+  "extensions": {
+    "asciiArt": {
+      "templateVersion": "ascii-art-v2",
+      "artStyle": "outline",
+      "subjectKind": "text",
+      "artCharacters": "#",
+      "rows": 5,
+      "glyphWidth": 5,
+      "glyphSpacing": 2
+    }
+  }
+}

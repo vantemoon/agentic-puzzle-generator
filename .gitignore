@@ -9,16 +9,16 @@ scripts/
 prompts/
 
 # Generated puzzles, levels, and artifact previews
-game-designs/
-generated-artifacts/
-generated-levels/
-generated-puzzles/
-generated-bundles/
-generated-games/
-generated-world-media/
-generation-logs/
-level-requests/
-worlds/
+/game-designs/
+/generated-artifacts/
+/generated-levels/
+/generated-puzzles/
+/generated-bundles/
+/generated-games/
+/generated-world-media/
+/generation-logs/
+/level-requests/
+/worlds/
 
 # macOS metadata
 .DS_Store

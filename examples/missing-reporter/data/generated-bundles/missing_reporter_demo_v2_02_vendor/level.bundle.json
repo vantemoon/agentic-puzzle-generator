@@ -1,0 +1,970 @@
+{
+  "sites": [
+    {
+      "id": "site_harbor_contracts",
+      "name": "Harbor Point Contract Awards",
+      "worldEntityId": "object_contract_hp_2025_041",
+      "archetype": "records",
+      "visualProfile": {
+        "tone": "formal",
+        "fontStyle": "sans",
+        "density": "comfortable",
+        "accentColor": "#1F5A78",
+        "mediaStyle": "Clear civic record layouts with restrained document thumbnails"
+      },
+      "basePath": "/contracts",
+      "routes": [
+        {
+          "role": "structural",
+          "path": "/",
+          "navigation": "primary",
+          "content": {
+            "title": "Harbor Point contract awards",
+            "description": "Public award notices and contract records for Harbor Point works.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Contract records",
+                "paragraphs": [
+                  "Browse current Harbor Point awards, contractors, and public file links."
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Recent awards",
+                "collection": "records",
+                "items": [
+                  {
+                    "title": "Site preparation contract",
+                    "summary": "Award record for current Harbor Point site preparation work.",
+                    "href": "/contracts/awards/site-preparation"
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "starting-input:input_contract_result_bundle"
+            ],
+            "cue": "Open the carried contract bundle to reach the award record from the contract site home page.",
+            "linkReason": "The carried record belongs to the Harbor Point award service and opens its ordinary home page.",
+            "queryInputId": "input_contract_bundle"
+          }
+        },
+        {
+          "role": "puzzle",
+          "path": "/awards/site-preparation",
+          "navigation": "contextual",
+          "content": {
+            "title": "Contract result HP-2025-041",
+            "description": "Award result for Harbor Point site preparation, including contractor details and public record controls.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Award record",
+                "paragraphs": [
+                  "This result lists the prime contractor, subcontractor information, and related public records."
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Related public records",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Payment files",
+                    "summary": "Search payment records by contract reference.",
+                    "href": "/payments"
+                  },
+                  {
+                    "title": "Company registry",
+                    "summary": "Search registered companies by name.",
+                    "href": "/registry"
+                  }
+                ]
+              }
+            ]
+          },
+          "puzzleId": "puzzle_contract_result",
+          "placement": "native-html",
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/contracts"
+            ],
+            "cue": "Click the Site preparation contract card under Recent awards.",
+            "linkReason": "The contract awards home page lists this public award record.",
+            "queryInputId": "input_contract_bundle"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/about",
+          "navigation": "footer",
+          "content": {
+            "title": "About contract records",
+            "description": "How Harbor Point award records are published and maintained.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Record scope",
+                "paragraphs": [
+                  "The service publishes award notices, contractor details, amendments, and links to related public records."
+                ]
+              },
+              {
+                "kind": "list",
+                "heading": "Updates",
+                "items": [
+                  "Award results are posted after approval.",
+                  "Amendments retain their original contract reference.",
+                  "Related payment links open the separate payment-file service."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/contracts"
+            ],
+            "cue": "Choose About contract records in the footer.",
+            "linkReason": "The contract service footer provides its ordinary publication information.",
+            "queryInputId": "input_contract_bundle"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/awards",
+          "navigation": "primary",
+          "content": {
+            "title": "Contract awards",
+            "description": "Browse published Harbor Point award records.",
+            "blocks": [
+              {
+                "kind": "table",
+                "heading": "Current awards",
+                "columns": [
+                  "Work area",
+                  "Prime contractor",
+                  "Status"
+                ],
+                "rows": [
+                  [
+                    "Site preparation",
+                    "Calder Development Group",
+                    "Awarded"
+                  ],
+                  [
+                    "Drainage testing",
+                    "Harbor Soil Testing",
+                    "In progress"
+                  ],
+                  [
+                    "Boundary mapping",
+                    "Bay Map Services LLC",
+                    "Awarded"
+                  ]
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/contracts"
+            ],
+            "cue": "Choose Contract awards in the main navigation.",
+            "linkReason": "The contract publisher offers a routine browse page for award records.",
+            "queryInputId": "input_contract_bundle"
+          }
+        }
+      ]
+    },
+    {
+      "id": "site_river_registry",
+      "name": "River City Company Registry",
+      "worldEntityId": "site_company_registry",
+      "archetype": "database",
+      "visualProfile": {
+        "tone": "neutral",
+        "fontStyle": "serif",
+        "density": "compact",
+        "accentColor": "#315C46",
+        "mediaStyle": "Text-led filing pages with simple seals and tabular records"
+      },
+      "basePath": "/registry",
+      "routes": [
+        {
+          "role": "structural",
+          "path": "/",
+          "navigation": "primary",
+          "content": {
+            "title": "River City Company Registry",
+            "description": "Search active and historical company filings.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Company search",
+                "paragraphs": [
+                  "Use the Company name field to find a registered business. Results include status, address, and officer information."
+                ]
+              },
+              {
+                "kind": "records",
+                "heading": "Search guidance",
+                "entries": [
+                  {
+                    "label": "Field",
+                    "value": "Company name"
+                  },
+                  {
+                    "label": "Coverage",
+                    "value": "Active and closed River City registrations"
+                  },
+                  {
+                    "label": "No match",
+                    "value": "Check the full legal name and try again"
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/contracts/awards/site-preparation"
+            ],
+            "cue": "Click Company registry in Related public records.",
+            "linkReason": "The contract result provides a public control for checking its listed subcontractor.",
+            "queryInputId": "input_registry_company"
+          }
+        },
+        {
+          "role": "puzzle",
+          "path": "/companies/northline",
+          "navigation": "hidden",
+          "content": {
+            "title": "Northline Survey LLC company filing",
+            "description": "Company status, registered address, officer entry, and comparable filings returned by registry search.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Registry result",
+                "paragraphs": [
+                  "This filing is shown with comparable small survey-company records and its available public controls."
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Related record",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Calder Development staff directory",
+                    "summary": "View Calder Development’s dated public staff listings.",
+                    "href": "/calder/staff"
+                  }
+                ]
+              }
+            ]
+          },
+          "puzzleId": "puzzle_registry_record",
+          "placement": "page-body",
+          "discovery": {
+            "kind": "lookup",
+            "from": [
+              "/registry"
+            ],
+            "cue": "Enter the company name from the contract record in the Company name field.",
+            "linkReason": "The registry returns the matching company filing only after a company-name search.",
+            "queryInputId": "input_registry_company"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/search-help",
+          "navigation": "secondary",
+          "content": {
+            "title": "Company search help",
+            "description": "Guidance for finding River City company filings.",
+            "blocks": [
+              {
+                "kind": "list",
+                "heading": "Search tips",
+                "items": [
+                  "Use the complete legal company name when possible.",
+                  "Punctuation is optional, but company suffixes improve matches.",
+                  "Open a result to see status, address, and officer records."
+                ]
+              },
+              {
+                "kind": "prose",
+                "heading": "No results",
+                "paragraphs": [
+                  "Try fewer words or confirm the legal name in the source record."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/registry"
+            ],
+            "cue": "Choose Search help beside the company search controls.",
+            "linkReason": "The registry provides routine assistance for its public lookup.",
+            "queryInputId": "input_registry_company"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/filing-guide",
+          "navigation": "footer",
+          "content": {
+            "title": "Filing guide",
+            "description": "Definitions used in public company filings.",
+            "blocks": [
+              {
+                "kind": "records",
+                "heading": "Common filing terms",
+                "entries": [
+                  {
+                    "label": "Active",
+                    "value": "The registration is current."
+                  },
+                  {
+                    "label": "Registered address",
+                    "value": "The address supplied for official notices."
+                  },
+                  {
+                    "label": "Officer history",
+                    "value": "Dated changes to published officer information."
+                  }
+                ]
+              },
+              {
+                "kind": "prose",
+                "heading": "Record limits",
+                "paragraphs": [
+                  "Registry entries reproduce filed information and do not certify a company’s services."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/registry"
+            ],
+            "cue": "Choose Filing guide in the footer.",
+            "linkReason": "The registry footer explains the terms used throughout its filings.",
+            "queryInputId": "input_registry_company"
+          }
+        }
+      ]
+    },
+    {
+      "id": "site_calder",
+      "name": "Calder Development Group",
+      "worldEntityId": "org_calder_development",
+      "archetype": "organization",
+      "visualProfile": {
+        "tone": "warm",
+        "fontStyle": "mixed",
+        "density": "spacious",
+        "accentColor": "#9A572F",
+        "mediaStyle": "Professional project photography and clean staff listings"
+      },
+      "basePath": "/calder",
+      "routes": [
+        {
+          "role": "structural",
+          "path": "/",
+          "navigation": "primary",
+          "content": {
+            "title": "Calder Development Group",
+            "description": "Company information, projects, and public staff resources.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Company overview",
+                "paragraphs": [
+                  "Calder Development Group manages construction and site preparation projects for public and private clients."
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Company information",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Staff directory",
+                    "summary": "View current and earlier dated staff listings.",
+                    "href": "/calder/staff"
+                  },
+                  {
+                    "title": "Projects",
+                    "summary": "Read summaries of current development work.",
+                    "href": "/calder/projects"
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/calder/staff"
+            ],
+            "cue": "Use the Calder Development home link in the site navigation.",
+            "linkReason": "The organization site’s standard navigation links its staff directory to its home page.",
+            "queryInputId": "input_staff_person"
+          }
+        },
+        {
+          "role": "puzzle",
+          "path": "/staff",
+          "navigation": "contextual",
+          "content": {
+            "title": "Calder Development staff directory",
+            "description": "Dated public staff listings for Calder Development Group.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Directory versions",
+                "paragraphs": [
+                  "Compare the available dated staff listings to review changes in published roles."
+                ]
+              }
+            ]
+          },
+          "puzzleId": "puzzle_staff_directory",
+          "placement": "version-set",
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/registry/companies/northline"
+            ],
+            "cue": "Click Calder Development staff directory in the filing’s Related record section.",
+            "linkReason": "Northline’s registry filing includes a public employment-corroboration link.",
+            "queryInputId": "input_staff_person"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/projects",
+          "navigation": "primary",
+          "content": {
+            "title": "Projects",
+            "description": "Current Calder Development Group work.",
+            "blocks": [
+              {
+                "kind": "cards",
+                "heading": "Current work",
+                "collection": "published-work",
+                "items": [
+                  {
+                    "title": "Harbor Point site preparation",
+                    "summary": "Ground preparation and contractor coordination for the Harbor Point site.",
+                    "href": "/calder/projects/harbor-point"
+                  },
+                  {
+                    "title": "East Market renovation",
+                    "summary": "Renovation planning and access improvements for mixed-use buildings.",
+                    "href": "/calder/projects/east-market"
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/calder"
+            ],
+            "cue": "Click Projects in Company information.",
+            "linkReason": "The company home page links to its normal project portfolio.",
+            "queryInputId": "input_staff_person"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/projects/harbor-point",
+          "navigation": "contextual",
+          "content": {
+            "title": "Harbor Point site preparation",
+            "description": "Public overview of Calder Development Group’s Harbor Point work.",
+            "blocks": [
+              {
+                "kind": "records",
+                "heading": "Project summary",
+                "entries": [
+                  {
+                    "label": "Work",
+                    "value": "Site preparation and contractor coordination"
+                  },
+                  {
+                    "label": "Prime contractor",
+                    "value": "Calder Development Group"
+                  },
+                  {
+                    "label": "Status",
+                    "value": "Active"
+                  }
+                ]
+              },
+              {
+                "kind": "prose",
+                "heading": "Scope",
+                "paragraphs": [
+                  "The project includes ground preparation, testing coordination, and scheduled site access."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/calder/projects"
+            ],
+            "cue": "Click Harbor Point site preparation in Current work.",
+            "linkReason": "The project portfolio links to each published project summary.",
+            "queryInputId": "input_staff_person"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/projects/east-market",
+          "navigation": "contextual",
+          "content": {
+            "title": "East Market renovation",
+            "description": "Public overview of Calder Development Group’s East Market work.",
+            "blocks": [
+              {
+                "kind": "records",
+                "heading": "Project summary",
+                "entries": [
+                  {
+                    "label": "Work",
+                    "value": "Building renovation and access improvements"
+                  },
+                  {
+                    "label": "Status",
+                    "value": "Planning"
+                  },
+                  {
+                    "label": "Area",
+                    "value": "East Market district"
+                  }
+                ]
+              },
+              {
+                "kind": "prose",
+                "heading": "Scope",
+                "paragraphs": [
+                  "Planning covers access routes, building services, and phased construction schedules."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/calder/projects"
+            ],
+            "cue": "Click East Market renovation in Current work.",
+            "linkReason": "The project portfolio links to each published project summary.",
+            "queryInputId": "input_staff_person"
+          }
+        }
+      ]
+    },
+    {
+      "id": "site_payment_files",
+      "name": "Harbor Point Payment Files",
+      "worldEntityId": "site_payment_files",
+      "archetype": "records",
+      "visualProfile": {
+        "tone": "formal",
+        "fontStyle": "mono-accent",
+        "density": "compact",
+        "accentColor": "#5A3D78",
+        "mediaStyle": "Document index tables, file labels, and plain retrieval controls"
+      },
+      "basePath": "/payments",
+      "routes": [
+        {
+          "role": "structural",
+          "path": "/",
+          "navigation": "primary",
+          "content": {
+            "title": "Harbor Point payment files",
+            "description": "Search indexed payment records and retrieve public files.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Search payment records",
+                "paragraphs": [
+                  "Use the Contract reference field to view indexed payment files for a Harbor Point contract."
+                ]
+              },
+              {
+                "kind": "records",
+                "heading": "Search fields",
+                "entries": [
+                  {
+                    "label": "Contract reference",
+                    "value": "Use the reference printed on an award record"
+                  },
+                  {
+                    "label": "File ID",
+                    "value": "Use Retrieve file after finding an indexed file label"
+                  },
+                  {
+                    "label": "No match",
+                    "value": "Check letters, numbers, and hyphens"
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/contracts/awards/site-preparation"
+            ],
+            "cue": "Click Payment files in Related public records.",
+            "linkReason": "The contract result links to the payment repository for its public payment records.",
+            "queryInputId": "input_payment_contract"
+          }
+        },
+        {
+          "role": "puzzle",
+          "path": "/contract-files/site-preparation",
+          "navigation": "hidden",
+          "content": {
+            "title": "Payment files for HP-2025-041",
+            "description": "Indexed vendor payment rows for the selected Harbor Point contract.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Contract payment index",
+                "paragraphs": [
+                  "Review the listed vendors and approvers. File labels provide the identifiers used by the retrieval form."
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "File service",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Retrieve file",
+                    "summary": "Open the File ID retrieval form.",
+                    "href": "/payments/retrieve"
+                  }
+                ]
+              }
+            ]
+          },
+          "puzzleId": "puzzle_payment_index",
+          "placement": "media-viewer",
+          "directAssetPath": "/assets/payment-labels/northline-invoice.svg",
+          "discovery": {
+            "kind": "lookup",
+            "from": [
+              "/payments"
+            ],
+            "cue": "Enter the contract reference from the award result in the Contract reference field.",
+            "linkReason": "The payment index is returned by the repository’s contract-reference search.",
+            "queryInputId": "input_payment_contract"
+          }
+        },
+        {
+          "role": "terminal",
+          "path": "/retrieve",
+          "navigation": "secondary",
+          "content": {
+            "title": "Retrieve payment file",
+            "description": "Open a public payment document by its exact File ID.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "File retrieval",
+                "paragraphs": [
+                  "Enter the File ID printed on the payment index label. Use the format shown in the index."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/payments/contract-files/site-preparation"
+            ],
+            "cue": "Click Retrieve file in the File service section.",
+            "linkReason": "The payment index offers its normal file-retrieval control after a file label is found.",
+            "queryInputId": "input_invoice_file_id"
+          }
+        },
+        {
+          "role": "puzzle",
+          "path": "/files/northline-survey",
+          "navigation": "hidden",
+          "content": {
+            "title": "Northline survey invoice",
+            "description": "Retrieved payment document with vendor, service, approval, status, attachment, and related-record information.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Payment document",
+                "paragraphs": [
+                  "This retrieved file includes the invoice details and its attached inspection note."
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Related record",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Open parking record",
+                    "summary": "Continue to the parking record associated with the address and service date.",
+                    "href": "/parking"
+                  }
+                ]
+              }
+            ]
+          },
+          "puzzleId": "puzzle_invoice_evidence",
+          "placement": "native-html",
+          "discovery": {
+            "kind": "lookup",
+            "from": [
+              "/payments/retrieve"
+            ],
+            "cue": "Enter the indexed invoice identifier in the File ID field and submit the form.",
+            "linkReason": "Successful file retrieval opens the matching invoice document.",
+            "queryInputId": "input_invoice_file_id"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/about",
+          "navigation": "footer",
+          "content": {
+            "title": "About payment files",
+            "description": "Scope and publication rules for Harbor Point payment records.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Published records",
+                "paragraphs": [
+                  "The repository indexes approved payment documents for Harbor Point contracts and provides retrieval by File ID."
+                ]
+              },
+              {
+                "kind": "list",
+                "heading": "Record notes",
+                "items": [
+                  "Contract searches show comparable indexed vendor rows.",
+                  "File IDs are printed on file labels.",
+                  "Attachments remain part of the retrieved payment document."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/payments"
+            ],
+            "cue": "Choose About payment files in the footer.",
+            "linkReason": "The repository footer explains its scope and file structure.",
+            "queryInputId": "input_payment_contract"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/help",
+          "navigation": "secondary",
+          "content": {
+            "title": "Payment file help",
+            "description": "Help with contract and file lookups.",
+            "blocks": [
+              {
+                "kind": "records",
+                "heading": "Lookup fields",
+                "entries": [
+                  {
+                    "label": "Contract reference",
+                    "value": "Opens the payment index for one contract."
+                  },
+                  {
+                    "label": "File ID",
+                    "value": "Opens one indexed payment file."
+                  },
+                  {
+                    "label": "Accepted format",
+                    "value": "Use the letters, numbers, and hyphens printed in the source record."
+                  }
+                ]
+              },
+              {
+                "kind": "prose",
+                "heading": "No match",
+                "paragraphs": [
+                  "Return to the payment index and check the full label before trying again."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/payments"
+            ],
+            "cue": "Choose Help beside the search controls.",
+            "linkReason": "The payment service provides ordinary instructions for its lookup fields.",
+            "queryInputId": "input_payment_contract"
+          }
+        }
+      ]
+    },
+    {
+      "id": "site_parking",
+      "name": "Press Club Parking Records",
+      "worldEntityId": "site_parking_records",
+      "archetype": "database",
+      "visualProfile": {
+        "tone": "neutral",
+        "fontStyle": "sans",
+        "density": "comfortable",
+        "accentColor": "#52606D",
+        "mediaStyle": "Simple parking record search screens and location diagrams"
+      },
+      "basePath": "/parking",
+      "routes": [
+        {
+          "role": "structural",
+          "path": "/",
+          "navigation": "primary",
+          "content": {
+            "title": "Press Club parking records",
+            "description": "Search parking records by location and date.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Parking record search",
+                "paragraphs": [
+                  "Use a street address and date to find available entry and parking records."
+                ]
+              },
+              {
+                "kind": "records",
+                "heading": "Available fields",
+                "entries": [
+                  {
+                    "label": "Location",
+                    "value": "Enter the full street address, including unit when known"
+                  },
+                  {
+                    "label": "Date",
+                    "value": "Use YYYY-MM-DD"
+                  },
+                  {
+                    "label": "Coverage",
+                    "value": "Press Club managed parking areas"
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/payments/files/northline-survey"
+            ],
+            "cue": "Click Open parking record under Related record.",
+            "linkReason": "The retrieved invoice provides the visible handoff to parking records for its address and service date.",
+            "queryInputId": "input_invoice_file_id"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/coverage",
+          "navigation": "primary",
+          "content": {
+            "title": "Record coverage",
+            "description": "Locations and dates included in Press Club parking records.",
+            "blocks": [
+              {
+                "kind": "table",
+                "heading": "Managed areas",
+                "columns": [
+                  "Area",
+                  "Records available",
+                  "Search method"
+                ],
+                "rows": [
+                  [
+                    "Press Club garage",
+                    "Daily",
+                    "Location and date"
+                  ],
+                  [
+                    "Mason Street visitor spaces",
+                    "Daily",
+                    "Street address and date"
+                  ],
+                  [
+                    "Harbor annex lot",
+                    "Weekdays",
+                    "Location and date"
+                  ]
+                ]
+              },
+              {
+                "kind": "prose",
+                "heading": "Limits",
+                "paragraphs": [
+                  "Records cover managed parking areas only and may not include street parking."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/parking"
+            ],
+            "cue": "Choose Record coverage in the main navigation.",
+            "linkReason": "The parking service explains which locations its search can return.",
+            "queryInputId": "input_invoice_file_id"
+          }
+        }
+      ]
+    }
+  ],
+  "worldAdditions": {
+    "entities": [],
+    "facts": []
+  },
+  "mediaRequests": [],
+  "terminal": {
+    "siteId": "site_payment_files",
+    "routePath": "/retrieve",
+    "mode": "validation-api"
+  },
+  "schemaVersion": "2.0.0",
+  "levelId": "missing_reporter_demo_v2_02_vendor",
+  "world": {
+    "id": "world_missing_reporter_demo_v2",
+    "revision": "1",
+    "asOf": "2025-09-19"
+  },
+  "seed": "missing_reporter_demo_v2_02_vendor-bundle-v1"
+}

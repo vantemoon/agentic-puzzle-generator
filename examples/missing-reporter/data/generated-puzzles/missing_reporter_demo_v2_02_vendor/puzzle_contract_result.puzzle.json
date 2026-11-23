@@ -1,0 +1,88 @@
+{
+  "id": "puzzle_contract_result",
+  "puzzleType": "hidden-information",
+  "subtype": "alt-text",
+  "inputs": [
+    {
+      "key": "visible_page_text",
+      "valueType": "html-visible-text",
+      "description": "The text and image label visible in the rendered webpage.",
+      "required": true,
+      "constraints": {
+        "maximumTitleCharacters": 120,
+        "maximumBodyCharacters": 1000,
+        "maximumImageLabelCharacters": 120,
+        "htmlEscaped": true
+      },
+      "value": {
+        "title": "Contract result HP-2025-041",
+        "body": "Prime contractor: Calder Development. The award record includes a subcontractor logo with an accessible description. Public controls: Payment files and Company registry.",
+        "imageLabel": "Subcontractor logo",
+        "imageCaption": "Subcontractor listed on the Harbor Point contract result."
+      }
+    },
+    {
+      "key": "image_alt_payload",
+      "valueType": "image-alt-text-description",
+      "description": "The natural description stored in the image alt attribute.",
+      "required": true,
+      "constraints": {
+        "maximumCharacters": 500,
+        "containsIntendedSolution": true,
+        "htmlAttributeEscaped": true
+      },
+      "value": "Logo for the listed subcontractor, Northline Survey LLC."
+    }
+  ],
+  "outputs": [
+    {
+      "key": "extracted_message",
+      "valueType": "plain-text",
+      "description": "The hidden message recovered from the image alt text.",
+      "value": "Northline Survey LLC"
+    }
+  ],
+  "artifact": {
+    "kind": "html",
+    "mediaType": "text/html",
+    "entryPath": "/index.html",
+    "files": [
+      {
+        "path": "/index.html",
+        "mediaType": "text/html",
+        "source": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <title>Contract result HP-2025-041</title>\n  </head>\n  <body>\n    <main>\n      <h1>Contract result HP-2025-041</h1>\n      <p>Prime contractor: Calder Development. The award record includes a subcontractor logo with an accessible description. Public controls: Payment files and Company registry.</p>\n      <figure>\n        <img data-puzzle-role=\"alt-text-payload\" src=\"data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22420%22%20height%3D%22180%22%20viewBox%3D%220%200%20420%20180%22%20role%3D%22img%22%3E%0A%20%20%3Ctitle%3ESubcontractor%20logo%3C%2Ftitle%3E%0A%3Crect%20x%3D%220%22%20y%3D%220%22%20width%3D%22420%22%20height%3D%22180%22%20fill%3D%22%23f3f6f8%22%20stroke%3D%22none%22%20stroke-width%3D%220%22%20opacity%3D%221%22%20rx%3D%220%22%20ry%3D%220%22%2F%3E%0A%3Crect%20x%3D%2220%22%20y%3D%2218%22%20width%3D%22380%22%20height%3D%22144%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23c7d0d8%22%20stroke-width%3D%222%22%20opacity%3D%221%22%20rx%3D%228%22%20ry%3D%228%22%2F%3E%0A%3Crect%20x%3D%2238%22%20y%3D%2235%22%20width%3D%22104%22%20height%3D%22110%22%20fill%3D%22%23e8f1f5%22%20stroke%3D%22%238ca5b3%22%20stroke-width%3D%222%22%20opacity%3D%221%22%20rx%3D%226%22%20ry%3D%226%22%2F%3E%0A%3Cpolygon%20points%3D%2252%2C122%2088%2C58%20126%2C122%22%20fill%3D%22%233c718c%22%20stroke%3D%22none%22%20stroke-width%3D%220%22%20opacity%3D%221%22%2F%3E%0A%3Cpolyline%20points%3D%2254%2C107%2070%2C98%2084%2C102%2099%2C88%20124%2C101%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%224%22%20opacity%3D%221%22%2F%3E%0A%3Cline%20x1%3D%2288%22%20y1%3D%2257%22%20x2%3D%2288%22%20y2%3D%22125%22%20stroke%3D%22%23234c61%22%20stroke-width%3D%222%22%20opacity%3D%221%22%2F%3E%0A%3Ccircle%20cx%3D%2288%22%20cy%3D%2257%22%20r%3D%225%22%20fill%3D%22%23f1b24a%22%20stroke%3D%22%23234c61%22%20stroke-width%3D%221%22%20opacity%3D%221%22%2F%3E%0A%3Cline%20x1%3D%2258%22%20y1%3D%22128%22%20x2%3D%22122%22%20y2%3D%22128%22%20stroke%3D%22%23234c61%22%20stroke-width%3D%223%22%20opacity%3D%221%22%2F%3E%0A%3Ctext%20x%3D%22163%22%20y%3D%2261%22%20font-size%3D%2219%22%20fill%3D%22%2322313a%22%20text-anchor%3D%22start%22%20font-family%3D%22sans-serif%22%3ESURVEY%20SERVICES%3C%2Ftext%3E%0A%3Cline%20x1%3D%22163%22%20y1%3D%2272%22%20x2%3D%22370%22%20y2%3D%2272%22%20stroke%3D%22%23b8c4cb%22%20stroke-width%3D%222%22%20opacity%3D%221%22%2F%3E%0A%3Ctext%20x%3D%22163%22%20y%3D%2296%22%20font-size%3D%2213%22%20fill%3D%22%23526773%22%20text-anchor%3D%22start%22%20font-family%3D%22sans-serif%22%3EFIELD%20MEASUREMENT%3C%2Ftext%3E%0A%3Ctext%20x%3D%22163%22%20y%3D%22117%22%20font-size%3D%2213%22%20fill%3D%22%23526773%22%20text-anchor%3D%22start%22%20font-family%3D%22sans-serif%22%3ESITE%20MAPPING%3C%2Ftext%3E%0A%3Cline%20x1%3D%22163%22%20y1%3D%22132%22%20x2%3D%22370%22%20y2%3D%22132%22%20stroke%3D%22%23d6dde1%22%20stroke-width%3D%221%22%20opacity%3D%221%22%2F%3E%0A%3Ccircle%20cx%3D%22367%22%20cy%3D%2243%22%20r%3D%225%22%20fill%3D%22%23f1b24a%22%20stroke%3D%22none%22%20stroke-width%3D%220%22%20opacity%3D%221%22%2F%3E%0A%3C%2Fsvg%3E\" alt=\"Logo for the listed subcontractor, Northline Survey LLC.\">\n        <figcaption>Subcontractor listed on the Harbor Point contract result.</figcaption>\n      </figure>\n    </main>\n  </body>\n</html>"
+      }
+    ]
+  },
+  "prompt": "Review the contextual webpage image and report the requested detail.",
+  "solution": {
+    "valueType": "text",
+    "canonical": "Northline Survey LLC",
+    "normalization": [
+      "trim",
+      "collapse-whitespace"
+    ]
+  },
+  "validator": {
+    "kind": "normalized-text",
+    "mode": "deterministic",
+    "options": {
+      "trim": true,
+      "caseInsensitive": false,
+      "collapseWhitespace": true
+    }
+  },
+  "externalKnowledge": {
+    "required": false
+  },
+  "extensions": {
+    "altText": {
+      "templateVersion": "authored-visual-alt-text-v3",
+      "payloadRole": "alt-text-payload",
+      "hasImageCaption": true,
+      "imageSourceKind": "authored-inline-svg-data-url",
+      "imageRenderer": "llm-authored-drawing-plan",
+      "artifactSha256": "d008362a1989bd6f5fdf5719720ae2bd4488c7df3f7fb70554be48fcb494ba90"
+    }
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "levelId": "missing_reporter_demo_v2_03_vehicle",
+  "investigationQuestion": "Which vehicle took Maya from the garage, who drove it, and where did it go?",
+  "titleHint": "Maya’s Last Trip",
+  "genre": "online-investigation",
+  "theme": "Reconstructing a timed vehicle journey",
+  "setting": "Parking records and the traffic camera log",
+  "startingSituation": "The invoice bundle includes an “Open parking record” control. Open the attached session record, compare its vehicle with Calder’s vehicle assignments, and click “Camera matches.”",
+  "playerRole": "You are Maya Chen’s trusted friend, reconstructing her last known trip from records attached to her fraud research.",
+  "playerCapabilities": [
+    "Use the parking lookup.",
+    "Compare times, plates, and assignments.",
+    "Submit a vehicle identifier to Maya’s case."
+  ],
+  "playerConstraints": [
+    "Use only the provided records.",
+    "Match events by date, time, plate, and location.",
+    "Do not claim a unit from a street-level camera match."
+  ],
+  "environment": {
+    "mode": "self-contained"
+  },
+  "narrativeContext": [
+    "The parking lookup returns details for PARK-0918-664, and Calder’s fleet page provides comparable assignments.",
+    "GKT-482 was at the garage at 18:40, was assigned to Owen Blake, and reached 18 Mason Street at 19:12 in CAM-0918-221.",
+    "Submitting the corroborated plate gives police a narrow lead; acceptance shows “Check property directory.”"
+  ],
+  "startingInputs": [
+    {
+      "id": "input_invoice_and_parking_bundle",
+      "semanticRole": "carried-payment-evidence",
+      "description": "Project-hosted bundle containing the invoice, cited parking attachment, and parking lookup control.",
+      "kind": "bundle-entry",
+      "resourceKind": "invoice-evidence-package"
+    }
+  ],
+  "externalContentRequirements": [],
+  "requiredDiscoveries": [
+    {
+      "id": "discovery_assigned_driver",
+      "semanticRole": "person-identifier",
+      "description": "Name of the employee assigned to the matched van on 2025-09-18.",
+      "dataType": "string",
+      "value": "Owen Blake"
+    },
+    {
+      "id": "discovery_camera_destination",
+      "semanticRole": "location",
+      "description": "Building address recorded for the van at 19:12.",
+      "dataType": "string",
+      "value": "18 Mason Street"
+    }
+  ],
+  "terminalAction": {
+    "actionType": "evidence-submission",
+    "description": "Submit the plate in the Vehicle identifier field. Format: ABC-123.",
+    "requiredOutputs": [
+      {
+        "id": "output_vehicle_plate",
+        "semanticRole": "resource-identifier",
+        "dataType": "string",
+        "requiredValue": "GKT-482"
+      }
+    ]
+  },
+  "config": {
+    "structuralDifficulty": {
+      "preset": "medium",
+      "puzzleCount": {
+        "minimum": 4,
+        "maximum": 6
+      },
+      "phaseCount": {
+        "minimum": 3,
+        "maximum": 4
+      },
+      "linearity": 0.58,
+      "maxParallelPuzzles": 2
+    },
+    "puzzleDifficulty": {
+      "preset": "medium"
+    },
+    "transformationPolicy": {
+      "enabled": true,
+      "maxCount": 2,
+      "maxDifficulty": "medium"
+    },
+    "reviewRetryLimit": 3,
+    "concealUnreachedContent": true,
+    "encourageSubtypeVariety": true
+  },
+  "world": {
+    "entityIds": [
+      "person_maya_chen",
+      "person_owen_blake",
+      "org_calder_development",
+      "org_river_city_police",
+      "place_press_club_garage",
+      "place_mason_warehouse",
+      "object_invoice_inv_ns_7781",
+      "object_van_gkt_482",
+      "event_maya_abduction",
+      "event_warehouse_arrival",
+      "site_parking_records",
+      "site_city_camera_log",
+      "site_police_tip_portal"
+    ],
+    "factIds": [
+      "fact_disappearance_date",
+      "fact_disappearance_time",
+      "fact_disappearance_actor",
+      "fact_disappearance_vehicle",
+      "fact_disappearance_location",
+      "fact_parking_reference",
+      "fact_van_plate",
+      "fact_van_owner",
+      "fact_van_assigned_driver",
+      "fact_blake_employer",
+      "fact_arrival_date",
+      "fact_arrival_time",
+      "fact_arrival_actor",
+      "fact_arrival_vehicle",
+      "fact_arrival_location",
+      "fact_camera_record"
+    ],
+    "asOf": "2025-09-19",
+    "id": "world_missing_reporter_demo_v2",
+    "revision": "1"
+  },
+  "catalogVersion": "repository-puzzles-2.0.0"
+}

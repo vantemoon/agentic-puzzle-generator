@@ -1,0 +1,88 @@
+{
+  "id": "puzzle_saved_story",
+  "puzzleType": "hidden-information",
+  "subtype": "alt-text",
+  "inputs": [
+    {
+      "key": "visible_page_text",
+      "valueType": "html-visible-text",
+      "description": "The text and image label visible in the rendered webpage.",
+      "required": true,
+      "constraints": {
+        "maximumTitleCharacters": 120,
+        "maximumBodyCharacters": 1000,
+        "maximumImageLabelCharacters": 120,
+        "htmlEscaped": true
+      },
+      "value": {
+        "title": "Delays Continue in Waterfront Utility Work",
+        "body": "Maya Chen’s saved Ledger story reviews delays and rising costs in a city waterfront utility program. The page includes a project map and a Related records section with a link labeled Archived correction.",
+        "imageLabel": "Waterfront utility project map",
+        "imageCaption": "Project area supplied with the saved story."
+      }
+    },
+    {
+      "key": "image_alt_payload",
+      "valueType": "image-alt-text-description",
+      "description": "The natural description stored in the image alt attribute.",
+      "required": true,
+      "constraints": {
+        "maximumCharacters": 500,
+        "containsIntendedSolution": true,
+        "htmlAttributeEscaped": true
+      },
+      "value": "Map of the waterfront utility work area, with the program name Harbor Point shown in the image description."
+    }
+  ],
+  "outputs": [
+    {
+      "key": "extracted_message",
+      "valueType": "plain-text",
+      "description": "The hidden message recovered from the image alt text.",
+      "value": "Harbor Point"
+    }
+  ],
+  "artifact": {
+    "kind": "html",
+    "mediaType": "text/html",
+    "entryPath": "/index.html",
+    "files": [
+      {
+        "path": "/index.html",
+        "mediaType": "text/html",
+        "source": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <title>Delays Continue in Waterfront Utility Work</title>\n  </head>\n  <body>\n    <main>\n      <h1>Delays Continue in Waterfront Utility Work</h1>\n      <p>Maya Chen’s saved Ledger story reviews delays and rising costs in a city waterfront utility program. The page includes a project map and a Related records section with a link labeled Archived correction.</p>\n      <figure>\n        <img data-puzzle-role=\"alt-text-payload\" src=\"data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22420%22%20height%3D%22180%22%20viewBox%3D%220%200%20420%20180%22%20role%3D%22img%22%3E%0A%20%20%3Ctitle%3EWaterfront%20utility%20project%20map%3C%2Ftitle%3E%0A%3Crect%20x%3D%220%22%20y%3D%220%22%20width%3D%22420%22%20height%3D%22180%22%20fill%3D%22%23e8edf0%22%20stroke%3D%22none%22%20stroke-width%3D%220%22%20opacity%3D%221%22%20rx%3D%220%22%20ry%3D%220%22%2F%3E%0A%3Crect%20x%3D%220%22%20y%3D%220%22%20width%3D%22420%22%20height%3D%2244%22%20fill%3D%22%23b9d9e8%22%20stroke%3D%22none%22%20stroke-width%3D%220%22%20opacity%3D%221%22%20rx%3D%220%22%20ry%3D%220%22%2F%3E%0A%3Cpath%20d%3D%22M0%2044%20L72%2048%20L104%2060%20L150%2057%20L188%2069%20L232%2066%20L276%2079%20L322%2074%20L365%2086%20L420%2083%20L420%20180%20L0%20180%20Z%22%20fill%3D%22%23d9d2b8%22%20stroke%3D%22%2389949a%22%20stroke-width%3D%222%22%20opacity%3D%221%22%2F%3E%0A%3Cpath%20d%3D%22M0%2047%20L70%2051%20L103%2063%20L149%2060%20L188%2072%20L232%2069%20L276%2082%20L322%2077%20L365%2089%20L420%2086%22%20fill%3D%22none%22%20stroke%3D%22%23667b84%22%20stroke-width%3D%223%22%20opacity%3D%221%22%2F%3E%0A%3Crect%20x%3D%2226%22%20y%3D%2282%22%20width%3D%2278%22%20height%3D%2242%22%20fill%3D%22%23c9b88e%22%20stroke%3D%22%2381765f%22%20stroke-width%3D%221%22%20opacity%3D%221%22%20rx%3D%223%22%20ry%3D%223%22%2F%3E%0A%3Crect%20x%3D%2235%22%20y%3D%2291%22%20width%3D%2224%22%20height%3D%2214%22%20fill%3D%22%23f4f1df%22%20stroke%3D%22%2381765f%22%20stroke-width%3D%221%22%20opacity%3D%221%22%20rx%3D%221%22%20ry%3D%221%22%2F%3E%0A%3Crect%20x%3D%2267%22%20y%3D%2291%22%20width%3D%2228%22%20height%3D%2214%22%20fill%3D%22%23f4f1df%22%20stroke%3D%22%2381765f%22%20stroke-width%3D%221%22%20opacity%3D%221%22%20rx%3D%221%22%20ry%3D%221%22%2F%3E%0A%3Cline%20x1%3D%2245%22%20y1%3D%22124%22%20x2%3D%2245%22%20y2%3D%22153%22%20stroke%3D%22%237f7460%22%20stroke-width%3D%224%22%20opacity%3D%221%22%2F%3E%0A%3Cline%20x1%3D%2285%22%20y1%3D%22124%22%20x2%3D%2285%22%20y2%3D%22153%22%20stroke%3D%22%237f7460%22%20stroke-width%3D%224%22%20opacity%3D%221%22%2F%3E%0A%3Cline%20x1%3D%2221%22%20y1%3D%22153%22%20x2%3D%22112%22%20y2%3D%22153%22%20stroke%3D%22%237f7460%22%20stroke-width%3D%224%22%20opacity%3D%221%22%2F%3E%0A%3Crect%20x%3D%22133%22%20y%3D%2291%22%20width%3D%2267%22%20height%3D%2234%22%20fill%3D%22%23b7aa8a%22%20stroke%3D%22%23786f5d%22%20stroke-width%3D%221%22%20opacity%3D%221%22%20rx%3D%222%22%20ry%3D%222%22%2F%3E%0A%3Crect%20x%3D%22143%22%20y%3D%2299%22%20width%3D%2218%22%20height%3D%2213%22%20fill%3D%22%23e9e3cf%22%20stroke%3D%22%23786f5d%22%20stroke-width%3D%221%22%20opacity%3D%221%22%20rx%3D%221%22%20ry%3D%221%22%2F%3E%0A%3Crect%20x%3D%22169%22%20y%3D%2299%22%20width%3D%2221%22%20height%3D%2213%22%20fill%3D%22%23e9e3cf%22%20stroke%3D%22%23786f5d%22%20stroke-width%3D%221%22%20opacity%3D%221%22%20rx%3D%221%22%20ry%3D%221%22%2F%3E%0A%3Cline%20x1%3D%22166%22%20y1%3D%22125%22%20x2%3D%22166%22%20y2%3D%22159%22%20stroke%3D%22%23746b5b%22%20stroke-width%3D%224%22%20opacity%3D%221%22%2F%3E%0A%3Cline%20x1%3D%22125%22%20y1%3D%22159%22%20x2%3D%22208%22%20y2%3D%22159%22%20stroke%3D%22%23746b5b%22%20stroke-width%3D%224%22%20opacity%3D%221%22%2F%3E%0A%3Cpolygon%20points%3D%22225%2C93%20260%2C79%20296%2C94%20290%2C139%20238%2C139%22%20fill%3D%22%23c0b28d%22%20stroke%3D%22%23796f5d%22%20stroke-width%3D%221%22%20opacity%3D%221%22%2F%3E%0A%3Crect%20x%3D%22246%22%20y%3D%2298%22%20width%3D%2227%22%20height%3D%2220%22%20fill%3D%22%23eee9d7%22%20stroke%3D%22%23796f5d%22%20stroke-width%3D%221%22%20opacity%3D%221%22%20rx%3D%221%22%20ry%3D%221%22%2F%3E%0A%3Cline%20x1%3D%22238%22%20y1%3D%22139%22%20x2%3D%22230%22%20y2%3D%22164%22%20stroke%3D%22%23746b5b%22%20stroke-width%3D%224%22%20opacity%3D%221%22%2F%3E%0A%3Cline%20x1%3D%22290%22%20y1%3D%22139%22%20x2%3D%22299%22%20y2%3D%22164%22%20stroke%3D%22%23746b5b%22%20stroke-width%3D%224%22%20opacity%3D%221%22%2F%3E%0A%3Cline%20x1%3D%22218%22%20y1%3D%22164%22%20x2%3D%22310%22%20y2%3D%22164%22%20stroke%3D%22%23746b5b%22%20stroke-width%3D%224%22%20opacity%3D%221%22%2F%3E%0A%3Cpolyline%20points%3D%2213%2C70%2055%2C68%2098%2C77%20139%2C73%20183%2C84%20224%2C80%20264%2C94%20309%2C88%20351%2C101%20402%2C96%22%20fill%3D%22none%22%20stroke%3D%22%23d38b46%22%20stroke-width%3D%225%22%20opacity%3D%221%22%2F%3E%0A%3Ccircle%20cx%3D%2298%22%20cy%3D%2277%22%20r%3D%226%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23b4682c%22%20stroke-width%3D%222%22%20opacity%3D%221%22%2F%3E%0A%3Ccircle%20cx%3D%22224%22%20cy%3D%2280%22%20r%3D%226%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23b4682c%22%20stroke-width%3D%222%22%20opacity%3D%221%22%2F%3E%0A%3Ccircle%20cx%3D%22351%22%20cy%3D%22101%22%20r%3D%226%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23b4682c%22%20stroke-width%3D%222%22%20opacity%3D%221%22%2F%3E%0A%3Cline%20x1%3D%22331%22%20y1%3D%2228%22%20x2%3D%22331%22%20y2%3D%2262%22%20stroke%3D%22%23505b61%22%20stroke-width%3D%223%22%20opacity%3D%221%22%2F%3E%0A%3Cpolygon%20points%3D%22331%2C15%20324%2C30%20338%2C30%22%20fill%3D%22%23d85a48%22%20stroke%3D%22%238a3f34%22%20stroke-width%3D%221%22%20opacity%3D%221%22%2F%3E%0A%3Cline%20x1%3D%22362%22%20y1%3D%2232%22%20x2%3D%22362%22%20y2%3D%2272%22%20stroke%3D%22%23505b61%22%20stroke-width%3D%223%22%20opacity%3D%221%22%2F%3E%0A%3Ccircle%20cx%3D%22362%22%20cy%3D%2227%22%20r%3D%225%22%20fill%3D%22%23f4c75a%22%20stroke%3D%22%237b6740%22%20stroke-width%3D%221%22%20opacity%3D%221%22%2F%3E%0A%3Cpath%20d%3D%22M375%2054%20C388%2043%20400%2046%20411%2037%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%222%22%20opacity%3D%220.8%22%2F%3E%0A%3Cpath%20d%3D%22M9%2024%20C27%2014%2043%2017%2057%209%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%222%22%20opacity%3D%220.8%22%2F%3E%0A%3C%2Fsvg%3E\" alt=\"Map of the waterfront utility work area, with the program name Harbor Point shown in the image description.\">\n        <figcaption>Project area supplied with the saved story.</figcaption>\n      </figure>\n    </main>\n  </body>\n</html>"
+      }
+    ]
+  },
+  "prompt": "Review the contextual webpage image and report the requested detail.",
+  "solution": {
+    "valueType": "text",
+    "canonical": "Harbor Point",
+    "normalization": [
+      "trim",
+      "collapse-whitespace"
+    ]
+  },
+  "validator": {
+    "kind": "normalized-text",
+    "mode": "deterministic",
+    "options": {
+      "trim": true,
+      "caseInsensitive": false,
+      "collapseWhitespace": true
+    }
+  },
+  "externalKnowledge": {
+    "required": false
+  },
+  "extensions": {
+    "altText": {
+      "templateVersion": "authored-visual-alt-text-v3",
+      "payloadRole": "alt-text-payload",
+      "hasImageCaption": true,
+      "imageSourceKind": "authored-inline-svg-data-url",
+      "imageRenderer": "llm-authored-drawing-plan",
+      "artifactSha256": "fb4f25338d089b701978d14a644a7baed39e2c322da666525905d83d714a04b8"
+    }
+  }
+}

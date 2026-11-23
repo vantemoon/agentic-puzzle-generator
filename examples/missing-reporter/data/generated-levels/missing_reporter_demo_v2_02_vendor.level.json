@@ -1,0 +1,584 @@
+{
+  "title": "The Hidden Vendor",
+  "summary": "The investigator starts from contract HP-2025-041, follows its Payment files link, and uses the listed subcontractor to inspect Northline Survey LLC in the company registry. The officer history identifies Daniel Price as controller, gives the registered unit address, and links to Calder Development’s staff directory, where Price is listed as Finance Director. Returning to the payment-file index, the contract reference opens the disputed invoice listing File ID INV-NS-7781. Retrieving it confirms Price approved a paid survey claim for 2025-09-14, while the attached inspection note says no survey crew attended that day. The invoice also exposes the registered address and an Open parking record control for the next level.",
+  "setting": {
+    "theme": "Comparing company and payment records",
+    "location": "The company registry and Harbor Point payment files",
+    "tone": "Grounded public-record investigation"
+  },
+  "phases": [
+    {
+      "id": "phase_contract",
+      "order": 0,
+      "title": "Contract and vendor",
+      "summary": "Read the carried contract result and follow its public links to payment and company records."
+    },
+    {
+      "id": "phase_control",
+      "order": 1,
+      "title": "Company control",
+      "summary": "Use registry and staff records to establish who controlled Northline and his role at Calder."
+    },
+    {
+      "id": "phase_invoice",
+      "order": 2,
+      "title": "Invoice and conflict",
+      "summary": "Locate the disputed invoice reference, retrieve the file, and compare its paid claim with the inspection note."
+    }
+  ],
+  "puzzles": [
+    {
+      "id": "puzzle_contract_result",
+      "phaseId": "phase_contract",
+      "title": "Contract result",
+      "purpose": "Examine contract HP-2025-041 to identify the subcontractor and use the visible Payment files and Company registry links that lead to the relevant public records.",
+      "design": {
+        "puzzleType": "hidden-information",
+        "subtype": "alt-text",
+        "difficulty": "easy",
+        "generationSpec": {
+          "mode": "production",
+          "id": "puzzle_contract_result",
+          "intendedSolution": "Northline Survey LLC",
+          "visibleTitle": "Contract result HP-2025-041",
+          "visibleBody": "Prime contractor: Calder Development. The award record includes a subcontractor logo with an accessible description. Public controls: Payment files and Company registry.",
+          "imageLabel": "Subcontractor logo",
+          "altText": "Logo for the listed subcontractor, Northline Survey LLC.",
+          "imageCaption": "Subcontractor listed on the Harbor Point contract result."
+        },
+        "verification": {
+          "prompt": "What company is identified as the subcontractor in the logo description? Enter the full company name.",
+          "dataType": "string",
+          "expectedValue": "Northline Survey LLC"
+        },
+        "inputs": [
+          {
+            "id": "input_contract_bundle",
+            "source": {
+              "kind": "starting-input",
+              "inputId": "input_contract_result_bundle"
+            },
+            "use": "Open the carried contract-result bundle; it displays contract HP-2025-041, the subcontractor logo, and visible Payment files and Company registry links.",
+            "access": {
+              "kind": "direct-link"
+            }
+          }
+        ],
+        "outputs": [
+          {
+            "id": "output_vendor_name",
+            "semanticRole": "organization-name",
+            "description": "The subcontractor name found in the accessible logo description on contract result HP-2025-041; it can be entered in the Company name field on the linked Company registry search page.",
+            "from": "verification"
+          },
+          {
+            "id": "output_contract_reference",
+            "semanticRole": "record-selector",
+            "description": "The contract reference displayed in the carried contract result and used in the Contract reference field on the linked Payment files page.",
+            "from": "revealed",
+            "dataType": "string",
+            "value": "HP-2025-041"
+          }
+        ],
+        "revealContext": "The opened contract result visibly displays its contract reference and provides Payment files and Company registry links."
+      },
+      "generatedContent": {
+        "status": "mockup",
+        "preview": {
+          "kind": "structured",
+          "data": {
+            "heading": "Contract result HP-2025-041",
+            "primeContractor": "Calder Development",
+            "image": "Subcontractor logo",
+            "imageAlt": "Logo for the listed subcontractor, Northline Survey LLC.",
+            "controls": [
+              "Payment files",
+              "Company registry"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "puzzle_registry_record",
+      "phaseId": "phase_control",
+      "title": "Northline officer record",
+      "purpose": "Search the company registry for Northline, compare its current officer entry with peer filings, and establish the controller and full registered unit address needed to test whether the vendor was independent.",
+      "design": {
+        "puzzleType": "hidden-information",
+        "subtype": "anomalous-phrase",
+        "difficulty": "medium",
+        "generationSpec": {
+          "mode": "production",
+          "id": "puzzle_registry_record",
+          "intendedSolution": "Daniel Price",
+          "documentTemplate": "Company registry search result\nCompany: Northline Survey LLC\nStatus: Active\nRegistered address: 18 Mason Street, Unit 3\nCurrent officer: {{ANOMALY}}\n\nPeer filing A\nCompany: East Harbor Survey LLC\nStatus: Active\nCurrent officer: Managing member\n\nPeer filing B\nCompany: Bay Map Services LLC\nStatus: Active\nCurrent officer: Managing member\n\nPublic controls: Officer history; View Calder Development staff directory.",
+          "anomalousPhrase": "Controller — Daniel Price",
+          "normalityContext": "Comparable small survey-company filings label the current officer as Managing member; Northline uniquely identifies a controller by personal name, making that entry the relevant control evidence.",
+          "normalPatternEvidence": [
+            "Current officer: Managing member",
+            "Status: Active"
+          ],
+          "genre": "company registry record",
+          "anomalyKind": "unusual-phrase"
+        },
+        "verification": {
+          "prompt": "Who is named as Northline Survey LLC’s controller? Enter the full name.",
+          "dataType": "string",
+          "expectedValue": "Daniel Price"
+        },
+        "inputs": [
+          {
+            "id": "input_registry_company",
+            "source": {
+              "kind": "puzzle-output",
+              "puzzleId": "puzzle_contract_result",
+              "outputId": "output_vendor_name"
+            },
+            "use": "The investigator finds the subcontractor name in the contract result’s logo description, understands it as the registry subject, clicks Company registry, and enters it in the Company name field to open Northline’s filing.",
+            "access": {
+              "kind": "lookup",
+              "fieldLabel": "Company name"
+            },
+            "expectedSemanticRoles": [
+              "organization-name"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "id": "output_vendor_controller",
+            "semanticRole": "person-identifier",
+            "description": "The person named as controller in Northline Survey LLC’s company-registry officer record; the record also offers a link to Calder Development’s staff directory for employment corroboration.",
+            "from": "verification",
+            "requiredDiscoveryId": "discovery_vendor_controller"
+          },
+          {
+            "id": "output_vendor_address",
+            "semanticRole": "location",
+            "description": "Northline Survey LLC’s full registered unit address displayed in the company-registry filing and later repeated on the retrieved invoice.",
+            "from": "revealed",
+            "dataType": "string",
+            "value": "18 Mason Street, Unit 3",
+            "requiredDiscoveryId": "discovery_vendor_address"
+          }
+        ],
+        "revealContext": "The company registry result displays Northline’s status, full registered address, current officer, peer filings, Officer history control, and a View Calder Development staff directory link."
+      },
+      "generatedContent": {
+        "status": "mockup",
+        "preview": {
+          "kind": "text",
+          "title": "Northline Survey LLC — company filing",
+          "body": "Status: Active\nRegistered address: 18 Mason Street, Unit 3\nCurrent officer: Controller — Daniel Price\n\nComparable survey-company filings use “Managing member.” Controls: Officer history; View Calder Development staff directory.",
+          "emphasis": "plain"
+        }
+      }
+    },
+    {
+      "id": "puzzle_staff_directory",
+      "phaseId": "phase_control",
+      "title": "Calder staff directory",
+      "purpose": "Follow the registry’s staff-directory link and inspect the finance listing to corroborate that Northline’s controller also held Calder’s Finance Director role when the invoice was approved.",
+      "design": {
+        "puzzleType": "hidden-information",
+        "subtype": "page-version",
+        "difficulty": "medium",
+        "generationSpec": {
+          "mode": "production",
+          "id": "puzzle_staff_directory",
+          "intendedSolution": "Finance Director",
+          "pageTitle": "Calder Development staff directory",
+          "baselineBody": "Staff directory published 2025-08-30. Project Director: Elena Ortiz. Finance Director: Daniel Price. Contract Manager: Lewis Grant.",
+          "currentBody": "Staff directory published 2025-09-18. Project Director: Elena Ortiz. Contract Manager: Lewis Grant.",
+          "changeKind": "removed-content",
+          "baselineDate": "2025-08-30",
+          "currentDate": "2025-09-18",
+          "baselineLabel": "August staff listing",
+          "currentLabel": "September staff listing"
+        },
+        "verification": {
+          "prompt": "What Calder job title was listed for Daniel Price in the August staff directory? Enter the title only.",
+          "dataType": "string",
+          "expectedValue": "Finance Director"
+        },
+        "inputs": [
+          {
+            "id": "input_staff_person",
+            "source": {
+              "kind": "puzzle-output",
+              "puzzleId": "puzzle_registry_record",
+              "outputId": "output_vendor_controller"
+            },
+            "use": "The investigator finds Daniel Price in Northline’s officer record, understands him as the controller to corroborate, and clicks View Calder Development staff directory on that registry record to compare its dated staff listings.",
+            "access": {
+              "kind": "direct-link"
+            },
+            "expectedSemanticRoles": [
+              "person-identifier"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "id": "output_price_title",
+            "semanticRole": "employment-title",
+            "description": "Daniel Price’s Calder Development title in the August staff-directory snapshot, establishing that the vendor controller was Calder’s Finance Director before the disputed payment.",
+            "from": "verification"
+          }
+        ]
+      },
+      "generatedContent": {
+        "status": "mockup",
+        "preview": {
+          "kind": "structured",
+          "data": {
+            "page": "Calder Development staff directory",
+            "August staff listing": [
+              "Project Director — Elena Ortiz",
+              "Finance Director — Daniel Price",
+              "Contract Manager — Lewis Grant"
+            ],
+            "September staff listing": [
+              "Project Director — Elena Ortiz",
+              "Contract Manager — Lewis Grant"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "puzzle_payment_index",
+      "phaseId": "phase_invoice",
+      "title": "Payment file index",
+      "purpose": "Search Harbor Point payment files by the contract reference and identify the invoice approved by the same finance official, yielding the exact File ID required by the retrieval interface.",
+      "design": {
+        "puzzleType": "encoding",
+        "subtype": "qr-code",
+        "difficulty": "medium",
+        "generationSpec": {
+          "mode": "production",
+          "id": "puzzle_payment_index",
+          "intendedSolution": "INV-NS-7781",
+          "payloadKind": "identifier",
+          "documentTheme": "Harbor Point payment-file index label for a Northline survey invoice",
+          "moduleSize": 8
+        },
+        "verification": {
+          "prompt": "Scan the file label for Northline’s survey invoice. Enter the File ID in the format INV-XX-NNNN.",
+          "dataType": "string",
+          "expectedValue": "INV-NS-7781"
+        },
+        "inputs": [
+          {
+            "id": "input_payment_contract",
+            "source": {
+              "kind": "puzzle-output",
+              "puzzleId": "puzzle_contract_result",
+              "outputId": "output_contract_reference"
+            },
+            "use": "The investigator finds HP-2025-041 on the contract result, understands it as the payment-file record selector, clicks Payment files, and enters it in the Contract reference field to open the contract’s payment index.",
+            "access": {
+              "kind": "lookup",
+              "fieldLabel": "Contract reference"
+            },
+            "expectedSemanticRoles": [
+              "record-selector"
+            ]
+          },
+          {
+            "id": "input_payment_approver",
+            "source": {
+              "kind": "puzzle-output",
+              "puzzleId": "puzzle_registry_record",
+              "outputId": "output_vendor_controller"
+            },
+            "use": "The investigator uses the controller’s name from Northline’s registry record to distinguish the Northline row whose approver matches the controller; no separate navigation is required.",
+            "expectedSemanticRoles": [
+              "person-identifier"
+            ]
+          },
+          {
+            "id": "input_payment_title",
+            "source": {
+              "kind": "puzzle-output",
+              "puzzleId": "puzzle_staff_directory",
+              "outputId": "output_price_title"
+            },
+            "use": "The August Calder staff-directory title explains why the matching approver could authorize payment and confirms that the Northline row is the disputed internal approval.",
+            "expectedSemanticRoles": [
+              "employment-title"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "id": "output_invoice_id",
+            "semanticRole": "resource-identifier",
+            "description": "The exact File ID encoded on the Northline invoice label in Harbor Point’s payment index; it is entered in the invoice retrieval form’s File ID field.",
+            "from": "verification"
+          }
+        ]
+      },
+      "generatedContent": {
+        "status": "mockup",
+        "preview": {
+          "kind": "structured",
+          "data": {
+            "heading": "Payment files for HP-2025-041",
+            "rows": [
+              {
+                "vendor": "Harbor Soil Testing",
+                "approver": "Lewis Grant",
+                "label": "ordinary file link"
+              },
+              {
+                "vendor": "Northline Survey LLC",
+                "approver": "Daniel Price",
+                "label": "QR file label encoding the invoice File ID"
+              },
+              {
+                "vendor": "Bay Map Services LLC",
+                "approver": "Elena Ortiz",
+                "label": "ordinary file link"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "puzzle_invoice_evidence",
+      "phaseId": "phase_invoice",
+      "title": "Paid invoice and inspection note",
+      "purpose": "Retrieve the disputed invoice, confirm its vendor, approver, service date, and paid status, and compare the claim with the attached inspection note showing no survey crew attended.",
+      "design": {
+        "puzzleType": "hidden-information",
+        "subtype": "html-source-inspection",
+        "difficulty": "medium",
+        "generationSpec": {
+          "mode": "production",
+          "id": "puzzle_invoice_evidence",
+          "intendedSolution": "No survey crew attended",
+          "visibleTitle": "Northline survey invoice",
+          "visibleBody": "File ID: INV-NS-7781. Vendor: Northline Survey LLC. Registered address: 18 Mason Street, Unit 3. Contract: HP-2025-041. Service date: 2025-09-14. Approved by Daniel Price on 2025-09-15. Status: Paid. Attachment: inspection note for 2025-09-14. Public control: Open parking record.",
+          "carrier": "html-attribute",
+          "codeLabel": "inspection-finding"
+        },
+        "verification": {
+          "prompt": "What does the attached 2025-09-14 inspection note say about the survey crew? Enter the short finding.",
+          "dataType": "string",
+          "expectedValue": "No survey crew attended"
+        },
+        "inputs": [
+          {
+            "id": "input_invoice_file_id",
+            "source": {
+              "kind": "puzzle-output",
+              "puzzleId": "puzzle_payment_index",
+              "outputId": "output_invoice_id"
+            },
+            "use": "The investigator finds the File ID on the Northline row in Harbor Point’s payment index, understands it as the disputed invoice reference, and enters it in the File ID field on the payment-file retrieval form to open the invoice.",
+            "access": {
+              "kind": "lookup",
+              "fieldLabel": "File ID"
+            },
+            "expectedSemanticRoles": [
+              "resource-identifier"
+            ]
+          },
+          {
+            "id": "input_invoice_address_check",
+            "source": {
+              "kind": "puzzle-output",
+              "puzzleId": "puzzle_registry_record",
+              "outputId": "output_vendor_address"
+            },
+            "use": "The investigator compares the full unit address from Northline’s registry filing with the address printed on the retrieved invoice to confirm both records concern the same vendor.",
+            "expectedSemanticRoles": [
+              "location"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "id": "output_inspection_conflict",
+            "semanticRole": "finding",
+            "description": "The inspection-note finding that contradicts Northline’s paid claim for survey work on 2025-09-14, supporting Maya’s allegation that the invoice was false.",
+            "from": "verification"
+          },
+          {
+            "id": "output_parking_handoff",
+            "semanticRole": "next-record-context",
+            "description": "The retrieved invoice’s visible Open parking record control carries the investigator to the next record using the invoice’s registered address and service date.",
+            "from": "revealed",
+            "dataType": "string",
+            "value": "Open parking record"
+          }
+        ],
+        "revealContext": "The retrieved invoice displays the payment, vendor, address, contract, service date, approval date, approver, and paid status; its attached inspection note contains an inspectable finding, and a visible Open parking record control provides the later handoff."
+      },
+      "generatedContent": {
+        "status": "mockup",
+        "preview": {
+          "kind": "structured",
+          "data": {
+            "fileId": "INV-NS-7781",
+            "vendor": "Northline Survey LLC",
+            "address": "18 Mason Street, Unit 3",
+            "contract": "HP-2025-041",
+            "serviceDate": "2025-09-14",
+            "approvedBy": "Daniel Price",
+            "approvalDate": "2025-09-15",
+            "status": "Paid",
+            "attachment": "Inspection note with source attribute: No survey crew attended",
+            "control": "Open parking record"
+          }
+        }
+      }
+    }
+  ],
+  "requiredResources": [
+    {
+      "id": "resource_contract_result",
+      "kind": "webpage",
+      "description": "Project-hosted contract result HP-2025-041 with accessible subcontractor logo and visible Payment files and Company registry links."
+    },
+    {
+      "id": "resource_company_registry",
+      "kind": "searchable registry webpage",
+      "description": "Public company registry with Company name lookup, Northline’s filing, officer history, address, peer filings, and staff-directory link."
+    },
+    {
+      "id": "resource_staff_directory",
+      "kind": "versioned webpage",
+      "description": "Calder Development staff directory with dated August and September snapshots."
+    },
+    {
+      "id": "resource_payment_index",
+      "kind": "searchable payment index",
+      "description": "Harbor Point payment-files page with Contract reference lookup and comparable vendor rows, including a QR file label."
+    },
+    {
+      "id": "resource_invoice_retrieval",
+      "kind": "file retrieval webpage",
+      "description": "Payment-file retrieval form with File ID field that opens the disputed invoice, attached inspection note, and Open parking record control."
+    },
+    {
+      "id": "resource_invoice_record",
+      "kind": "web document",
+      "description": "Invoice INV-NS-7781 showing vendor, address, contract, service and approval dates, approver, paid status, inspectable inspection finding, and next-record handoff."
+    }
+  ],
+  "terminalAction": {
+    "id": "terminal_retrieve_invoice",
+    "title": "Retrieve disputed invoice",
+    "interaction": "exact-field-form",
+    "fields": [
+      {
+        "id": "output_invoice_id",
+        "label": "File ID",
+        "hint": "Use the identifier on the Northline row in Harbor Point’s payment index. Format: INV-XX-NNNN.",
+        "semanticRole": "resource-identifier",
+        "source": {
+          "puzzleId": "puzzle_payment_index",
+          "outputId": "output_invoice_id"
+        }
+      }
+    ],
+    "successOutcome": "The payment system opens Northline invoice INV-NS-7781. It shows Daniel Price approved a paid survey claim even though the 2025-09-14 inspection note says no survey crew attended. The matching registry record establishes that Price controlled Northline while serving as Calder’s Finance Director, and the invoice repeats Northline’s registered address and provides an Open parking record control for the next step.",
+    "actionType": "file-retrieval",
+    "description": "Retrieve the disputed invoice in the File ID field. Format: INV-XX-NNNN."
+  },
+  "schemaVersion": "5.0.0",
+  "catalogVersion": "repository-puzzles-2.0.0",
+  "id": "missing_reporter_demo_v2_02_vendor",
+  "investigationQuestion": "Who controlled Northline Survey LLC, and why does its invoice support Maya’s fraud allegation?",
+  "world": {
+    "entityIds": [
+      "person_maya_chen",
+      "person_daniel_price",
+      "org_calder_development",
+      "org_northline_survey",
+      "place_mason_unit_3",
+      "object_contract_hp_2025_041",
+      "object_invoice_inv_ns_7781",
+      "event_false_invoice_payment",
+      "site_company_registry",
+      "site_payment_files",
+      "site_parking_records"
+    ],
+    "factIds": [
+      "fact_contract_identifier",
+      "fact_contract_prime",
+      "fact_contract_subcontractor",
+      "fact_northline_controller",
+      "fact_northline_address",
+      "fact_price_employer",
+      "fact_price_title",
+      "fact_invoice_identifier",
+      "fact_invoice_vendor",
+      "fact_invoice_contract",
+      "fact_invoice_approver",
+      "fact_invoice_approval_date",
+      "fact_invoice_event_file",
+      "fact_invoice_service_date",
+      "fact_inspection_conflict"
+    ],
+    "asOf": "2025-09-19",
+    "id": "world_missing_reporter_demo_v2",
+    "revision": "1"
+  },
+  "genre": "online-investigation",
+  "environment": {
+    "mode": "self-contained"
+  },
+  "startingSituation": "The contract result names Northline Survey LLC and shows “Payment files.” Open it, compare the vendor with the company registry, and enter the disputed invoice reference in the File ID field.",
+  "playerRole": "You are Maya Chen’s trusted friend, checking the vendor in her contract lead so Julia Reed can understand the suspected fraud.",
+  "playerCapabilities": [
+    "Open the carried contract result.",
+    "Compare company officer histories.",
+    "Retrieve a file by its File ID."
+  ],
+  "playerConstraints": [
+    "Use only the provided public records.",
+    "Corroborate control through the officer record.",
+    "Keep contract, invoice, and inspection dates distinct."
+  ],
+  "startingInputs": [
+    {
+      "id": "input_contract_result_bundle",
+      "semanticRole": "carried-case-record",
+      "description": "Project-hosted bundle containing the opened contract result and its visible Payment files link.",
+      "kind": "bundle-entry",
+      "resourceKind": "contract-result"
+    }
+  ],
+  "generationConfig": {
+    "structuralDifficulty": {
+      "preset": "medium",
+      "puzzleCount": {
+        "minimum": 4,
+        "maximum": 5
+      },
+      "phaseCount": {
+        "minimum": 3,
+        "maximum": 4
+      },
+      "linearity": 0.7,
+      "maxParallelPuzzles": 2
+    },
+    "puzzleDifficulty": {
+      "preset": "medium"
+    },
+    "transformationPolicy": {
+      "enabled": true,
+      "maxCount": 2,
+      "maxDifficulty": "easy"
+    },
+    "reviewRetryLimit": 3,
+    "concealUnreachedContent": true,
+    "encourageSubtypeVariety": true
+  },
+  "externalContentRequirements": []
+}

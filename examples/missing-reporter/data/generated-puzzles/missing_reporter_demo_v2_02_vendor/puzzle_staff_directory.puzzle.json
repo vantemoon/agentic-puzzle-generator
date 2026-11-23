@@ -1,0 +1,91 @@
+{
+  "id": "puzzle_staff_directory",
+  "puzzleType": "hidden-information",
+  "subtype": "page-version",
+  "inputs": [
+    {
+      "key": "page_version_pair",
+      "valueType": "html-page-version-pair",
+      "description": "Two static HTML page versions that should be compared.",
+      "required": true,
+      "value": {
+        "baselinePath": "/versions/2025-08-30.html",
+        "currentPath": "/versions/2025-09-18.html",
+        "baselineLabel": "August staff listing",
+        "currentLabel": "September staff listing",
+        "baselineDate": "2025-08-30",
+        "currentDate": "2025-09-18"
+      }
+    },
+    {
+      "key": "version_change_payload",
+      "valueType": "page-version-payload",
+      "description": "The message revealed by comparing the static page versions.",
+      "required": true,
+      "value": "Finance Director"
+    }
+  ],
+  "outputs": [
+    {
+      "key": "revealed_message",
+      "valueType": "plain-text",
+      "description": "The text recovered from the meaningful difference between page versions.",
+      "value": "Finance Director"
+    }
+  ],
+  "artifact": {
+    "kind": "html",
+    "mediaType": "text/html",
+    "entryPath": "/index.html",
+    "files": [
+      {
+        "path": "/index.html",
+        "mediaType": "text/html",
+        "source": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <title>Calder Development staff directory — page history</title>\n  </head>\n  <body>\n    <main>\n      <h1>Calder Development staff directory page history</h1>\n      <p>Two dated snapshots are available for comparison.</p>\n      <p><time datetime=\"2025-09-18\">September 18, 2025</time> — September staff listing: <code>/versions/2025-09-18.html</code></p>\n      <p><time datetime=\"2025-08-30\">August 30, 2025</time> — August staff listing: <code>/versions/2025-08-30.html</code></p>\n    </main>\n  </body>\n</html>"
+      },
+      {
+        "path": "/versions/2025-08-30.html",
+        "mediaType": "text/html",
+        "source": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <title>Calder Development staff directory — 2025-08-30</title>\n  </head>\n  <body>\n    <main>\n      <h1>Calder Development staff directory</h1>\n      <p class=\"version-label\"><time datetime=\"2025-08-30\">August 30, 2025</time> — August staff listing</p>\n      <p>Staff directory published 2025-08-30. Project Director: Elena Ortiz. <span data-puzzle-role=\"page-version-payload\">Finance Director</span>: Daniel Price. Contract Manager: Lewis Grant.</p>\n    </main>\n  </body>\n</html>"
+      },
+      {
+        "path": "/versions/2025-09-18.html",
+        "mediaType": "text/html",
+        "source": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <title>Calder Development staff directory — 2025-09-18</title>\n  </head>\n  <body>\n    <main>\n      <h1>Calder Development staff directory</h1>\n      <p class=\"version-label\"><time datetime=\"2025-09-18\">September 18, 2025</time> — September staff listing</p>\n      <p>Staff directory published 2025-09-18. Project Director: Elena Ortiz. Contract Manager: Lewis Grant.</p>\n    </main>\n  </body>\n</html>"
+      }
+    ]
+  },
+  "prompt": "Open the webpage artifact and compare the included page versions to recover the hidden message.",
+  "solution": {
+    "valueType": "text",
+    "canonical": "Finance Director",
+    "normalization": [
+      "trim",
+      "collapse-whitespace"
+    ]
+  },
+  "validator": {
+    "kind": "normalized-text",
+    "mode": "deterministic",
+    "options": {
+      "trim": true,
+      "caseInsensitive": false,
+      "collapseWhitespace": true
+    }
+  },
+  "externalKnowledge": {
+    "required": false
+  },
+  "extensions": {
+    "pageVersion": {
+      "templateVersion": "safe-static-page-version-v2",
+      "changeKind": "removed-content",
+      "baselinePath": "/versions/2025-08-30.html",
+      "currentPath": "/versions/2025-09-18.html",
+      "comparisonMode": "static-file-comparison",
+      "requiresJavaScriptExecution": false,
+      "liveNavigationSupported": false,
+      "artifactSha256": "0645b79feb3c586db1192512a221c4412e3a48025f5f80f69d312a4e5e64e809"
+    }
+  }
+}

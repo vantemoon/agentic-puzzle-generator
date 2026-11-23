@@ -1,0 +1,201 @@
+{
+  "schemaVersion": "1.0.0",
+  "levelId": "missing_reporter_demo_v2_03_vehicle",
+  "sites": [
+    {
+      "name": "Northline Invoice Files",
+      "basePath": "/invoice-files"
+    },
+    {
+      "name": "Press Club Parking Records",
+      "basePath": "/parking-records"
+    },
+    {
+      "name": "Calder Development Vehicle Records",
+      "basePath": "/calder-vehicles"
+    },
+    {
+      "name": "River City Traffic Camera Log",
+      "basePath": "/camera-log"
+    },
+    {
+      "name": "River City Police Case Portal",
+      "basePath": "/police-case"
+    }
+  ],
+  "routes": [
+    {
+      "path": "/",
+      "mediaType": "text/html",
+      "sha256": "ccbae35c9f614e22eb19a6351ef663311f27aa63851d0840d1d3975fb3af9c53"
+    },
+    {
+      "path": "/calder-vehicles",
+      "mediaType": "text/html",
+      "sha256": "e549c69e243407816dc0e66fb723f8c234842e7ca44bae69961a93cddb4806dc"
+    },
+    {
+      "path": "/calder-vehicles/archive",
+      "mediaType": "text/html",
+      "sha256": "a76905e7330e1c9695d775761aa10dc0b0e11beb99d6e09a6b62497926a93848"
+    },
+    {
+      "path": "/calder-vehicles/assignments",
+      "mediaType": "text/html",
+      "sha256": "9078959dccfe170e177c30cbd2a0d287f6dc34c9511e55a797c41ff83d673946"
+    },
+    {
+      "path": "/calder-vehicles/record-policy",
+      "mediaType": "text/html",
+      "sha256": "fdc42af5505283ea47283db8d0ee623d2440c5f9d72e2b4a605761da60159b9e"
+    },
+    {
+      "path": "/camera-log",
+      "mediaType": "text/html",
+      "sha256": "9288bee68950dd1ccd3e2a29d4f3e8b07ac4268c5a77dd4cbaebb89e71a0b59c"
+    },
+    {
+      "path": "/camera-log/case-attachment",
+      "mediaType": "text/html",
+      "sha256": "f4bc75cea9c4ca9cbf4e008eaecf516a825de3b76f4712d8292af3499cecabb7"
+    },
+    {
+      "path": "/camera-log/matches",
+      "mediaType": "text/html",
+      "sha256": "ba851b9b3c53930bc55f28aa769943824d998c17ec6d735ab2ef2d308b26631c"
+    },
+    {
+      "path": "/camera-log/record",
+      "mediaType": "text/html",
+      "sha256": "c204c4110a968732034c06b5dc16d0a9e66c6d881f7d4d100d993084996788a7"
+    },
+    {
+      "path": "/camera-log/review-process",
+      "mediaType": "text/html",
+      "sha256": "bbbbe08caff9ca9d7886d993ecc020045256882eda29c25bd6bfae7bd60834e1"
+    },
+    {
+      "path": "/camera-log/search",
+      "mediaType": "text/html",
+      "sha256": "6e0ce602e09c008fb4143c20495ef622181e937fccf5bb30815ea08db7b8f3c7"
+    },
+    {
+      "path": "/invoice-files",
+      "mediaType": "text/html",
+      "sha256": "974970b0027096424e9b25c792d2a3bf892e2da22b786517d2c9ee8ea1433cc9"
+    },
+    {
+      "path": "/invoice-files/about-shared-files",
+      "mediaType": "text/html",
+      "sha256": "65ea19b83111346451064da98119ec95a48bb8498269dad8b8d37a2145eded10"
+    },
+    {
+      "path": "/invoice-files/file-help",
+      "mediaType": "text/html",
+      "sha256": "c7235fbea53f21776650283ff34e8f435096eef53640c687ff9d4827854bf29a"
+    },
+    {
+      "path": "/parking-records",
+      "mediaType": "text/html",
+      "sha256": "a10ef95ebc279a8069f5db032ec3fd84f8a8b5c8c4bb77add33dcfe3a2e9ab99"
+    },
+    {
+      "path": "/parking-records/access-policy",
+      "mediaType": "text/html",
+      "sha256": "7d95e9db7dea51379f89bfa484738fc6cbfc2b8aa653010bd7aef50b2f8cc55c"
+    },
+    {
+      "path": "/parking-records/lookup",
+      "mediaType": "text/html",
+      "sha256": "6ad87511131c3b2f1d1fc8bf01f5ca6aadf24d4b14fe8e37f41752f9f248fff9"
+    },
+    {
+      "path": "/parking-records/record-guide",
+      "mediaType": "text/html",
+      "sha256": "035a695e7f3c8270a7a321fb9f12a0f68ad58b32e4ab368a1e0c5817a178112a"
+    },
+    {
+      "path": "/parking-records/session-record",
+      "mediaType": "text/html",
+      "sha256": "80aea3e0a42c69658cd96ddda1cf43544fedf84c42269a7d6d6e9211ad0fd6f1"
+    },
+    {
+      "path": "/police-case",
+      "mediaType": "text/html",
+      "sha256": "e9298fdcda0b80e1b0b4a7c6131bf22ffbccc96facacb3cd47cbfde050257e65"
+    },
+    {
+      "path": "/police-case/privacy",
+      "mediaType": "text/html",
+      "sha256": "46d0319499bf67adf66a06f77b23d8d8968f37e2637122e5737717833afeae3a"
+    },
+    {
+      "path": "/police-case/submission-guide",
+      "mediaType": "text/html",
+      "sha256": "5573e5c45c7264b3ea86ecc1ab4c19f744e98ebcc6bcfeda3ce2caca7e795840"
+    },
+    {
+      "path": "/police-case/submit-evidence",
+      "mediaType": "text/html",
+      "sha256": "71e737279336371dacf38bfa6e922b8cac453504f12788501ed9ec55aa34a1d3"
+    }
+  ],
+  "assets": [
+    {
+      "path": "/assets/parking-ticket.svg",
+      "mediaType": "image/svg+xml",
+      "sha256": "83b2de1842170e2d048fd8af1a3ce5682d5136898704851d0b9afa13983212b0"
+    },
+    {
+      "path": "/assets/site-1.css",
+      "mediaType": "text/css",
+      "sha256": "1e445b19cf896c79804403a09746dae2bb48b90ab51dd1229310f5a479be0c56"
+    },
+    {
+      "path": "/assets/site-2.css",
+      "mediaType": "text/css",
+      "sha256": "7c8dcff270758ead5eb2981910d95bf7afbd4636dd13d40e37080308790eac2f"
+    },
+    {
+      "path": "/assets/site-3.css",
+      "mediaType": "text/css",
+      "sha256": "58f61677c0dba6cfa202e4cffa38dae1dbd2c4a9886dfa6b6f701ac969f06434"
+    },
+    {
+      "path": "/assets/site-4.css",
+      "mediaType": "text/css",
+      "sha256": "bbb2c7ea610c84e38b4286bbbc845087fb7da1dfd8598ecef3c9d6b54d5479f9"
+    },
+    {
+      "path": "/assets/site-5.css",
+      "mediaType": "text/css",
+      "sha256": "fb4dbd12f799ac2a309fbe4a9ee18788dcf532ce29fef7f198911a16bc4bd365"
+    },
+    {
+      "path": "/assets/site.css",
+      "mediaType": "text/css",
+      "sha256": "6dce69ebb961d990cac4840bb62622293a36f5331f4f9d16b21e1898bb0e09f0"
+    },
+    {
+      "path": "/camera-log/record/_artifact/index.html",
+      "mediaType": "text/html",
+      "sha256": "ea61f3cbe568d85c5d0b8cbe1574b9cb348aed39584457a501572d452cf7d2ad"
+    },
+    {
+      "path": "/camera-log/record/_artifact/versions/2025-09-18.html",
+      "mediaType": "text/html",
+      "sha256": "7c1a708fba3ad38d459c9737ba88fa25b2a78e814da10464cc7b99c0d46c2811"
+    },
+    {
+      "path": "/camera-log/record/_artifact/versions/2025-09-19.html",
+      "mediaType": "text/html",
+      "sha256": "736b54fe5362af05f3470121def90bb3687c68d2fcf5d2a05b834082bf306f29"
+    }
+  ],
+  "headers": {
+    "content-security-policy": "default-src 'self' data:; script-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+    "referrer-policy": "no-referrer",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY"
+  }
+}

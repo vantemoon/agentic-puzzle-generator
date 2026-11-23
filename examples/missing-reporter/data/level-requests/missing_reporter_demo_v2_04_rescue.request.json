@@ -1,0 +1,131 @@
+{
+  "levelId": "missing_reporter_demo_v2_04_rescue",
+  "investigationQuestion": "Which unit at 18 Mason Street is tied to the fraud and the van, and what exact location should police enter?",
+  "titleHint": "The Warehouse Unit",
+  "genre": "online-investigation",
+  "theme": "Verifying a rescue location",
+  "setting": "The police case portal and property directory",
+  "startingSituation": "The case portal shows CAM-0918-221 at 18 Mason Street. Click “Check property directory,” compare the unit listings with Northline’s address, and verify the entrance notice before reporting a unit.",
+  "playerRole": "You are Maya Chen’s trusted friend, using the vehicle match and Maya’s fraud records to give police the precise location needed for a safe rescue.",
+  "playerCapabilities": [
+    "Open the property-directory link.",
+    "Compare tenant, unit, and entrance records.",
+    "Submit one unit-level location."
+  ],
+  "playerConstraints": [
+    "Use only the provided records.",
+    "Corroborate the tenant and entrance.",
+    "Do not attempt entry or contact suspects."
+  ],
+  "environment": {
+    "mode": "self-contained"
+  },
+  "narrativeContext": [
+    "The directory lists all units, tenants, entrances, and routine neighboring businesses.",
+    "Northline leases Unit 3 at the rear loading entrance; the registry and invoice independently tie it to Daniel Price.",
+    "Police enter Unit 3 at 09:25 on 2025-09-19, rescue Maya safely, and arrest Daniel Price and Owen Blake."
+  ],
+  "startingInputs": [
+    {
+      "id": "input_police_camera_update",
+      "semanticRole": "case-update",
+      "description": "Project-hosted bundle containing CAM-0918-221 and the visible property-directory link.",
+      "kind": "bundle-entry",
+      "resourceKind": "police-case-update"
+    },
+    {
+      "id": "input_carried_vendor_evidence",
+      "semanticRole": "carried-company-evidence",
+      "description": "Project-hosted bundle containing the Northline filing and invoice.",
+      "kind": "bundle-entry",
+      "resourceKind": "vendor-evidence-package"
+    }
+  ],
+  "externalContentRequirements": [],
+  "requiredDiscoveries": [],
+  "terminalAction": {
+    "actionType": "evidence-submission",
+    "description": "Send police the verified full address in the Location field, including the unit.",
+    "requiredOutputs": [
+      {
+        "id": "output_rescue_location",
+        "semanticRole": "location",
+        "dataType": "string",
+        "requiredValue": "18 Mason Street, Unit 3"
+      }
+    ]
+  },
+  "config": {
+    "structuralDifficulty": {
+      "preset": "hard",
+      "puzzleCount": {
+        "minimum": 5,
+        "maximum": 6
+      },
+      "phaseCount": {
+        "minimum": 3,
+        "maximum": 5
+      },
+      "linearity": 0.48,
+      "maxParallelPuzzles": 3
+    },
+    "puzzleDifficulty": {
+      "preset": "hard"
+    },
+    "transformationPolicy": {
+      "enabled": true,
+      "maxCount": 3,
+      "maxDifficulty": "medium"
+    },
+    "reviewRetryLimit": 3,
+    "concealUnreachedContent": true,
+    "encourageSubtypeVariety": true
+  },
+  "world": {
+    "entityIds": [
+      "person_maya_chen",
+      "person_daniel_price",
+      "person_owen_blake",
+      "org_northline_survey",
+      "org_river_city_police",
+      "place_mason_warehouse",
+      "place_mason_unit_3",
+      "object_invoice_inv_ns_7781",
+      "object_van_gkt_482",
+      "event_maya_abduction",
+      "event_warehouse_arrival",
+      "event_maya_rescue",
+      "site_city_camera_log",
+      "site_property_directory",
+      "site_police_tip_portal"
+    ],
+    "factIds": [
+      "fact_northline_controller",
+      "fact_northline_address",
+      "fact_invoice_identifier",
+      "fact_invoice_approver",
+      "fact_van_plate",
+      "fact_van_assigned_driver",
+      "fact_arrival_date",
+      "fact_arrival_time",
+      "fact_arrival_actor",
+      "fact_arrival_vehicle",
+      "fact_arrival_location",
+      "fact_camera_record",
+      "fact_unit_parent",
+      "fact_unit_tenant",
+      "fact_unit_entrance",
+      "fact_kidnapping_order",
+      "fact_maya_held_at",
+      "fact_rescue_date",
+      "fact_rescue_time",
+      "fact_rescue_actor",
+      "fact_rescue_location",
+      "fact_rescue_person"
+    ],
+    "asOf": "2025-09-19",
+    "id": "world_missing_reporter_demo_v2",
+    "revision": "1"
+  },
+  "catalogVersion": "repository-puzzles-2.0.0"
+}

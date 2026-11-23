@@ -1,0 +1,82 @@
+{
+  "id": "puzzle_rescue_location",
+  "puzzleType": "hidden-information",
+  "subtype": "html-source-inspection",
+  "inputs": [
+    {
+      "key": "visible_page_text",
+      "valueType": "html-visible-text",
+      "description": "The text visible in the rendered webpage.",
+      "required": true,
+      "value": {
+        "title": "Police location report",
+        "body": "The case update provides a “Report verified location” link. The report page records the property street address and a separately verified unit designation in machine-readable review metadata before submission."
+      }
+    },
+    {
+      "key": "source_code_payload",
+      "valueType": "source-code-hidden-text",
+      "description": "The hidden message embedded in static HTML, CSS, JavaScript-like source text, or source references.",
+      "required": true,
+      "value": "18 Mason Street, Unit 3"
+    },
+    {
+      "key": "source_code_carrier",
+      "valueType": "source-code-carrier",
+      "description": "The kind of source material that carries the hidden message.",
+      "required": true,
+      "value": "html-attribute"
+    }
+  ],
+  "outputs": [
+    {
+      "key": "extracted_message",
+      "valueType": "plain-text",
+      "description": "The hidden message recovered from static html source inspection.",
+      "value": "18 Mason Street, Unit 3"
+    }
+  ],
+  "artifact": {
+    "kind": "html",
+    "mediaType": "text/html",
+    "entryPath": "/index.html",
+    "files": [
+      {
+        "path": "/index.html",
+        "mediaType": "text/html",
+        "source": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <title>Police location report</title>\n    <meta data-puzzle-role=\"source-code-payload\" data-verified-location=\"18 Mason Street, Unit 3\">\n  </head>\n  <body>\n    <main>\n      <h1>Police location report</h1>\n      <p>The case update provides a “Report verified location” link. The report page records the property street address and a separately verified unit designation in machine-readable review metadata before submission.</p>\n    </main>\n  </body>\n</html>"
+      }
+    ]
+  },
+  "prompt": "Open the webpage artifact and recover the message hidden in the page html source inspection.",
+  "solution": {
+    "valueType": "text",
+    "canonical": "18 Mason Street, Unit 3",
+    "normalization": [
+      "trim",
+      "collapse-whitespace"
+    ]
+  },
+  "validator": {
+    "kind": "normalized-text",
+    "mode": "deterministic",
+    "options": {
+      "trim": true,
+      "caseInsensitive": false,
+      "collapseWhitespace": true
+    }
+  },
+  "externalKnowledge": {
+    "required": false
+  },
+  "extensions": {
+    "htmlSourceInspection": {
+      "templateVersion": "safe-static-source-code-v1",
+      "carrier": "html-attribute",
+      "codeLabel": "verified-location",
+      "requiresJavaScriptExecution": false,
+      "liveNavigationSupported": false,
+      "artifactSha256": "15ed98b6da1a853df91051e71dfd3fe0018a70b316243020c552d967e23e56fb"
+    }
+  }
+}

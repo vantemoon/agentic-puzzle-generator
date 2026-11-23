@@ -1,0 +1,178 @@
+{
+  "schemaVersion": "1.0.0",
+  "levelId": "missing_reporter_demo_v2_01_contract",
+  "sites": [
+    {
+      "name": "Maya Chen Shared Research",
+      "basePath": "/research"
+    },
+    {
+      "name": "River City Ledger Story Archive",
+      "basePath": "/ledger"
+    },
+    {
+      "name": "River City Contract Search",
+      "basePath": "/contracts"
+    }
+  ],
+  "routes": [
+    {
+      "path": "/",
+      "mediaType": "text/html",
+      "sha256": "49f447936d4099619287176da9f3088c897dd7aa4097a90e809c806b79d4f6b5"
+    },
+    {
+      "path": "/contracts",
+      "mediaType": "text/html",
+      "sha256": "cdea8362e95f897c23dfc5067fa14704b0c0566f3ba038a1ee4bda698a293b23"
+    },
+    {
+      "path": "/contracts/about",
+      "mediaType": "text/html",
+      "sha256": "b052ef66887d6041c928a23b63cd9c67aca3a4dc4ce6f3e928af7020d6354b2e"
+    },
+    {
+      "path": "/contracts/contact",
+      "mediaType": "text/html",
+      "sha256": "48bf3ce9122fa183316e3bde5a4d1a7b46d9c4ce655f5689c3f41999bf2a9ad4"
+    },
+    {
+      "path": "/contracts/data-notes",
+      "mediaType": "text/html",
+      "sha256": "fef5f65d1ea0d2c8778d3aea39849fa09679a80cad4db93818cc5bcc093572ec"
+    },
+    {
+      "path": "/contracts/help",
+      "mediaType": "text/html",
+      "sha256": "08222d27ce01eec083bf90e6985c45b3548a1ed47faa84f3caf4dfcee9befdf0"
+    },
+    {
+      "path": "/contracts/payment-files",
+      "mediaType": "text/html",
+      "sha256": "d9b5e10bb9616d30310fe87869985549f1cc44679774c12264d051b462527d50"
+    },
+    {
+      "path": "/contracts/records/award-041",
+      "mediaType": "text/html",
+      "sha256": "9fb99c909461b8a8bc85234dbc71aff686f221fa7a01ae2a84d88c7504237c67"
+    },
+    {
+      "path": "/contracts/search",
+      "mediaType": "text/html",
+      "sha256": "f91648e0bb994027a83372884cd90752cedc054f3b8f1437fb7d06b65e0e350b"
+    },
+    {
+      "path": "/ledger",
+      "mediaType": "text/html",
+      "sha256": "e32030dba772558a456c37a9e5ea2f517a0502c9c6592d90bcdc2c7fea317b5c"
+    },
+    {
+      "path": "/ledger/about",
+      "mediaType": "text/html",
+      "sha256": "33c9fa730390c687d62ea5b4be51239cf4f849b37e3928142d83ce912f7ee2eb"
+    },
+    {
+      "path": "/ledger/corrections",
+      "mediaType": "text/html",
+      "sha256": "8d76fa620144d8117f4ada871df85a79291e3d4428c0596743abe67a12238063"
+    },
+    {
+      "path": "/ledger/corrections/school-budget-label",
+      "mediaType": "text/html",
+      "sha256": "20985f4c2ad6885a39dbc25c1a2d9d22fb8990102cbe85b81c4812d523f0fff5"
+    },
+    {
+      "path": "/ledger/corrections/transit-meeting-date",
+      "mediaType": "text/html",
+      "sha256": "98d8f04b88aceb18e047835a1d6ebfe4bfc8dca8f104434f7518ee23c936b476"
+    },
+    {
+      "path": "/ledger/corrections/waterfront-utility-reference",
+      "mediaType": "text/html",
+      "sha256": "cf86a0bfb2211ec78d220e15fd993a61739dc682ffe04bbd9b5c43d668bcf120"
+    },
+    {
+      "path": "/ledger/stories/library-weekend-hours",
+      "mediaType": "text/html",
+      "sha256": "fc6e3e08f6f69be08c82f223be86baa825cc72b830461b92476127d9dfe7061d"
+    },
+    {
+      "path": "/ledger/stories/summer-street-repairs",
+      "mediaType": "text/html",
+      "sha256": "9bba49933da68d00452843dc057ed520989fab73dce3f82ee144f52d846a234e"
+    },
+    {
+      "path": "/ledger/stories/waterfront-utility-delays",
+      "mediaType": "text/html",
+      "sha256": "51c5f6689952e729aa2073e23caedfa42f9e2acb74368e9899089590177f0d50"
+    },
+    {
+      "path": "/research",
+      "mediaType": "text/html",
+      "sha256": "58307402bd474bb09861093dd37eafa9189f8999c92788229b1d453cc7146db8"
+    },
+    {
+      "path": "/research/about",
+      "mediaType": "text/html",
+      "sha256": "b5d7a547a4d8085ed19e7d5688bb77c6f7b6c1f5b67cbf1d3e142401acb4e770"
+    },
+    {
+      "path": "/research/access",
+      "mediaType": "text/html",
+      "sha256": "29f4293ec8868ec4c1098ef9305e90d693a52650a69181348356b8478bc4286f"
+    },
+    {
+      "path": "/research/contents",
+      "mediaType": "text/html",
+      "sha256": "57441f9113cc8639c73764dbca76ded18f15018ccf87b32148732ac89ef3ca17"
+    }
+  ],
+  "assets": [
+    {
+      "path": "/assets/contracts/award-041.svg",
+      "mediaType": "image/svg+xml",
+      "sha256": "d1ff95a5497b0d36cab07304d488f0f6cbabe5bbcb8262dd9286fb5930d927cb"
+    },
+    {
+      "path": "/assets/site-1.css",
+      "mediaType": "text/css",
+      "sha256": "f34a842578a825e9689a60907872fa82061aff9bc55600615dc7b3365f9315b2"
+    },
+    {
+      "path": "/assets/site-2.css",
+      "mediaType": "text/css",
+      "sha256": "554ce1ad96b64015389130466938752c33e9e28f523a9b6f7f6e08f72e0122e0"
+    },
+    {
+      "path": "/assets/site-3.css",
+      "mediaType": "text/css",
+      "sha256": "a22e030b42b649c4597e5920a3f284c312bc009cd179dfe42cf4db5219e505a8"
+    },
+    {
+      "path": "/assets/site.css",
+      "mediaType": "text/css",
+      "sha256": "6dce69ebb961d990cac4840bb62622293a36f5331f4f9d16b21e1898bb0e09f0"
+    },
+    {
+      "path": "/ledger/corrections/waterfront-utility-reference/_artifact/index.html",
+      "mediaType": "text/html",
+      "sha256": "8b13ee2a18d8dbf58802a5c32a1f71ff29c10036b5af7822c2572e5be84931f2"
+    },
+    {
+      "path": "/ledger/corrections/waterfront-utility-reference/_artifact/versions/2025-06-18.html",
+      "mediaType": "text/html",
+      "sha256": "7dc143a37239c65e8b9b78a398e2452816bd196f72c4c0b20e67ad0adf1d996e"
+    },
+    {
+      "path": "/ledger/corrections/waterfront-utility-reference/_artifact/versions/2025-06-20.html",
+      "mediaType": "text/html",
+      "sha256": "0e4bbc5ff9bf30fa150dc587e3b8886ac85e6759e247e7cb2840d04af6b4365f"
+    }
+  ],
+  "headers": {
+    "content-security-policy": "default-src 'self' data:; script-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+    "referrer-policy": "no-referrer",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY"
+  }
+}

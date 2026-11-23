@@ -1,0 +1,862 @@
+{
+  "sites": [
+    {
+      "id": "site_shared_research",
+      "name": "Maya Chen Shared Research",
+      "worldEntityId": "object_maya_research_folder",
+      "archetype": "records",
+      "visualProfile": {
+        "tone": "neutral",
+        "fontStyle": "sans",
+        "density": "comfortable",
+        "accentColor": "#355C7D",
+        "mediaStyle": "Simple newsroom file previews and document thumbnails"
+      },
+      "basePath": "/research",
+      "routes": [
+        {
+          "role": "structural",
+          "path": "/",
+          "navigation": "primary",
+          "content": {
+            "title": "Maya Chen Shared Research",
+            "description": "A limited newsroom folder shared by editor Julia Reed, containing saved public reporting and source notes.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Shared by Julia Reed",
+                "paragraphs": [
+                  "This folder contains the public material Maya Chen saved while reporting on city construction. Begin with the saved story and use the related records listed on that page."
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Saved stories",
+                "collection": "records",
+                "items": [
+                  {
+                    "title": "Delays Continue in Waterfront Utility Work",
+                    "summary": "A saved River City Ledger story about schedule and cost changes in waterfront utility work.",
+                    "href": "/ledger/stories/waterfront-utility-delays"
+                  }
+                ]
+              },
+              {
+                "kind": "list",
+                "heading": "Folder scope",
+                "items": [
+                  "One saved story selected for review",
+                  "Public records cited by the story",
+                  "Read-only newsroom export"
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "starting-input:input_maya_shared_research"
+            ],
+            "cue": "Open the saved story card on the shared folder home page.",
+            "linkReason": "Julia shared this limited folder so Maya's saved public reporting could be reviewed.",
+            "queryInputId": "input_saved_research"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/about",
+          "navigation": "primary",
+          "content": {
+            "title": "About This Folder",
+            "description": "Purpose and limits of the shared newsroom export.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Purpose",
+                "paragraphs": [
+                  "Julia Reed prepared this read-only export so a trusted recipient could review public material saved by Maya Chen. It is not a complete copy of Maya's reporting files."
+                ]
+              },
+              {
+                "kind": "records",
+                "heading": "Folder details",
+                "entries": [
+                  {
+                    "label": "Owner",
+                    "value": "River City Ledger newsroom"
+                  },
+                  {
+                    "label": "Prepared by",
+                    "value": "Julia Reed"
+                  },
+                  {
+                    "label": "Access",
+                    "value": "Read-only"
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/research"
+            ],
+            "cue": "Use the About link in the folder navigation.",
+            "linkReason": "Shared newsroom exports routinely explain their scope and access limits.",
+            "queryInputId": "research_about"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/contents",
+          "navigation": "primary",
+          "content": {
+            "title": "Folder Contents",
+            "description": "An index of the public material included in this export.",
+            "blocks": [
+              {
+                "kind": "table",
+                "heading": "Items",
+                "columns": [
+                  "Type",
+                  "Title",
+                  "Publisher"
+                ],
+                "rows": [
+                  [
+                    "Saved story",
+                    "Delays Continue in Waterfront Utility Work",
+                    "River City Ledger"
+                  ],
+                  [
+                    "Note",
+                    "Review related records",
+                    "Julia Reed"
+                  ]
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/research"
+            ],
+            "cue": "Use the Folder contents link in the main navigation.",
+            "linkReason": "A small shared folder provides an ordinary item index.",
+            "queryInputId": "research_contents"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/access",
+          "navigation": "footer",
+          "content": {
+            "title": "Access and Use",
+            "description": "Access rules for this limited newsroom export.",
+            "blocks": [
+              {
+                "kind": "list",
+                "heading": "Use rules",
+                "items": [
+                  "Read-only access",
+                  "Public reporting and citations only",
+                  "No private source records included",
+                  "Do not redistribute newsroom notes"
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/research"
+            ],
+            "cue": "Open Access and use from the footer.",
+            "linkReason": "The newsroom export publishes standard access limits.",
+            "queryInputId": "research_access"
+          }
+        }
+      ]
+    },
+    {
+      "id": "site_ledger",
+      "name": "River City Ledger Story Archive",
+      "worldEntityId": "site_ledger_archive",
+      "archetype": "version-history",
+      "visualProfile": {
+        "tone": "formal",
+        "fontStyle": "serif",
+        "density": "comfortable",
+        "accentColor": "#8A3B2D",
+        "mediaStyle": "Newspaper photography, maps, and restrained archive labels"
+      },
+      "basePath": "/ledger",
+      "routes": [
+        {
+          "role": "structural",
+          "path": "/",
+          "navigation": "primary",
+          "content": {
+            "title": "Story Archive",
+            "description": "Published River City Ledger stories, corrections, and archive information.",
+            "blocks": [
+              {
+                "kind": "cards",
+                "heading": "Recent archive entries",
+                "collection": "published-work",
+                "items": [
+                  {
+                    "title": "City Council Approves Summer Street Repairs",
+                    "summary": "A report on the annual street repair schedule.",
+                    "href": "/ledger/stories/summer-street-repairs"
+                  },
+                  {
+                    "title": "Library Branch Extends Weekend Hours",
+                    "summary": "A service update from the east branch.",
+                    "href": "/ledger/stories/library-weekend-hours"
+                  }
+                ]
+              },
+              {
+                "kind": "prose",
+                "heading": "Archive coverage",
+                "paragraphs": [
+                  "The archive includes published stories and correction histories made available to readers. Individual story pages show their own related records."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "stable-path",
+            "from": [
+              "/research"
+            ],
+            "cue": "The saved item identifies its publisher as the River City Ledger.",
+            "linkReason": "The archive home is the newspaper's ordinary public archive; the saved story itself is opened through the shared folder card.",
+            "queryInputId": "archive_home"
+          }
+        },
+        {
+          "role": "puzzle",
+          "path": "/stories/waterfront-utility-delays",
+          "navigation": "contextual",
+          "content": {
+            "title": "Delays Continue in Waterfront Utility Work",
+            "description": "A saved Ledger report reviewing delays and rising costs in a city waterfront utility program.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Saved story",
+                "paragraphs": [
+                  "This archived page preserves the published report and its supplied project map."
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Related records",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Archived correction",
+                    "summary": "View the dated correction history associated with this report.",
+                    "href": "/ledger/corrections/waterfront-utility-reference"
+                  }
+                ]
+              }
+            ]
+          },
+          "puzzleId": "puzzle_saved_story",
+          "placement": "native-html",
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/research"
+            ],
+            "cue": "Click the saved story card titled “Delays Continue in Waterfront Utility Work.”",
+            "linkReason": "The shared newsroom folder lists the saved Ledger story as its first review item.",
+            "queryInputId": "input_saved_research"
+          }
+        },
+        {
+          "role": "puzzle",
+          "path": "/corrections/waterfront-utility-reference",
+          "navigation": "contextual",
+          "content": {
+            "title": "Correction: Waterfront Utility Contract Reference",
+            "description": "The Ledger's dated correction history for its waterfront utility report.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Correction history",
+                "paragraphs": [
+                  "Compare the published and updated versions using the dated version controls."
+                ]
+              }
+            ]
+          },
+          "puzzleId": "puzzle_archived_correction",
+          "placement": "version-set",
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/ledger/stories/waterfront-utility-delays"
+            ],
+            "cue": "Click the visible “Archived correction” card under Related records.",
+            "linkReason": "The saved story cites its own correction history as a related reader record.",
+            "queryInputId": "input_correction_link"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/about",
+          "navigation": "primary",
+          "content": {
+            "title": "About the Archive",
+            "description": "Coverage and maintenance information for the Ledger's public story archive.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Archive coverage",
+                "paragraphs": [
+                  "The archive holds published Ledger stories, public corrections, and updates. Some older print material is not yet available online."
+                ]
+              },
+              {
+                "kind": "list",
+                "heading": "Reader tools",
+                "items": [
+                  "Browse recent stories",
+                  "Open corrections from related story pages",
+                  "Review dated versions where available"
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/ledger"
+            ],
+            "cue": "Use the About link in archive navigation.",
+            "linkReason": "A newspaper archive explains its public coverage.",
+            "queryInputId": "ledger_about"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/corrections",
+          "navigation": "primary",
+          "content": {
+            "title": "Corrections",
+            "description": "Reader-facing policy and recent correction notices.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Corrections policy",
+                "paragraphs": [
+                  "The Ledger corrects factual errors and keeps dated update histories when a material change affects a cited public record."
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Recent notices",
+                "collection": "records",
+                "items": [
+                  {
+                    "title": "Transit committee meeting date",
+                    "summary": "Meeting date corrected in a June report.",
+                    "href": "/ledger/corrections/transit-meeting-date"
+                  },
+                  {
+                    "title": "School budget chart label",
+                    "summary": "A chart label corrected in a May report.",
+                    "href": "/ledger/corrections/school-budget-label"
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/ledger"
+            ],
+            "cue": "Use the Corrections link in primary navigation.",
+            "linkReason": "The newspaper maintains an ordinary public corrections index.",
+            "queryInputId": "ledger_corrections"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/stories/summer-street-repairs",
+          "navigation": "contextual",
+          "content": {
+            "title": "City Council Approves Summer Street Repairs",
+            "description": "A routine local government story from the Ledger archive.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Street program approved",
+                "paragraphs": [
+                  "The city council approved the seasonal repair list after a public works briefing. Work is scheduled by district and will begin with roads rated in poor condition."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/ledger"
+            ],
+            "cue": "Click the story card on the archive home page.",
+            "linkReason": "The archive home lists recent published work.",
+            "queryInputId": "street_story"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/stories/library-weekend-hours",
+          "navigation": "contextual",
+          "content": {
+            "title": "Library Branch Extends Weekend Hours",
+            "description": "A routine community service update from the Ledger archive.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "New weekend schedule",
+                "paragraphs": [
+                  "The east branch will remain open later on Saturdays during the fall program period. The library will review attendance before setting its winter schedule."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/ledger"
+            ],
+            "cue": "Click the story card on the archive home page.",
+            "linkReason": "The archive home lists recent published work.",
+            "queryInputId": "library_story"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/corrections/transit-meeting-date",
+          "navigation": "contextual",
+          "content": {
+            "title": "Correction: Transit Meeting Date",
+            "description": "A routine correction notice for a committee meeting date.",
+            "blocks": [
+              {
+                "kind": "records",
+                "heading": "Correction",
+                "entries": [
+                  {
+                    "label": "Published",
+                    "value": "June 10, 2025"
+                  },
+                  {
+                    "label": "Corrected detail",
+                    "value": "The committee met on June 9, not June 8."
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/ledger/corrections"
+            ],
+            "cue": "Click the transit correction card.",
+            "linkReason": "The corrections index lists comparable routine notices.",
+            "queryInputId": "transit_correction"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/corrections/school-budget-label",
+          "navigation": "contextual",
+          "content": {
+            "title": "Correction: School Budget Chart Label",
+            "description": "A routine correction notice for a chart label.",
+            "blocks": [
+              {
+                "kind": "records",
+                "heading": "Correction",
+                "entries": [
+                  {
+                    "label": "Published",
+                    "value": "May 22, 2025"
+                  },
+                  {
+                    "label": "Corrected detail",
+                    "value": "The chart heading now identifies operating costs rather than total costs."
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/ledger/corrections"
+            ],
+            "cue": "Click the school budget correction card.",
+            "linkReason": "The corrections index lists comparable routine notices.",
+            "queryInputId": "school_correction"
+          }
+        }
+      ]
+    },
+    {
+      "id": "site_contracts",
+      "name": "River City Contract Search",
+      "worldEntityId": "site_city_procurement",
+      "archetype": "database",
+      "visualProfile": {
+        "tone": "formal",
+        "fontStyle": "sans",
+        "density": "compact",
+        "accentColor": "#176B5B",
+        "mediaStyle": "Plain civic data tables, record summaries, and agency marks"
+      },
+      "basePath": "/contracts",
+      "routes": [
+        {
+          "role": "structural",
+          "path": "/",
+          "navigation": "primary",
+          "content": {
+            "title": "River City Contract Search",
+            "description": "Search public city award records by contract identifier and review award, vendor, and payment information.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Search public contracts",
+                "paragraphs": [
+                  "Use the Contract ID field on the search page when you have a complete city contract reference. Partial or unknown references return no match."
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Contract tools",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Search contracts",
+                    "summary": "Look up one award by its complete Contract ID.",
+                    "href": "/contracts/search"
+                  },
+                  {
+                    "title": "Search help",
+                    "summary": "Review record coverage and identifier formats.",
+                    "href": "/contracts/help"
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "stable-path",
+            "from": [
+              "/ledger/corrections/waterfront-utility-reference"
+            ],
+            "cue": "The correction names River City Contract Search and tells readers to use its Contract ID field.",
+            "linkReason": "The newspaper cites the city's public contract database by name for verification.",
+            "queryInputId": "contracts_home"
+          }
+        },
+        {
+          "role": "terminal",
+          "path": "/search",
+          "navigation": "primary",
+          "content": {
+            "title": "Contract Search",
+            "description": "Find an exact city award record using its Contract ID.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Contract ID lookup",
+                "paragraphs": [
+                  "Enter the complete reference in the Contract ID field. Format: HP-YYYY-NNN. A complete matching reference opens the award record; an unknown or incomplete value returns “No matching contract.”"
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/contracts"
+            ],
+            "cue": "Click “Search contracts” on the contract database home page.",
+            "linkReason": "The public database home offers its exact-ID search as a standard service.",
+            "queryInputId": "output_contract_id"
+          }
+        },
+        {
+          "role": "puzzle",
+          "path": "/records/award-041",
+          "navigation": "hidden",
+          "content": {
+            "title": "Harbor Point Award Record",
+            "description": "A matched public contract result with separate award summary, subcontractor, and financial sections.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Matched award",
+                "paragraphs": [
+                  "The result separates the award recipient from other firms listed for work under the contract."
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Financial records",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Payment files",
+                    "summary": "Open the public payment-file repository associated with this award.",
+                    "href": "/contracts/payment-files"
+                  }
+                ]
+              }
+            ]
+          },
+          "puzzleId": "puzzle_contract_record",
+          "placement": "media-viewer",
+          "directAssetPath": "/assets/contracts/award-041.svg",
+          "discovery": {
+            "kind": "lookup",
+            "from": [
+              "/contracts/search"
+            ],
+            "cue": "Enter the reference recovered from the correction in the Contract ID field to open the matched award.",
+            "linkReason": "The database returns this record only for the exact public contract identifier.",
+            "queryInputId": "input_contract_lookup"
+          }
+        },
+        {
+          "role": "structural",
+          "path": "/payment-files",
+          "navigation": "contextual",
+          "content": {
+            "title": "Payment Files",
+            "description": "Public payment records associated with the matched award.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Available files",
+                "paragraphs": [
+                  "Payment records are organized by approved invoice period. Publication supports further review and does not by itself establish misuse of funds."
+                ]
+              },
+              {
+                "kind": "table",
+                "heading": "File index",
+                "columns": [
+                  "Period",
+                  "Status",
+                  "Record type"
+                ],
+                "rows": [
+                  [
+                    "May–June 2025",
+                    "Available",
+                    "Invoice register"
+                  ],
+                  [
+                    "July 2025",
+                    "Available",
+                    "Payment summary"
+                  ],
+                  [
+                    "August 2025",
+                    "Under review",
+                    "Invoice register"
+                  ]
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/contracts/records/award-041"
+            ],
+            "cue": "Click the visible “Payment files” card beneath the matched record's financial section.",
+            "linkReason": "The award record links to its own related public payment records.",
+            "queryInputId": "payment_files"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/help",
+          "navigation": "primary",
+          "content": {
+            "title": "Search Help",
+            "description": "Coverage, identifier formats, and search feedback for city contract records.",
+            "blocks": [
+              {
+                "kind": "records",
+                "heading": "Search fields",
+                "entries": [
+                  {
+                    "label": "Contract ID",
+                    "value": "Use the complete city reference in the format shown on the search form."
+                  },
+                  {
+                    "label": "No match",
+                    "value": "Check every letter, number, and separator, then search again."
+                  }
+                ]
+              },
+              {
+                "kind": "prose",
+                "heading": "Record coverage",
+                "paragraphs": [
+                  "Search results include published awards and related vendor and payment information available through the city procurement office."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/contracts"
+            ],
+            "cue": "Click the Search help card on the database home page.",
+            "linkReason": "The public database supplies ordinary instructions and miss feedback.",
+            "queryInputId": "contracts_help"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/about",
+          "navigation": "primary",
+          "content": {
+            "title": "About Contract Search",
+            "description": "Purpose and publication scope of the city contract database.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Public records service",
+                "paragraphs": [
+                  "River City Contract Search publishes city award records for public review. Records distinguish prime contractors, listed subcontractors, and related financial files when those details are available."
+                ]
+              },
+              {
+                "kind": "list",
+                "heading": "Included records",
+                "items": [
+                  "Award summaries",
+                  "Vendor roles",
+                  "Award dates",
+                  "Related payment files"
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/contracts"
+            ],
+            "cue": "Use the About link in primary navigation.",
+            "linkReason": "A civic records database explains its scope and record fields.",
+            "queryInputId": "contracts_about"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/data-notes",
+          "navigation": "footer",
+          "content": {
+            "title": "Data Notes",
+            "description": "Publication timing and interpretation guidance for contract records.",
+            "blocks": [
+              {
+                "kind": "list",
+                "heading": "Important notes",
+                "items": [
+                  "Award records are posted after procurement review.",
+                  "Vendor roles reflect the published award record.",
+                  "Payment-file availability can differ by reporting period.",
+                  "A listed relationship does not by itself establish improper conduct."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/contracts"
+            ],
+            "cue": "Open Data notes from the footer.",
+            "linkReason": "The city database provides interpretation guidance for public records.",
+            "queryInputId": "contracts_data_notes"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/contact",
+          "navigation": "footer",
+          "content": {
+            "title": "Records Contact",
+            "description": "How to report a database error or request accessible record help.",
+            "blocks": [
+              {
+                "kind": "records",
+                "heading": "Procurement records desk",
+                "entries": [
+                  {
+                    "label": "Email",
+                    "value": "records@rivercitycontracts.test"
+                  },
+                  {
+                    "label": "Hours",
+                    "value": "Monday–Friday, 9:00 a.m.–4:00 p.m."
+                  },
+                  {
+                    "label": "Scope",
+                    "value": "Database corrections and accessibility help"
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/contracts"
+            ],
+            "cue": "Open Records contact from the footer.",
+            "linkReason": "A public records database provides a service contact.",
+            "queryInputId": "contracts_contact"
+          }
+        }
+      ]
+    }
+  ],
+  "worldAdditions": {
+    "entities": [],
+    "facts": []
+  },
+  "mediaRequests": [],
+  "terminal": {
+    "siteId": "site_contracts",
+    "routePath": "/search",
+    "mode": "validation-api"
+  },
+  "schemaVersion": "2.0.0",
+  "levelId": "missing_reporter_demo_v2_01_contract",
+  "world": {
+    "id": "world_missing_reporter_demo_v2",
+    "revision": "1",
+    "asOf": "2025-09-19"
+  },
+  "seed": "missing_reporter_demo_v2_01_contract-bundle-v1"
+}

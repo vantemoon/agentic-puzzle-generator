@@ -1,3 +1,8 @@
+import { mkdtemp, rm } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import type { CredentialStore } from "@earendil-works/pi-ai";
+import type { ModelRuntime as Runtime } from "@earendil-works/pi-coding-agent";
 import { describe, expect, it } from "vitest";
 import {
     loadModelConfigurationFile,
@@ -6,6 +11,36 @@ import {
     parseModelConfigurationFile,
     resolveModelConfiguration,
 } from "../src/shared/agent-runtime/model.js";
+
+describe("installed Pi SDK compatibility", () => {
+    it("loads the runtime and read-only credentials used by agent startup without network access", async () => {
+        const temporary = await mkdtemp(path.join(os.tmpdir(), "puzzle-sdk-"));
+        try {
+            const entry = import.meta.resolve("@earendil-works/pi-coding-agent");
+            const { ModelRuntime } = await import(new URL("./core/model-runtime.js", entry).href) as {
+                ModelRuntime: typeof Runtime;
+            };
+            const { ReadOnlyAuthStorage } = await import(new URL("./core/auth-storage.js", entry).href) as {
+                ReadOnlyAuthStorage: new (file: string) => CredentialStore;
+            };
+            const credentials = new ReadOnlyAuthStorage(path.join(temporary, "absent-auth.json"));
+            expect(await credentials.list()).toEqual([]);
+            const runtime = await ModelRuntime.create({
+                credentials,
+                modelsPath: null,
+                modelsStorePath: path.join(temporary, "models.json"),
+                allowModelNetwork: false,
+                refreshOnCreate: false
+            });
+            expect(typeof runtime.streamSimple).toBe("function");
+            expect(typeof runtime.generateImages).toBe("function");
+            expect(runtime.getModel("unconfigured-test-provider", "missing-model")).toBeUndefined();
+            expect(await runtime.getAuth("unconfigured-test-provider")).toBeUndefined();
+        } finally {
+            await rm(temporary, { recursive: true, force: true });
+        }
+    });
+});
 
 describe("model provider errors", () => {
     it("retries temporary availability errors but not ordinary validation failures", () => {

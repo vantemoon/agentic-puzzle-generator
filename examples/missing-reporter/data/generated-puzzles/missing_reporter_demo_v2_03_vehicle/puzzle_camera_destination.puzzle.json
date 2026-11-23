@@ -1,0 +1,91 @@
+{
+  "id": "puzzle_camera_destination",
+  "puzzleType": "hidden-information",
+  "subtype": "page-version",
+  "inputs": [
+    {
+      "key": "page_version_pair",
+      "valueType": "html-page-version-pair",
+      "description": "Two static HTML page versions that should be compared.",
+      "required": true,
+      "value": {
+        "baselinePath": "/versions/2025-09-18.html",
+        "currentPath": "/versions/2025-09-19.html",
+        "baselineLabel": "Initial automated record",
+        "currentLabel": "Reviewed record",
+        "baselineDate": "2025-09-18",
+        "currentDate": "2025-09-19"
+      }
+    },
+    {
+      "key": "version_change_payload",
+      "valueType": "page-version-payload",
+      "description": "The message revealed by comparing the static page versions.",
+      "required": true,
+      "value": "18 Mason Street"
+    }
+  ],
+  "outputs": [
+    {
+      "key": "revealed_message",
+      "valueType": "plain-text",
+      "description": "The text recovered from the meaningful difference between page versions.",
+      "value": "18 Mason Street"
+    }
+  ],
+  "artifact": {
+    "kind": "html",
+    "mediaType": "text/html",
+    "entryPath": "/index.html",
+    "files": [
+      {
+        "path": "/index.html",
+        "mediaType": "text/html",
+        "source": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <title>Camera record CAM-0918-221 — page history</title>\n  </head>\n  <body>\n    <main>\n      <h1>Camera record CAM-0918-221 page history</h1>\n      <p>Two dated snapshots are available for comparison.</p>\n      <p><time datetime=\"2025-09-19\">September 19, 2025</time> — Reviewed record: <code>/versions/2025-09-19.html</code></p>\n      <p><time datetime=\"2025-09-18\">September 18, 2025</time> — Initial automated record: <code>/versions/2025-09-18.html</code></p>\n    </main>\n  </body>\n</html>"
+      },
+      {
+        "path": "/versions/2025-09-18.html",
+        "mediaType": "text/html",
+        "source": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <title>Camera record CAM-0918-221 — 2025-09-18</title>\n  </head>\n  <body>\n    <main>\n      <h1>Camera record CAM-0918-221</h1>\n      <p class=\"version-label\"><time datetime=\"2025-09-18\">September 18, 2025</time> — Initial automated record</p>\n      <p>Automated traffic-camera match for 2025-09-18 at 19:12. Vehicle plate: GKT-482. Camera location withheld while the location review was pending.</p>\n      <dl>\n        <dt>Release marker</dt>\n        <dd>Pending review</dd>\n      </dl>\n    </main>\n  </body>\n</html>"
+      },
+      {
+        "path": "/versions/2025-09-19.html",
+        "mediaType": "text/html",
+        "source": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <title>Camera record CAM-0918-221 — 2025-09-19</title>\n  </head>\n  <body>\n    <main>\n      <h1>Camera record CAM-0918-221</h1>\n      <p class=\"version-label\"><time datetime=\"2025-09-19\">September 19, 2025</time> — Reviewed record</p>\n      <p>Automated traffic-camera match for 2025-09-18 at 19:12. Vehicle plate: GKT-482. Camera location: <span data-puzzle-role=\"page-version-payload\">18 Mason Street</span>. Location review completed.</p>\n    </main>\n  </body>\n</html>"
+      }
+    ]
+  },
+  "prompt": "Open the webpage artifact and compare the included page versions to recover the hidden message.",
+  "solution": {
+    "valueType": "text",
+    "canonical": "18 Mason Street",
+    "normalization": [
+      "trim",
+      "collapse-whitespace"
+    ]
+  },
+  "validator": {
+    "kind": "normalized-text",
+    "mode": "deterministic",
+    "options": {
+      "trim": true,
+      "caseInsensitive": false,
+      "collapseWhitespace": true
+    }
+  },
+  "externalKnowledge": {
+    "required": false
+  },
+  "extensions": {
+    "pageVersion": {
+      "templateVersion": "safe-static-page-version-v2",
+      "changeKind": "changed-field",
+      "baselinePath": "/versions/2025-09-18.html",
+      "currentPath": "/versions/2025-09-19.html",
+      "comparisonMode": "static-file-comparison",
+      "requiresJavaScriptExecution": false,
+      "liveNavigationSupported": false,
+      "artifactSha256": "72aed1edb72d202735cf312d2f55a35728a142dd3b84726b2f3dd29cd643ecf0"
+    }
+  }
+}

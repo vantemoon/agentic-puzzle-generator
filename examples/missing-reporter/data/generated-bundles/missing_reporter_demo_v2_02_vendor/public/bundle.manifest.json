@@ -1,0 +1,196 @@
+{
+  "schemaVersion": "1.0.0",
+  "levelId": "missing_reporter_demo_v2_02_vendor",
+  "sites": [
+    {
+      "name": "Harbor Point Contract Awards",
+      "basePath": "/contracts"
+    },
+    {
+      "name": "River City Company Registry",
+      "basePath": "/registry"
+    },
+    {
+      "name": "Calder Development Group",
+      "basePath": "/calder"
+    },
+    {
+      "name": "Harbor Point Payment Files",
+      "basePath": "/payments"
+    },
+    {
+      "name": "Press Club Parking Records",
+      "basePath": "/parking"
+    }
+  ],
+  "routes": [
+    {
+      "path": "/",
+      "mediaType": "text/html",
+      "sha256": "b65d20a4493badd30b6e081fc987a11a8b2fb30ce9c8ae78acfc756d2891c62e"
+    },
+    {
+      "path": "/calder",
+      "mediaType": "text/html",
+      "sha256": "89c27a14a960403ed1a31a0d1a5d78b9e7f8bf50de26b50c7820f7b963eadf77"
+    },
+    {
+      "path": "/calder/projects",
+      "mediaType": "text/html",
+      "sha256": "38b9f9854f18b0423c18d40a790c03fe231e317b0ca2f103449b8adf3b2e8e88"
+    },
+    {
+      "path": "/calder/projects/east-market",
+      "mediaType": "text/html",
+      "sha256": "fa4912ed11ca67d7f9d82c39728f1ba1563f9adfdcdf89ee23ec867ba8d88982"
+    },
+    {
+      "path": "/calder/projects/harbor-point",
+      "mediaType": "text/html",
+      "sha256": "06f8e9aeed25ceb51ec9204ad6803220f814f4a126e7101f7091b97b37c495c8"
+    },
+    {
+      "path": "/calder/staff",
+      "mediaType": "text/html",
+      "sha256": "0bedb7ecae98eb35c2c0968369aef786bcdf98194d2910e4167b8b5d8926aca4"
+    },
+    {
+      "path": "/contracts",
+      "mediaType": "text/html",
+      "sha256": "5b2d36c37958242d85c0690ce978ec7ba338e095e46e9df2d077e52a909f306b"
+    },
+    {
+      "path": "/contracts/about",
+      "mediaType": "text/html",
+      "sha256": "0d73feb7cc5ae2a1a7ecb354eca9974bdfb62ca030fa4f93a6491166e9ab6c89"
+    },
+    {
+      "path": "/contracts/awards",
+      "mediaType": "text/html",
+      "sha256": "d2355c3c3da253597af9553591a187323b64a1d050a37076ab59c18a103bf39c"
+    },
+    {
+      "path": "/contracts/awards/site-preparation",
+      "mediaType": "text/html",
+      "sha256": "470f4ae71836c75de17beaf89e8a9b0a107dabdadfffce70a461cf96f3817ff3"
+    },
+    {
+      "path": "/parking",
+      "mediaType": "text/html",
+      "sha256": "8cb9a149ef0789a7cad0ad39cd0e919dfd011552b4b621083acceb2261387f95"
+    },
+    {
+      "path": "/parking/coverage",
+      "mediaType": "text/html",
+      "sha256": "772ef8e4baaff35ebc985522c46278d3903424cb3bbc33ef8b481bdb0ee3284c"
+    },
+    {
+      "path": "/payments",
+      "mediaType": "text/html",
+      "sha256": "9bb3c8b50218fd10e5eb0b54afb1593a54a7a7fa2e6344abc04ac679f556daac"
+    },
+    {
+      "path": "/payments/about",
+      "mediaType": "text/html",
+      "sha256": "b9795e00d945d94e9abb01a26bd731267d83fc94d31684c152a156f01880bc49"
+    },
+    {
+      "path": "/payments/contract-files/site-preparation",
+      "mediaType": "text/html",
+      "sha256": "41ad5900e8315213e35530eec1edd6a71ae8544412c756aaee399b00e8b8a69e"
+    },
+    {
+      "path": "/payments/files/northline-survey",
+      "mediaType": "text/html",
+      "sha256": "efc7e87c1a84c4a1452680acfe16600aff6f8a041ce6bb715145d45bae3a7c7e"
+    },
+    {
+      "path": "/payments/help",
+      "mediaType": "text/html",
+      "sha256": "5c68e378497c93a69d64dbcf5087c95c716ac9ad1544b58d0bb11e3c58662a9c"
+    },
+    {
+      "path": "/payments/retrieve",
+      "mediaType": "text/html",
+      "sha256": "cd2424abccb91b65208eed89dd96c179f41e41000ba66fc3359df264b2f3e925"
+    },
+    {
+      "path": "/registry",
+      "mediaType": "text/html",
+      "sha256": "df26f571c0a8cc1e8a323e8f74ac4ff6afbcbe8d52af3b4b2ba71299f32144f3"
+    },
+    {
+      "path": "/registry/companies/northline",
+      "mediaType": "text/html",
+      "sha256": "fe34331eaac206df72ba8a188dc7f1a0d478f7556f5d16fbbd9e984910c3d819"
+    },
+    {
+      "path": "/registry/filing-guide",
+      "mediaType": "text/html",
+      "sha256": "c3b39a81efa6fcdf74c30766a41bf4141b99ae3c942fe8409f8a55cef4829911"
+    },
+    {
+      "path": "/registry/search-help",
+      "mediaType": "text/html",
+      "sha256": "2f5c24dc7ee6322c6dc8e8e4e6626cbdeab35008d5bd4f9d5dc7aa2cb7b6c44b"
+    }
+  ],
+  "assets": [
+    {
+      "path": "/assets/payment-labels/northline-invoice.svg",
+      "mediaType": "image/svg+xml",
+      "sha256": "935bb8b2eba16a6ee49ec7333388ce69c5093419eb5090a9b8a1117d5508dc32"
+    },
+    {
+      "path": "/assets/site-1.css",
+      "mediaType": "text/css",
+      "sha256": "cd3ff282e4bb7f87f9abefd35a2fddc8f0817122535969fb031d9a404f5a64f6"
+    },
+    {
+      "path": "/assets/site-2.css",
+      "mediaType": "text/css",
+      "sha256": "2fc195c968a6ea647d595fe344668e2ec6c5d375020bd2aae5b8399f40208ccf"
+    },
+    {
+      "path": "/assets/site-3.css",
+      "mediaType": "text/css",
+      "sha256": "7a420d895736b754c65b1e4c698d40f9267a7919aed5136b431a03ffb140a495"
+    },
+    {
+      "path": "/assets/site-4.css",
+      "mediaType": "text/css",
+      "sha256": "eb1cc62538d28d39dacd5488d6900f0aec3665645894a81c38db30d087f10192"
+    },
+    {
+      "path": "/assets/site-5.css",
+      "mediaType": "text/css",
+      "sha256": "c9cf1de5d32d7f34e8c4d3fd30686f5d4459ddb569e7bbac484d22854bd862ca"
+    },
+    {
+      "path": "/assets/site.css",
+      "mediaType": "text/css",
+      "sha256": "6dce69ebb961d990cac4840bb62622293a36f5331f4f9d16b21e1898bb0e09f0"
+    },
+    {
+      "path": "/calder/staff/_artifact/index.html",
+      "mediaType": "text/html",
+      "sha256": "23b2470f793372ca33bf1fa73d036f2cef583da33e6a95b9d6e08228f68810a4"
+    },
+    {
+      "path": "/calder/staff/_artifact/versions/2025-08-30.html",
+      "mediaType": "text/html",
+      "sha256": "ec7d07b4f248dcbc2daf8c15abb7ea40d9d98146127ecc75a494f4a1b30d7974"
+    },
+    {
+      "path": "/calder/staff/_artifact/versions/2025-09-18.html",
+      "mediaType": "text/html",
+      "sha256": "52afecc9d1fb8051759ba41cb1dd14efd20e160320f29eb5c685ef4d87ed812c"
+    }
+  ],
+  "headers": {
+    "content-security-policy": "default-src 'self' data:; script-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+    "referrer-policy": "no-referrer",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY"
+  }
+}

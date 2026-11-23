@@ -105,14 +105,28 @@ export async function readSavedGameBundle(selector: string): Promise<SavedGameBu
     if (manifest.schemaVersion !== "1.0.0" || typeof manifest.gameId !== "string"
         || (!isManifest && manifest.gameId !== selector) || typeof manifest.title !== "string"
         || typeof manifest.gameFile !== "string"
-        || (manifest.outputRoot !== undefined && (typeof manifest.outputRoot !== "string" || !path.isAbsolute(manifest.outputRoot)))
+        || (manifest.outputRoot !== undefined && (typeof manifest.outputRoot !== "string" || manifest.outputRoot.length === 0))
         || !Array.isArray(manifest.levels) || manifest.levels.length === 0
         || manifest.levels.some((level) => !level || [level.id, level.title, level.levelFile, level.bundlePlan,
             level.publicDirectory, level.privateDirectory].some((value) => typeof value !== "string" || value.length === 0))
         || new Set(manifest.levels.map(({ id }) => safeFileStem(id))).size !== manifest.levels.length) {
         throw new Error(`Invalid saved game bundle manifest: ${filePath}`);
     }
-    return manifest;
+    // Portable examples resolve paths beside their manifest, independently of cwd.
+    // Existing absolute paths keep their original meaning.
+    const directory = path.dirname(filePath);
+    return {
+        ...manifest,
+        gameFile: path.resolve(directory, manifest.gameFile),
+        ...(manifest.outputRoot === undefined ? {} : { outputRoot: path.resolve(directory, manifest.outputRoot) }),
+        levels: manifest.levels.map((level) => ({
+            ...level,
+            levelFile: path.resolve(directory, level.levelFile),
+            bundlePlan: path.resolve(directory, level.bundlePlan),
+            publicDirectory: path.resolve(directory, level.publicDirectory),
+            privateDirectory: path.resolve(directory, level.privateDirectory)
+        }))
+    };
 }
 
 export async function loadSavedGameLevel(level: SavedGameBundleManifest["levels"][number], outputRoot?: string) {

@@ -1,0 +1,128 @@
+{
+  "levelId": "missing_reporter_demo_v2_02_vendor",
+  "investigationQuestion": "Who controlled Northline Survey LLC, and why does its invoice support Maya’s fraud allegation?",
+  "titleHint": "The Hidden Vendor",
+  "genre": "online-investigation",
+  "theme": "Comparing company and payment records",
+  "setting": "The company registry and Harbor Point payment files",
+  "startingSituation": "The contract result names Northline Survey LLC and shows “Payment files.” Open it, compare the vendor with the company registry, and enter the disputed invoice reference in the File ID field.",
+  "playerRole": "You are Maya Chen’s trusted friend, checking the vendor in her contract lead so Julia Reed can understand the suspected fraud.",
+  "playerCapabilities": [
+    "Open the carried contract result.",
+    "Compare company officer histories.",
+    "Retrieve a file by its File ID."
+  ],
+  "playerConstraints": [
+    "Use only the provided public records.",
+    "Corroborate control through the officer record.",
+    "Keep contract, invoice, and inspection dates distinct."
+  ],
+  "environment": {
+    "mode": "self-contained"
+  },
+  "narrativeContext": [
+    "HP-2025-041 lists Northline as Calder’s subcontractor; the registry lists officers, addresses, and peer filings.",
+    "Daniel Price controls Northline and is Calder’s Finance Director; his approved invoice conflicts with the 2025-09-14 inspection note.",
+    "Retrieving the invoice confirms a paid claim and exposes the address; it offers an “Open parking record” control for the next step."
+  ],
+  "startingInputs": [
+    {
+      "id": "input_contract_result_bundle",
+      "semanticRole": "carried-case-record",
+      "description": "Project-hosted bundle containing the opened contract result and its visible Payment files link.",
+      "kind": "bundle-entry",
+      "resourceKind": "contract-result"
+    }
+  ],
+  "externalContentRequirements": [],
+  "requiredDiscoveries": [
+    {
+      "id": "discovery_vendor_controller",
+      "semanticRole": "person-identifier",
+      "description": "Name of Northline’s controller who is also Calder’s Finance Director.",
+      "dataType": "string",
+      "value": "Daniel Price"
+    },
+    {
+      "id": "discovery_vendor_address",
+      "semanticRole": "location",
+      "description": "Full registered unit address for Northline Survey LLC.",
+      "dataType": "string",
+      "value": "18 Mason Street, Unit 3"
+    }
+  ],
+  "terminalAction": {
+    "actionType": "file-retrieval",
+    "description": "Retrieve the disputed invoice in the File ID field. Format: INV-XX-NNNN.",
+    "requiredOutputs": [
+      {
+        "id": "output_invoice_id",
+        "semanticRole": "resource-identifier",
+        "dataType": "string",
+        "requiredValue": "INV-NS-7781"
+      }
+    ]
+  },
+  "config": {
+    "structuralDifficulty": {
+      "preset": "medium",
+      "puzzleCount": {
+        "minimum": 4,
+        "maximum": 5
+      },
+      "phaseCount": {
+        "minimum": 3,
+        "maximum": 4
+      },
+      "linearity": 0.7,
+      "maxParallelPuzzles": 2
+    },
+    "puzzleDifficulty": {
+      "preset": "medium"
+    },
+    "transformationPolicy": {
+      "enabled": true,
+      "maxCount": 2,
+      "maxDifficulty": "easy"
+    },
+    "reviewRetryLimit": 3,
+    "concealUnreachedContent": true,
+    "encourageSubtypeVariety": true
+  },
+  "world": {
+    "entityIds": [
+      "person_maya_chen",
+      "person_daniel_price",
+      "org_calder_development",
+      "org_northline_survey",
+      "place_mason_unit_3",
+      "object_contract_hp_2025_041",
+      "object_invoice_inv_ns_7781",
+      "event_false_invoice_payment",
+      "site_company_registry",
+      "site_payment_files",
+      "site_parking_records"
+    ],
+    "factIds": [
+      "fact_contract_identifier",
+      "fact_contract_prime",
+      "fact_contract_subcontractor",
+      "fact_northline_controller",
+      "fact_northline_address",
+      "fact_price_employer",
+      "fact_price_title",
+      "fact_invoice_identifier",
+      "fact_invoice_vendor",
+      "fact_invoice_contract",
+      "fact_invoice_approver",
+      "fact_invoice_approval_date",
+      "fact_invoice_event_file",
+      "fact_invoice_service_date",
+      "fact_inspection_conflict"
+    ],
+    "asOf": "2025-09-19",
+    "id": "world_missing_reporter_demo_v2",
+    "revision": "1"
+  },
+  "catalogVersion": "repository-puzzles-2.0.0"
+}

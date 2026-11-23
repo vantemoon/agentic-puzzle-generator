@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="220" viewBox="0 0 420 220" role="img">
+  <title>Harbor Point Award Record</title>
+  <desc>A city procurement record shows a Harbor Point award, its prime contractor, award date, subcontractor table, and a visible Payment files link. The subcontractor name is represented in the table artwork and clue metadata rather than this general description.</desc>
+<rect x="0" y="0" width="420" height="220" fill="#e9eef2" stroke="none" stroke-width="0" opacity="1" rx="0" ry="0"/>
+<rect x="20" y="10" width="380" height="200" fill="#ffffff" stroke="#9aa8b3" stroke-width="1" opacity="1" rx="4" ry="4"/>
+<rect x="20" y="10" width="380" height="30" fill="#24506f" stroke="none" stroke-width="0" opacity="1" rx="4" ry="4"/>
+<text x="34" y="30" font-size="15" fill="#ffffff" text-anchor="start" font-family="sans-serif">River City Procurement</text>
+<text x="385" y="29" font-size="10" fill="#dce8ef" text-anchor="end" font-family="sans-serif">Award record</text>
+<text x="34" y="59" font-size="16" fill="#24333d" text-anchor="start" font-family="sans-serif">Harbor Point Award Record</text>
+<line x1="34" y1="67" x2="386" y2="67" stroke="#c5ced5" stroke-width="1" opacity="1"/>
+<text x="34" y="84" font-size="10" fill="#64717a" text-anchor="start" font-family="sans-serif">Project</text>
+<text x="112" y="84" font-size="11" fill="#25343d" text-anchor="start" font-family="sans-serif">Harbor Point access improvements</text>
+<text x="34" y="101" font-size="10" fill="#64717a" text-anchor="start" font-family="sans-serif">Prime contractor</text>
+<text x="112" y="101" font-size="11" fill="#25343d" text-anchor="start" font-family="sans-serif">Calder Development</text>
+<text x="34" y="118" font-size="10" fill="#64717a" text-anchor="start" font-family="sans-serif">Award date</text>
+<text x="112" y="118" font-size="11" fill="#25343d" text-anchor="start" font-family="sans-serif">May 14, 2025</text>
+<text x="34" y="139" font-size="12" fill="#24333d" text-anchor="start" font-family="sans-serif">Subcontractors</text>
+<rect x="34" y="147" width="352" height="18" fill="#dfe8ee" stroke="#aab6bf" stroke-width="1" opacity="1" rx="0" ry="0"/>
+<text x="42" y="160" font-size="9" fill="#45545e" text-anchor="start" font-family="sans-serif">Company</text>
+<text x="238" y="160" font-size="9" fill="#45545e" text-anchor="start" font-family="sans-serif">Work</text>
+<text x="334" y="160" font-size="9" fill="#45545e" text-anchor="start" font-family="sans-serif">Amount</text>
+<rect x="34" y="165" width="352" height="25" fill="#ffffff" stroke="#c6cfd5" stroke-width="1" opacity="1" rx="0" ry="0"/>
+<line x1="226" y1="147" x2="226" y2="190" stroke="#c6cfd5" stroke-width="1" opacity="1"/>
+<line x1="325" y1="147" x2="325" y2="190" stroke="#c6cfd5" stroke-width="1" opacity="1"/>
+<text x="238" y="181" font-size="10" fill="#33444e" text-anchor="start" font-family="sans-serif">Site survey</text>
+<text x="376" y="181" font-size="10" fill="#33444e" text-anchor="end" font-family="sans-serif">$48,600</text>
+<line x1="34" y1="198" x2="386" y2="198" stroke="#d3dbe0" stroke-width="1" opacity="1"/>
+<text x="34" y="207" font-size="10" fill="#1d628f" text-anchor="start" font-family="sans-serif">Payment files</text>
+<line x1="34" y1="209" x2="98" y2="209" stroke="#1d628f" stroke-width="1" opacity="1"/>
+  <g id="visual-clue" data-puzzle-role="visual-clue-payload">
+    <title>Northline Survey LLC</title>
+<text x="42" y="181" font-size="11" fill="#24333d" text-anchor="start" font-family="sans-serif">Northline Survey LLC</text>
+  </g>
+</svg>

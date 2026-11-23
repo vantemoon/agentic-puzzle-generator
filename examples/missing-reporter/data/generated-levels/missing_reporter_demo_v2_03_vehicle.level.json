@@ -1,0 +1,505 @@
+{
+  "title": "Maya’s Last Trip",
+  "summary": "The investigator opens the cited parking record, establishes that van GKT-482 left the Press Club Garage at 18:40 on 2025-09-18, compares Calder Development’s assignment roster to identify Owen Blake, and follows the record’s Camera matches link to city camera log CAM-0918-221, which places the van at 18 Mason Street at 19:12. The plate alone is submitted to Maya’s police case, producing the handoff to check the property directory.",
+  "setting": {
+    "theme": "Reconstructing a timed vehicle journey",
+    "location": "Parking records and the traffic camera log",
+    "tone": "Careful, time-based record comparison"
+  },
+  "phases": [
+    {
+      "id": "phase_parking",
+      "order": 0,
+      "title": "Parking Record",
+      "summary": "Use the invoice attachment and lookup to establish the vehicle and departure event."
+    },
+    {
+      "id": "phase_comparison",
+      "order": 1,
+      "title": "Driver and Camera Records",
+      "summary": "Compare the fleet assignment and follow the camera match for the same vehicle."
+    },
+    {
+      "id": "phase_submission",
+      "order": 2,
+      "title": "Police Submission",
+      "summary": "Submit the corroborated vehicle plate to Maya’s case."
+    }
+  ],
+  "puzzles": [
+    {
+      "id": "puzzle_parking_lookup",
+      "phaseId": "phase_parking",
+      "title": "Press Club Garage Parking Record",
+      "purpose": "Examine the parking record cited by Maya’s invoice to learn which vehicle left the garage at 18:40 and obtain the on-page links needed to compare its assignment and camera matches.",
+      "design": {
+        "puzzleType": "encoding",
+        "subtype": "qr-code",
+        "difficulty": "easy",
+        "generationSpec": {
+          "mode": "production",
+          "id": "puzzle_parking_lookup",
+          "intendedSolution": "GKT-482",
+          "payloadKind": "identifier",
+          "documentTheme": "Parking ticket QR beside a machine-readable record table"
+        },
+        "verification": {
+          "prompt": "What vehicle plate is recorded as leaving the Press Club Garage at 18:40? Enter it in ABC-123 format.",
+          "dataType": "string",
+          "expectedValue": "GKT-482"
+        },
+        "inputs": [
+          {
+            "id": "parking_bundle_entry",
+            "source": {
+              "kind": "starting-input",
+              "inputId": "input_invoice_and_parking_bundle"
+            },
+            "use": "In the invoice evidence package, click “Open parking record,” copy PARK-0918-664 into the Parking reference field on the linked parking lookup, and open the matched record.",
+            "access": {
+              "kind": "direct-link"
+            }
+          }
+        ],
+        "outputs": [
+          {
+            "id": "vehicle_plate",
+            "semanticRole": "resource-identifier",
+            "description": "Vehicle plate shown in parking record PARK-0918-664 for the 2025-09-18 18:40 exit from Press Club Garage.",
+            "from": "verification"
+          },
+          {
+            "id": "fleet_assignment_page",
+            "semanticRole": "record-navigation",
+            "description": "The parking result’s visible “Calder vehicle assignments” link opens the owner’s assignment roster for comparison.",
+            "from": "revealed",
+            "dataType": "string",
+            "value": "Calder vehicle assignments"
+          },
+          {
+            "id": "camera_matches_page",
+            "semanticRole": "record-navigation",
+            "description": "The parking result’s visible “Camera matches” link opens city camera records already filtered to the plate and date.",
+            "from": "revealed",
+            "dataType": "string",
+            "value": "Camera matches"
+          }
+        ],
+        "revealContext": "The matched parking result displays the date, 18:40 exit time, Press Club Garage location, Calder Development ownership, and visible links labeled “Calder vehicle assignments” and “Camera matches.”"
+      },
+      "generatedContent": {
+        "status": "mockup",
+        "preview": {
+          "kind": "structured",
+          "data": {
+            "lookup": "Parking reference: PARK-0918-664",
+            "record": {
+              "date": "2025-09-18",
+              "exitTime": "18:40",
+              "location": "Press Club Garage",
+              "owner": "Calder Development",
+              "plateEvidence": "A parking-ticket QR decodes to the plate printed beside it."
+            },
+            "controls": [
+              "Calder vehicle assignments",
+              "Camera matches"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "puzzle_driver_assignment",
+      "phaseId": "phase_comparison",
+      "title": "Calder Vehicle Assignment",
+      "purpose": "Compare Calder Development’s dated fleet assignments with the parking plate to identify the employee responsible for that van when Maya disappeared.",
+      "design": {
+        "puzzleType": "hidden-information",
+        "subtype": "anomalous-phrase",
+        "difficulty": "medium",
+        "generationSpec": {
+          "mode": "production",
+          "id": "puzzle_driver_assignment",
+          "intendedSolution": "Owen Blake",
+          "documentTemplate": "Calder Development — Vehicle assignments for 2025-09-18\nJRM-205 — Priya Shah — Site inspection\nGKT-482 — {{ANOMALY}} — Equipment pickup\nLND-731 — Marcus Reed — Permit delivery\nAssignment records are published for dispatch review.",
+          "anomalousPhrase": "Owen Blake",
+          "normalityContext": "Each fleet row contains a plate, employee name, and work purpose. The parking record identifies which row matters.",
+          "normalPatternEvidence": [
+            "JRM-205 — Priya Shah — Site inspection",
+            "LND-731 — Marcus Reed — Permit delivery"
+          ],
+          "genre": "fleet assignment roster",
+          "anomalyKind": "out-of-context-entity",
+          "externalKnowledgeRequired": false
+        },
+        "verification": {
+          "prompt": "Who was assigned to the matched van on 2025-09-18? Enter the employee’s full name.",
+          "dataType": "string",
+          "expectedValue": "Owen Blake"
+        },
+        "inputs": [
+          {
+            "id": "assignment_link",
+            "source": {
+              "kind": "puzzle-output",
+              "puzzleId": "puzzle_parking_lookup",
+              "outputId": "fleet_assignment_page"
+            },
+            "use": "On parking record PARK-0918-664, click the visible “Calder vehicle assignments” link to open Calder Development’s roster for 2025-09-18.",
+            "access": {
+              "kind": "direct-link"
+            }
+          },
+          {
+            "id": "assignment_plate",
+            "source": {
+              "kind": "puzzle-output",
+              "puzzleId": "puzzle_parking_lookup",
+              "outputId": "vehicle_plate"
+            },
+            "use": "Match the plate learned from the parking record to the same plate in Calder Development’s dated assignment roster.",
+            "expectedSemanticRoles": [
+              "resource-identifier"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "id": "assigned_driver",
+            "semanticRole": "person-identifier",
+            "description": "Employee named on Calder Development’s 2025-09-18 assignment row for the van matched to the parking record.",
+            "from": "verification",
+            "requiredDiscoveryId": "discovery_assigned_driver"
+          }
+        ]
+      },
+      "generatedContent": {
+        "status": "mockup",
+        "preview": {
+          "kind": "structured",
+          "data": {
+            "title": "Vehicle assignments — 2025-09-18",
+            "rows": [
+              [
+                "JRM-205",
+                "Priya Shah",
+                "Site inspection"
+              ],
+              [
+                "matched parking plate",
+                "employee name to verify",
+                "Equipment pickup"
+              ],
+              [
+                "LND-731",
+                "Marcus Reed",
+                "Permit delivery"
+              ]
+            ],
+            "note": "Compare the parking plate with the roster row."
+          }
+        }
+      }
+    },
+    {
+      "id": "puzzle_camera_destination",
+      "phaseId": "phase_comparison",
+      "title": "City Camera Match",
+      "purpose": "Inspect the city camera record linked from the parking result to corroborate the same van’s later location and reconstruct where it went after leaving the garage.",
+      "design": {
+        "puzzleType": "hidden-information",
+        "subtype": "page-version",
+        "difficulty": "medium",
+        "generationSpec": {
+          "mode": "production",
+          "id": "puzzle_camera_destination",
+          "intendedSolution": "18 Mason Street",
+          "pageTitle": "Camera record CAM-0918-221",
+          "baselineBody": "Automated traffic-camera match for 2025-09-18 at 19:12. Vehicle plate: GKT-482. Camera location withheld while the location review was pending.",
+          "currentBody": "Automated traffic-camera match for 2025-09-18 at 19:12. Vehicle plate: GKT-482. Camera location: 18 Mason Street. Location review completed.",
+          "changeKind": "changed-field",
+          "baselineDate": "2025-09-18",
+          "currentDate": "2025-09-19",
+          "baselineLabel": "Initial automated record",
+          "currentLabel": "Reviewed record"
+        },
+        "verification": {
+          "prompt": "What building address does camera record CAM-0918-221 give for the van at 19:12? Enter the street address, not a room or unit.",
+          "dataType": "string",
+          "expectedValue": "18 Mason Street"
+        },
+        "inputs": [
+          {
+            "id": "camera_link",
+            "source": {
+              "kind": "puzzle-output",
+              "puzzleId": "puzzle_parking_lookup",
+              "outputId": "camera_matches_page"
+            },
+            "use": "On parking record PARK-0918-664, click “Camera matches” to open the city camera results filtered to the recorded plate and 2025-09-18; select CAM-0918-221 from the one-result list.",
+            "access": {
+              "kind": "direct-link"
+            }
+          },
+          {
+            "id": "camera_plate",
+            "source": {
+              "kind": "puzzle-output",
+              "puzzleId": "puzzle_parking_lookup",
+              "outputId": "vehicle_plate"
+            },
+            "use": "Confirm that CAM-0918-221 displays the same plate as the Press Club Garage record before using its reviewed location.",
+            "expectedSemanticRoles": [
+              "resource-identifier"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "id": "camera_destination",
+            "semanticRole": "location",
+            "description": "Building address in the reviewed version of city camera record CAM-0918-221 for the 19:12 match.",
+            "from": "verification",
+            "requiredDiscoveryId": "discovery_camera_destination"
+          }
+        ]
+      },
+      "generatedContent": {
+        "status": "mockup",
+        "preview": {
+          "kind": "structured",
+          "data": {
+            "title": "CAM-0918-221",
+            "versions": {
+              "Initial automated record": "Plate and 19:12 timestamp; location withheld pending review.",
+              "Reviewed record": "Same plate and timestamp; the completed review displays a building-level street address."
+            },
+            "instruction": "Compare the two dated record versions."
+          }
+        }
+      }
+    },
+    {
+      "id": "puzzle_submission_handoff",
+      "phaseId": "phase_submission",
+      "title": "Camera Record Case Link",
+      "purpose": "Use the reviewed camera record’s visible police case link to reach the legitimate evidence form and confirm that its requested vehicle identifier is the corroborated parking and camera plate.",
+      "design": {
+        "puzzleType": "hidden-information",
+        "subtype": "alt-text",
+        "difficulty": "easy",
+        "generationSpec": {
+          "mode": "production",
+          "id": "puzzle_submission_handoff",
+          "intendedSolution": "Submit vehicle plate",
+          "visibleTitle": "Camera record CAM-0918-221",
+          "visibleBody": "The reviewed match is attached to Maya Chen’s missing-person case. Use the “Open police evidence form” link to send the vehicle identifier shown in both records.",
+          "imageLabel": "Traffic camera image",
+          "altText": "Traffic camera image. Case attachment note: Submit vehicle plate.",
+          "imageCaption": "Reviewed traffic-camera frame associated with this record."
+        },
+        "verification": {
+          "prompt": "What short instruction appears in the traffic camera image description? Enter the three words exactly.",
+          "dataType": "string",
+          "expectedValue": "Submit vehicle plate"
+        },
+        "inputs": [
+          {
+            "id": "destination_evidence",
+            "source": {
+              "kind": "puzzle-output",
+              "puzzleId": "puzzle_camera_destination",
+              "outputId": "camera_destination"
+            },
+            "use": "After confirming the reviewed building address in CAM-0918-221, remain on that record and inspect the traffic camera image description; then click the visible “Open police evidence form” link.",
+            "access": {
+              "kind": "navigation"
+            },
+            "expectedSemanticRoles": [
+              "location"
+            ]
+          },
+          {
+            "id": "submission_plate",
+            "source": {
+              "kind": "puzzle-output",
+              "puzzleId": "puzzle_parking_lookup",
+              "outputId": "vehicle_plate"
+            },
+            "use": "Carry the plate corroborated by the parking record and CAM-0918-221 into the police form’s Vehicle identifier field.",
+            "expectedSemanticRoles": [
+              "resource-identifier"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "id": "submission_instruction",
+            "semanticRole": "finding",
+            "description": "Image-description note confirming which evidence value the police case form requests.",
+            "from": "verification"
+          },
+          {
+            "id": "output_vehicle_plate",
+            "semanticRole": "resource-identifier",
+            "description": "Corroborated vehicle identifier shown in both PARK-0918-664 and CAM-0918-221, ready for the police evidence form.",
+            "from": "revealed",
+            "dataType": "string",
+            "value": "GKT-482"
+          }
+        ],
+        "revealContext": "The camera record links to Maya Chen’s police evidence form, whose Vehicle identifier field requests the plate corroborated by the parking and camera records."
+      },
+      "generatedContent": {
+        "status": "mockup",
+        "preview": {
+          "kind": "text",
+          "title": "Camera record case attachment",
+          "body": "The reviewed camera match is attached to Maya Chen’s missing-person case. A traffic camera image has an accessible description containing a short filing instruction. Below it, “Open police evidence form” is a visible link.",
+          "emphasis": "plain"
+        }
+      }
+    }
+  ],
+  "requiredResources": [
+    {
+      "id": "resource_invoice_bundle",
+      "kind": "invoice-evidence-package",
+      "description": "Project-hosted invoice bundle with the cited parking attachment, PARK-0918-664 reference, and “Open parking record” control."
+    },
+    {
+      "id": "resource_parking_lookup",
+      "kind": "public-record-lookup",
+      "description": "Parking reference lookup returning the 2025-09-18 18:40 Press Club Garage exit, owner, vehicle evidence, and assignment and camera links."
+    },
+    {
+      "id": "resource_calder_fleet",
+      "kind": "fleet-assignment-page",
+      "description": "Calder Development’s dated vehicle assignment roster with comparable plate, employee, and purpose rows."
+    },
+    {
+      "id": "resource_camera_log",
+      "kind": "traffic-camera-record",
+      "description": "City camera result and dated versions of CAM-0918-221, including the plate, 19:12 timestamp, reviewed building address, accessible image description, and police-form link."
+    },
+    {
+      "id": "resource_police_form",
+      "kind": "evidence-submission-form",
+      "description": "River City Police evidence form for Maya Chen’s case with one Vehicle identifier field."
+    }
+  ],
+  "terminalAction": {
+    "id": "submit_vehicle_evidence",
+    "title": "Submit Vehicle Evidence",
+    "interaction": "exact-field-form",
+    "fields": [
+      {
+        "id": "output_vehicle_plate",
+        "label": "Vehicle identifier",
+        "hint": "Use the plate shown in both the parking record and camera record. Format: ABC-123.",
+        "semanticRole": "resource-identifier",
+        "source": {
+          "puzzleId": "puzzle_submission_handoff",
+          "outputId": "output_vehicle_plate"
+        }
+      }
+    ],
+    "successOutcome": "River City Police accept the corroborated vehicle lead, associate Owen Blake and the 19:12 arrival at 18 Mason Street with the trip, and display the next handoff: “Check property directory.”",
+    "actionType": "evidence-submission",
+    "description": "Submit the plate in the Vehicle identifier field. Format: ABC-123."
+  },
+  "schemaVersion": "5.0.0",
+  "catalogVersion": "repository-puzzles-2.0.0",
+  "id": "missing_reporter_demo_v2_03_vehicle",
+  "investigationQuestion": "Which vehicle took Maya from the garage, who drove it, and where did it go?",
+  "world": {
+    "entityIds": [
+      "person_maya_chen",
+      "person_owen_blake",
+      "org_calder_development",
+      "org_river_city_police",
+      "place_press_club_garage",
+      "place_mason_warehouse",
+      "object_invoice_inv_ns_7781",
+      "object_van_gkt_482",
+      "event_maya_abduction",
+      "event_warehouse_arrival",
+      "site_parking_records",
+      "site_city_camera_log",
+      "site_police_tip_portal"
+    ],
+    "factIds": [
+      "fact_disappearance_date",
+      "fact_disappearance_time",
+      "fact_disappearance_actor",
+      "fact_disappearance_vehicle",
+      "fact_disappearance_location",
+      "fact_parking_reference",
+      "fact_van_plate",
+      "fact_van_owner",
+      "fact_van_assigned_driver",
+      "fact_blake_employer",
+      "fact_arrival_date",
+      "fact_arrival_time",
+      "fact_arrival_actor",
+      "fact_arrival_vehicle",
+      "fact_arrival_location",
+      "fact_camera_record"
+    ],
+    "asOf": "2025-09-19",
+    "id": "world_missing_reporter_demo_v2",
+    "revision": "1"
+  },
+  "genre": "online-investigation",
+  "environment": {
+    "mode": "self-contained"
+  },
+  "startingSituation": "The invoice bundle includes an “Open parking record” control. Open the attached session record, compare its vehicle with Calder’s vehicle assignments, and click “Camera matches.”",
+  "playerRole": "You are Maya Chen’s trusted friend, reconstructing her last known trip from records attached to her fraud research.",
+  "playerCapabilities": [
+    "Use the parking lookup.",
+    "Compare times, plates, and assignments.",
+    "Submit a vehicle identifier to Maya’s case."
+  ],
+  "playerConstraints": [
+    "Use only the provided records.",
+    "Match events by date, time, plate, and location.",
+    "Do not claim a unit from a street-level camera match."
+  ],
+  "startingInputs": [
+    {
+      "id": "input_invoice_and_parking_bundle",
+      "semanticRole": "carried-payment-evidence",
+      "description": "Project-hosted bundle containing the invoice, cited parking attachment, and parking lookup control.",
+      "kind": "bundle-entry",
+      "resourceKind": "invoice-evidence-package"
+    }
+  ],
+  "generationConfig": {
+    "structuralDifficulty": {
+      "preset": "medium",
+      "puzzleCount": {
+        "minimum": 4,
+        "maximum": 6
+      },
+      "phaseCount": {
+        "minimum": 3,
+        "maximum": 4
+      },
+      "linearity": 0.58,
+      "maxParallelPuzzles": 2
+    },
+    "puzzleDifficulty": {
+      "preset": "medium"
+    },
+    "transformationPolicy": {
+      "enabled": true,
+      "maxCount": 2,
+      "maxDifficulty": "medium"
+    },
+    "reviewRetryLimit": 3,
+    "concealUnreachedContent": true,
+    "encourageSubtypeVariety": true
+  },
+  "externalContentRequirements": []
+}

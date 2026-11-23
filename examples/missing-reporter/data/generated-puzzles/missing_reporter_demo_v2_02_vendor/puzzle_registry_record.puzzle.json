@@ -1,0 +1,106 @@
+{
+  "id": "puzzle_registry_record",
+  "puzzleType": "hidden-information",
+  "subtype": "anomalous-phrase",
+  "inputs": [
+    {
+      "key": "document_template",
+      "valueType": "natural-language-document-template",
+      "description": "The normal-looking document template containing one anomaly placeholder.",
+      "required": true,
+      "constraints": {
+        "genre": "company registry record",
+        "placeholder": "{{ANOMALY}}",
+        "maximumCharacters": 12000,
+        "ruleVersion": "artifact-grounded-semantic-anomaly-v2"
+      },
+      "value": "Company registry search result\nCompany: Northline Survey LLC\nStatus: Active\nRegistered address: 18 Mason Street, Unit 3\nCurrent officer: {{ANOMALY}}\n\nPeer filing A\nCompany: East Harbor Survey LLC\nStatus: Active\nCurrent officer: Managing member\n\nPeer filing B\nCompany: Bay Map Services LLC\nStatus: Active\nCurrent officer: Managing member\n\nPublic controls: Officer history; View Calder Development staff directory."
+    },
+    {
+      "key": "anomalous_phrase",
+      "valueType": "semantic-anomaly",
+      "description": "The phrase, fact, entity, date, or location inserted as the semantic anomaly.",
+      "required": true,
+      "constraints": {
+        "anomalyKind": "unusual-phrase",
+        "maximumCharacters": 240
+      },
+      "value": "Controller — Daniel Price"
+    },
+    {
+      "key": "normality_context",
+      "valueType": "document-context",
+      "description": "Private design justification for why the inserted phrase is anomalous.",
+      "required": true,
+      "constraints": {
+        "maximumCharacters": 2000
+      },
+      "value": "Comparable small survey-company filings label the current officer as Managing member; Northline uniquely identifies a controller by personal name, making that entry the relevant control evidence."
+    },
+    {
+      "key": "normal_pattern_evidence",
+      "valueType": "document-excerpts",
+      "description": "Excerpts present in the artifact that establish the normal pattern or conflicting fact.",
+      "required": true,
+      "constraints": {
+        "minimumItems": 2,
+        "maximumItems": 8,
+        "maximumCharactersPerItem": 240
+      },
+      "value": [
+        "Current officer: Managing member",
+        "Status: Active"
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "key": "discovered_clue",
+      "valueType": "plain-text",
+      "description": "The text recovered by identifying the anomalous phrase or fact.",
+      "value": "DANIEL PRICE"
+    }
+  ],
+  "artifact": {
+    "kind": "text",
+    "mediaType": "text/plain",
+    "source": "Company registry search result\nCompany: Northline Survey LLC\nStatus: Active\nRegistered address: 18 Mason Street, Unit 3\nCurrent officer: Controller — Daniel Price\n\nPeer filing A\nCompany: East Harbor Survey LLC\nStatus: Active\nCurrent officer: Managing member\n\nPeer filing B\nCompany: Bay Map Services LLC\nStatus: Active\nCurrent officer: Managing member\n\nPublic controls: Officer history; View Calder Development staff directory."
+  },
+  "prompt": "Review the company registry record and report the semantic anomaly supported by evidence in the document.\n\nDocument:\n\nCompany registry search result\nCompany: Northline Survey LLC\nStatus: Active\nRegistered address: 18 Mason Street, Unit 3\nCurrent officer: Controller — Daniel Price\n\nPeer filing A\nCompany: East Harbor Survey LLC\nStatus: Active\nCurrent officer: Managing member\n\nPeer filing B\nCompany: Bay Map Services LLC\nStatus: Active\nCurrent officer: Managing member\n\nPublic controls: Officer history; View Calder Development staff directory.",
+  "solution": {
+    "valueType": "text",
+    "canonical": "DANIEL PRICE",
+    "normalization": [
+      "trim",
+      "case-insensitive",
+      "collapse-whitespace"
+    ]
+  },
+  "validator": {
+    "kind": "normalized-text",
+    "mode": "deterministic",
+    "options": {
+      "trim": true,
+      "caseInsensitive": true,
+      "collapseWhitespace": true
+    }
+  },
+  "externalKnowledge": {
+    "required": false
+  },
+  "extensions": {
+    "anomalousPhrase": {
+      "genre": "company registry record",
+      "anomalyKind": "unusual-phrase",
+      "placeholder": "{{ANOMALY}}",
+      "ruleVersion": "artifact-grounded-semantic-anomaly-v2",
+      "normalityContext": "Comparable small survey-company filings label the current officer as Managing member; Northline uniquely identifies a controller by personal name, making that entry the relevant control evidence.",
+      "normalPatternEvidence": [
+        "Current officer: Managing member",
+        "Status: Active"
+      ],
+      "anomalousPhrase": "Controller — Daniel Price",
+      "documentSha256": "a6f3f724cb7ccef8b5e0ffd0856624c15c9cd5af12733e9c578d9cca04bece5c"
+    }
+  }
+}

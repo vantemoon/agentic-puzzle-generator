@@ -7,6 +7,9 @@
     "test": "vitest run",
     "start": "tsx src/cli/demo.ts",
     "typecheck": "tsc --noEmit",
+    "example:reporter": "node --import tsx src/cli/preview-game-bundle.ts examples/missing-reporter/game.bundle.json",
+    "example:reporter:verify": "node --import tsx src/cli/verify-game-bundle.ts examples/missing-reporter/game.bundle.json --technical-only",
+    "example:reporter:test": "vitest run test/reporter-example.test.ts",
     "models:list": "tsx src/cli/list-model-tasks.ts",
     "pi:caesar": "pi --extension ./pi-extensions/caesar.ts",
     "pi:morse": "pi --extension ./pi-extensions/morse.ts",
@@ -53,14 +56,20 @@
   "author": "",
   "license": "ISC",
   "type": "module",
+  "overrides": {
+    "@earendil-works/pi-coding-agent": {
+      "minimatch": "11.0.9"
+    }
+  },
   "dependencies": {
-    "@earendil-works/pi-agent-core": "^0.86.1",
-    "@earendil-works/pi-ai": "^0.86.1",
-    "@earendil-works/pi-coding-agent": "^0.86.1",
+    "@earendil-works/pi-agent-core": "^1.6.0",
+    "@earendil-works/pi-ai": "^1.6.0",
+    "@earendil-works/pi-coding-agent": "^1.6.0",
     "typebox": "1.3.27"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
+    "jsqr": "^1.4.0",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vitest": "^5.0.1"

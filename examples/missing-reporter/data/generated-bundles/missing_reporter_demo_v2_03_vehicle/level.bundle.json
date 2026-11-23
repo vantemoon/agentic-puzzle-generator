@@ -1,0 +1,1025 @@
+{
+  "sites": [
+    {
+      "id": "site_invoice_bundle",
+      "name": "Northline Invoice Files",
+      "worldEntityId": "object_invoice_inv_ns_7781",
+      "archetype": "records",
+      "visualProfile": {
+        "tone": "neutral",
+        "fontStyle": "sans",
+        "density": "comfortable",
+        "accentColor": "#315B7D",
+        "mediaStyle": "Clean document previews with restrained blue record labels"
+      },
+      "basePath": "/invoice-files",
+      "routes": [
+        {
+          "role": "structural",
+          "path": "/",
+          "navigation": "primary",
+          "content": {
+            "title": "Invoice files",
+            "description": "Shared billing records and attachments for Northline invoice INV-NS-7781.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Invoice INV-NS-7781",
+                "paragraphs": [
+                  "This shared file contains the vendor invoice and its cited parking attachment. The attachment records a parking reference for use in the Press Club Parking Records lookup."
+                ]
+              },
+              {
+                "kind": "records",
+                "heading": "Attachment details",
+                "entries": [
+                  {
+                    "label": "Invoice",
+                    "value": "INV-NS-7781"
+                  },
+                  {
+                    "label": "Parking reference",
+                    "value": "PARK-0918-664"
+                  },
+                  {
+                    "label": "Attachment date",
+                    "value": "2025-09-18"
+                  }
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Attached record",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Open parking record",
+                    "summary": "Open the parking lookup and enter the parking reference from this attachment.",
+                    "href": "/parking-records/lookup"
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "starting-input:input_invoice_and_parking_bundle"
+            ],
+            "cue": "The starting file opens this ordinary invoice package page.",
+            "linkReason": "The supplied evidence package is the first setting and includes the cited parking attachment.",
+            "queryInputId": "parking_bundle_entry"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/about-shared-files",
+          "navigation": "footer",
+          "content": {
+            "title": "About shared files",
+            "description": "How Northline billing files and attachments are shared.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "File scope",
+                "paragraphs": [
+                  "Shared invoice packages contain the invoice number, vendor material, and attachments cited by the invoice. Access is limited to the supplied package link."
+                ]
+              },
+              {
+                "kind": "list",
+                "heading": "Included material",
+                "items": [
+                  "Invoice summary",
+                  "Cited receipts and notices",
+                  "Links to the original record publisher when available"
+                ]
+              },
+              {
+                "kind": "prose",
+                "paragraphs": [
+                  "This package preserves an approved Northline payment document and its cited attachment. The documents are presented together so their references can be checked against the original record publishers."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/invoice-files"
+            ],
+            "cue": "Use the About shared files footer link.",
+            "linkReason": "The shared-file service publishes its scope in the footer.",
+            "queryInputId": "invoice_about"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/file-help",
+          "navigation": "footer",
+          "content": {
+            "title": "File help",
+            "description": "Help for opening attachments and linked public records.",
+            "blocks": [
+              {
+                "kind": "list",
+                "heading": "Common actions",
+                "items": [
+                  "Select an attachment title to view its details.",
+                  "Use a cited reference in the named field on the publisher’s site.",
+                  "Contact the file sender if an attachment is missing."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/invoice-files"
+            ],
+            "cue": "Use the File help footer link.",
+            "linkReason": "Routine help belongs in the shared-file footer.",
+            "queryInputId": "invoice_help"
+          }
+        }
+      ]
+    },
+    {
+      "id": "site_parking_records",
+      "name": "Press Club Parking Records",
+      "worldEntityId": "site_parking_records",
+      "archetype": "database",
+      "visualProfile": {
+        "tone": "formal",
+        "fontStyle": "mono-accent",
+        "density": "compact",
+        "accentColor": "#365F46",
+        "mediaStyle": "Municipal-style record tables and ticket scans"
+      },
+      "basePath": "/parking-records",
+      "routes": [
+        {
+          "role": "structural",
+          "path": "/",
+          "navigation": "primary",
+          "content": {
+            "title": "Press Club Parking Records",
+            "description": "Public lookup information for completed parking sessions at Press Club Parking Garage.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Record access",
+                "paragraphs": [
+                  "Use a parking reference from a receipt, invoice attachment, or payment notice to retrieve a completed session record."
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Services",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Parking record lookup",
+                    "summary": "Search for a completed parking session by parking reference.",
+                    "href": "/parking-records/lookup"
+                  },
+                  {
+                    "title": "Record guide",
+                    "summary": "Learn what completed parking records contain.",
+                    "href": "/parking-records/record-guide"
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/parking-records/lookup"
+            ],
+            "cue": "The site name and Home control return to the records homepage.",
+            "linkReason": "Ordinary site navigation provides access to the publisher's homepage.",
+            "queryInputId": "parking_home"
+          }
+        },
+        {
+          "role": "structural",
+          "path": "/lookup",
+          "navigation": "primary",
+          "content": {
+            "title": "Attached parking record",
+            "description": "Open the completed parking session attached to the invoice.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Attached session",
+                "paragraphs": [
+                  "The invoice attachment identifies a completed Press Club Garage session. Open the attached parking record and inspect its ticket image for the vehicle identifier."
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Session attachment",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Open attached parking record",
+                    "summary": "View the completed session cited by the invoice attachment.",
+                    "href": "/parking-records/session-record"
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/invoice-files"
+            ],
+            "cue": "Click the visible Open parking record card to review the attached session.",
+            "linkReason": "The invoice package cites this parking provider and links to its public record lookup.",
+            "queryInputId": "parking_bundle_entry"
+          }
+        },
+        {
+          "role": "puzzle",
+          "path": "/session-record",
+          "navigation": "hidden",
+          "content": {
+            "title": "Press Club Garage Parking Record",
+            "description": "Matched completed-session record with a parking ticket image and related record controls.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Matched record",
+                "paragraphs": [
+                  "This record covers the completed parking session associated with the submitted reference. Inspect the parking ticket image for the vehicle identifier."
+                ]
+              },
+              {
+                "kind": "records",
+                "heading": "Session details",
+                "entries": [
+                  {
+                    "label": "Date",
+                    "value": "2025-09-18"
+                  },
+                  {
+                    "label": "Exit time",
+                    "value": "18:40"
+                  },
+                  {
+                    "label": "Location",
+                    "value": "Press Club Parking Garage"
+                  },
+                  {
+                    "label": "Owner",
+                    "value": "Calder Development Group"
+                  }
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Related records",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Calder vehicle assignments",
+                    "summary": "Open the vehicle assignment roster for the session date.",
+                    "href": "/calder-vehicles/assignments"
+                  },
+                  {
+                    "title": "Camera matches",
+                    "summary": "Open traffic-camera matches for this vehicle and date.",
+                    "href": "/camera-log/matches"
+                  }
+                ]
+              }
+            ]
+          },
+          "puzzleId": "puzzle_parking_lookup",
+          "placement": "media-viewer",
+          "directAssetPath": "/assets/parking-ticket.svg",
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/parking-records/lookup"
+            ],
+            "cue": "Open the attached session record from the invoice parking attachment.",
+            "linkReason": "The lookup result is presented as a clickable matched-record link for the exact submitted reference.",
+            "queryInputId": "parking_bundle_entry"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/record-guide",
+          "navigation": "secondary",
+          "content": {
+            "title": "Parking record guide",
+            "description": "Fields available in a completed parking session record.",
+            "blocks": [
+              {
+                "kind": "table",
+                "heading": "Record fields",
+                "columns": [
+                  "Field",
+                  "Meaning"
+                ],
+                "rows": [
+                  [
+                    "Parking reference",
+                    "Identifier printed on a receipt or billing attachment"
+                  ],
+                  [
+                    "Entry and exit times",
+                    "Times recorded by the garage system"
+                  ],
+                  [
+                    "Location",
+                    "Garage that issued the session"
+                  ],
+                  [
+                    "Related records",
+                    "Public records supplied by an owner or city service"
+                  ]
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/parking-records"
+            ],
+            "cue": "Click the Record guide card.",
+            "linkReason": "The records homepage links to an explanation of published fields.",
+            "queryInputId": "record_guide"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/access-policy",
+          "navigation": "footer",
+          "content": {
+            "title": "Record access policy",
+            "description": "Scope and limits of the public parking lookup.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Published sessions",
+                "paragraphs": [
+                  "The lookup returns completed sessions when the user has the full parking reference. It does not provide open browsing by plate, customer, or payment account."
+                ]
+              },
+              {
+                "kind": "list",
+                "heading": "Data limits",
+                "items": [
+                  "Only completed sessions are available.",
+                  "References must be entered in full.",
+                  "Payment card details are never displayed."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/parking-records"
+            ],
+            "cue": "Use the Record access policy footer link.",
+            "linkReason": "The parking publisher explains lookup limits in its footer.",
+            "queryInputId": "parking_policy"
+          }
+        }
+      ]
+    },
+    {
+      "id": "site_calder_fleet",
+      "name": "Calder Development Vehicle Records",
+      "worldEntityId": "org_calder_development",
+      "archetype": "records",
+      "visualProfile": {
+        "tone": "neutral",
+        "fontStyle": "sans",
+        "density": "compact",
+        "accentColor": "#9A5A24",
+        "mediaStyle": "Operational rosters with simple company headers"
+      },
+      "basePath": "/calder-vehicles",
+      "routes": [
+        {
+          "role": "structural",
+          "path": "/",
+          "navigation": "primary",
+          "content": {
+            "title": "Calder Development Vehicle Records",
+            "description": "Dispatch records for company vehicles and daily assignments.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Dispatch records",
+                "paragraphs": [
+                  "Calder Development Group publishes dated vehicle assignments for dispatch review. Each row lists a plate, assigned employee, and work purpose."
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Vehicle records",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Daily assignments",
+                    "summary": "Browse the current set of published assignment rosters.",
+                    "href": "/calder-vehicles/archive"
+                  },
+                  {
+                    "title": "Record policy",
+                    "summary": "Read how dispatch assignments are prepared and retained.",
+                    "href": "/calder-vehicles/record-policy"
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/calder-vehicles/archive"
+            ],
+            "cue": "Use the site Home control.",
+            "linkReason": "Standard site navigation links to the vehicle-records homepage.",
+            "queryInputId": "fleet_home"
+          }
+        },
+        {
+          "role": "puzzle",
+          "path": "/assignments",
+          "navigation": "contextual",
+          "content": {
+            "title": "Vehicle assignments — 2025-09-18",
+            "description": "Calder Development Group daily fleet assignment roster for dispatch review.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Daily roster",
+                "paragraphs": [
+                  "Compare the plate from the parking record with the plate, employee, and work-purpose rows in this dated roster."
+                ]
+              }
+            ]
+          },
+          "puzzleId": "puzzle_driver_assignment",
+          "placement": "page-body",
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/parking-records/session-record"
+            ],
+            "cue": "Click the visible Calder vehicle assignments card on the matched parking record.",
+            "linkReason": "The parking record identifies Calder as owner and provides a related-record link for assignment comparison.",
+            "queryInputId": "assignment_link"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/archive",
+          "navigation": "primary",
+          "content": {
+            "title": "Assignment archive",
+            "description": "Published daily vehicle assignment rosters for dispatch review.",
+            "blocks": [
+              {
+                "kind": "table",
+                "heading": "Available rosters",
+                "columns": [
+                  "Date",
+                  "Status",
+                  "Coverage"
+                ],
+                "rows": [
+                  [
+                    "2025-09-16",
+                    "Closed",
+                    "Daily dispatch assignments"
+                  ],
+                  [
+                    "2025-09-17",
+                    "Closed",
+                    "Daily dispatch assignments"
+                  ],
+                  [
+                    "2025-09-18",
+                    "Closed",
+                    "Daily dispatch assignments"
+                  ]
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/calder-vehicles"
+            ],
+            "cue": "Click the Daily assignments card.",
+            "linkReason": "The company homepage links to its published roster archive.",
+            "queryInputId": "assignment_archive"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/record-policy",
+          "navigation": "secondary",
+          "content": {
+            "title": "Vehicle record policy",
+            "description": "How Calder Development prepares daily dispatch assignments.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Daily assignments",
+                "paragraphs": [
+                  "Dispatch closes each roster after the workday. Published rows list the company vehicle plate, assigned employee, and stated work purpose."
+                ]
+              },
+              {
+                "kind": "list",
+                "heading": "Corrections",
+                "items": [
+                  "Dispatch supervisors review corrections.",
+                  "A corrected roster keeps its original date.",
+                  "Personal contact details are not published."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/calder-vehicles"
+            ],
+            "cue": "Click the Record policy card.",
+            "linkReason": "The vehicle-records homepage links to its publication policy.",
+            "queryInputId": "fleet_policy"
+          }
+        }
+      ]
+    },
+    {
+      "id": "site_camera_log",
+      "name": "River City Traffic Camera Log",
+      "worldEntityId": "site_city_camera_log",
+      "archetype": "version-history",
+      "visualProfile": {
+        "tone": "formal",
+        "fontStyle": "mixed",
+        "density": "comfortable",
+        "accentColor": "#6B497A",
+        "mediaStyle": "Dated camera records, review status panels, and version comparisons"
+      },
+      "basePath": "/camera-log",
+      "routes": [
+        {
+          "role": "structural",
+          "path": "/",
+          "navigation": "primary",
+          "content": {
+            "title": "River City Traffic Camera Log",
+            "description": "Reviewed automated traffic-camera records released for public reference.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Camera records",
+                "paragraphs": [
+                  "The log publishes camera matches after review. Records show timestamps, vehicle identifiers, review status, and version history when a field changes."
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Browse records",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Record search",
+                    "summary": "Find a released camera record by record number.",
+                    "href": "/camera-log/search"
+                  },
+                  {
+                    "title": "Review process",
+                    "summary": "Read how automated matches are checked and updated.",
+                    "href": "/camera-log/review-process"
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/camera-log/search"
+            ],
+            "cue": "Use the Home control in the site navigation.",
+            "linkReason": "Ordinary site navigation returns to the camera-log homepage.",
+            "queryInputId": "camera_home"
+          }
+        },
+        {
+          "role": "structural",
+          "path": "/matches",
+          "navigation": "hidden",
+          "content": {
+            "title": "Camera matches",
+            "description": "Released traffic-camera matches filtered by the linked vehicle and date.",
+            "blocks": [
+              {
+                "kind": "records",
+                "heading": "Applied filter",
+                "entries": [
+                  {
+                    "label": "Date",
+                    "value": "2025-09-18"
+                  },
+                  {
+                    "label": "Results",
+                    "value": "1 released record"
+                  }
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Matched records",
+                "collection": "records",
+                "items": [
+                  {
+                    "title": "CAM-0918-221",
+                    "summary": "Automated match at 19:12; reviewed on 2025-09-19.",
+                    "href": "/camera-log/record"
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/parking-records/session-record"
+            ],
+            "cue": "Click the visible Camera matches card on the parking record.",
+            "linkReason": "The parking system provides a related public-record link already filtered by its vehicle and session date.",
+            "queryInputId": "camera_link"
+          }
+        },
+        {
+          "role": "puzzle",
+          "path": "/record",
+          "navigation": "hidden",
+          "content": {
+            "title": "City Camera Match",
+            "description": "Version history for released camera record CAM-0918-221.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Record history",
+                "paragraphs": [
+                  "Compare the initial automated record with the reviewed record. Confirm that the vehicle identifier agrees with the parking record before using the reviewed location."
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Case attachment",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Camera record case attachment",
+                    "summary": "Open the reviewed image and its case attachment controls.",
+                    "href": "/camera-log/case-attachment"
+                  }
+                ]
+              }
+            ]
+          },
+          "puzzleId": "puzzle_camera_destination",
+          "placement": "version-set",
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/camera-log/matches"
+            ],
+            "cue": "Select CAM-0918-221 from the one-result list.",
+            "linkReason": "The filtered result list provides a visible link to the matched camera record.",
+            "queryInputId": "camera_link"
+          }
+        },
+        {
+          "role": "puzzle",
+          "path": "/case-attachment",
+          "navigation": "contextual",
+          "content": {
+            "title": "Camera record CAM-0918-221",
+            "description": "Reviewed camera image and case attachment for the released record.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Case attachment",
+                "paragraphs": [
+                  "The reviewed match is attached to Maya Chen’s missing-person case. Review the traffic camera image description for the filing instruction."
+                ]
+              },
+              {
+                "kind": "records",
+                "heading": "Vehicle record",
+                "entries": [
+                  {
+                    "label": "Vehicle identifier",
+                    "value": "GKT-482"
+                  }
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Case service",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Open police evidence form",
+                    "summary": "Send the vehicle identifier shown in both released records to Maya Chen’s case.",
+                    "href": "/police-case/submit-evidence"
+                  }
+                ]
+              }
+            ]
+          },
+          "puzzleId": "puzzle_submission_handoff",
+          "placement": "native-html",
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/camera-log/record"
+            ],
+            "cue": "Use the visible Camera record case attachment control on the reviewed record.",
+            "linkReason": "The record interface includes this contextual navigation control for its reviewed image and case attachment.",
+            "queryInputId": "destination_evidence"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/search",
+          "navigation": "primary",
+          "content": {
+            "title": "Camera record search",
+            "description": "Find a released traffic-camera record by its full record number.",
+            "blocks": [
+              {
+                "kind": "records",
+                "heading": "Search field",
+                "entries": [
+                  {
+                    "label": "Field",
+                    "value": "Camera record number"
+                  },
+                  {
+                    "label": "Format",
+                    "value": "CAM-0000-000"
+                  }
+                ]
+              },
+              {
+                "kind": "prose",
+                "heading": "Search notes",
+                "paragraphs": [
+                  "Only released records appear. A record under review returns a status message rather than location details."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/camera-log"
+            ],
+            "cue": "Click the Record search card.",
+            "linkReason": "The log homepage links to its standard record-number search.",
+            "queryInputId": "camera_search"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/review-process",
+          "navigation": "secondary",
+          "content": {
+            "title": "Camera match review process",
+            "description": "How automated camera matches are reviewed and updated.",
+            "blocks": [
+              {
+                "kind": "list",
+                "heading": "Review steps",
+                "items": [
+                  "The system creates an initial automated match.",
+                  "A reviewer checks the plate, timestamp, and camera station.",
+                  "Approved changes appear in a dated reviewed version.",
+                  "Earlier released versions remain available in record history."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/camera-log"
+            ],
+            "cue": "Click the Review process card.",
+            "linkReason": "The log homepage links to its review and version policy.",
+            "queryInputId": "review_process"
+          }
+        }
+      ]
+    },
+    {
+      "id": "site_police_portal",
+      "name": "River City Police Case Portal",
+      "worldEntityId": "site_police_tip_portal",
+      "archetype": "organization",
+      "visualProfile": {
+        "tone": "formal",
+        "fontStyle": "sans",
+        "density": "comfortable",
+        "accentColor": "#234A70",
+        "mediaStyle": "Accessible public-service forms and case status panels"
+      },
+      "basePath": "/police-case",
+      "routes": [
+        {
+          "role": "structural",
+          "path": "/",
+          "navigation": "primary",
+          "content": {
+            "title": "River City Police Case Portal",
+            "description": "Public case services for sending records requested by River City Police Department.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Public case services",
+                "paragraphs": [
+                  "Use a case-specific form reached from an authorized case attachment. General reports and emergency services use separate department channels."
+                ]
+              },
+              {
+                "kind": "cards",
+                "heading": "Portal information",
+                "collection": "links",
+                "items": [
+                  {
+                    "title": "Evidence submission guide",
+                    "summary": "Read what to expect when sending a record to an existing case.",
+                    "href": "/police-case/submission-guide"
+                  },
+                  {
+                    "title": "Privacy notice",
+                    "summary": "See how submitted case information is handled.",
+                    "href": "/police-case/privacy"
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "navigation",
+            "from": [
+              "/police-case/submission-guide"
+            ],
+            "cue": "Use the site Home control.",
+            "linkReason": "Ordinary portal navigation links to its public homepage.",
+            "queryInputId": "police_home"
+          }
+        },
+        {
+          "role": "terminal",
+          "path": "/submit-evidence",
+          "navigation": "hidden",
+          "content": {
+            "title": "Submit Vehicle Evidence",
+            "description": "Case-specific evidence form for Maya Chen’s missing-person case.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Vehicle record submission",
+                "paragraphs": [
+                  "Enter the vehicle identifier corroborated by the linked parking and camera records. Submit only the plate requested by this form."
+                ]
+              },
+              {
+                "kind": "records",
+                "heading": "Required field",
+                "entries": [
+                  {
+                    "label": "Vehicle identifier",
+                    "value": "Format: ABC-123"
+                  }
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/camera-log/case-attachment"
+            ],
+            "cue": "Click the visible Open police evidence form card beneath the reviewed case attachment.",
+            "linkReason": "The camera record is attached to Maya Chen’s case and provides the authorized case-specific evidence form.",
+            "queryInputId": "submission_plate"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/submission-guide",
+          "navigation": "secondary",
+          "content": {
+            "title": "Evidence submission guide",
+            "description": "What to expect when sending a record to an existing police case.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Case-specific forms",
+                "paragraphs": [
+                  "A case attachment may link to a form requesting one or more exact record fields. Enter only the requested values and review the confirmation before sending."
+                ]
+              },
+              {
+                "kind": "list",
+                "heading": "Before submitting",
+                "items": [
+                  "Confirm that the form names the correct case.",
+                  "Use the format shown beside each field.",
+                  "Do not add unrelated personal information."
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/police-case"
+            ],
+            "cue": "Click the Evidence submission guide card.",
+            "linkReason": "The portal homepage links to general instructions for case forms.",
+            "queryInputId": "submission_guide"
+          }
+        },
+        {
+          "role": "supporting",
+          "path": "/privacy",
+          "navigation": "footer",
+          "content": {
+            "title": "Case portal privacy notice",
+            "description": "How information sent through a case form is handled.",
+            "blocks": [
+              {
+                "kind": "prose",
+                "heading": "Use of submissions",
+                "paragraphs": [
+                  "Information sent through a case-specific form is associated with that case and reviewed by authorized personnel. Submission confirmations may show a next requested action."
+                ]
+              },
+              {
+                "kind": "list",
+                "heading": "Do not submit",
+                "items": [
+                  "Emergency reports",
+                  "Unrequested account details",
+                  "Material unrelated to the named case"
+                ]
+              }
+            ]
+          },
+          "discovery": {
+            "kind": "direct-link",
+            "from": [
+              "/police-case"
+            ],
+            "cue": "Click the Privacy notice card.",
+            "linkReason": "The portal homepage links to its privacy notice.",
+            "queryInputId": "police_privacy"
+          }
+        }
+      ]
+    }
+  ],
+  "worldAdditions": {
+    "entities": [],
+    "facts": []
+  },
+  "mediaRequests": [],
+  "terminal": {
+    "siteId": "site_police_portal",
+    "routePath": "/submit-evidence",
+    "mode": "validation-api"
+  },
+  "schemaVersion": "2.0.0",
+  "levelId": "missing_reporter_demo_v2_03_vehicle",
+  "world": {
+    "id": "world_missing_reporter_demo_v2",
+    "revision": "1",
+    "asOf": "2025-09-19"
+  },
+  "seed": "missing_reporter_demo_v2_03_vehicle-bundle-v1"
+}

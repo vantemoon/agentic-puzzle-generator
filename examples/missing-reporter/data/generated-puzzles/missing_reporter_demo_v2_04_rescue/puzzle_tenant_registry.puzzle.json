@@ -1,0 +1,91 @@
+{
+  "id": "puzzle_tenant_registry",
+  "puzzleType": "hidden-information",
+  "subtype": "page-version",
+  "inputs": [
+    {
+      "key": "page_version_pair",
+      "valueType": "html-page-version-pair",
+      "description": "Two static HTML page versions that should be compared.",
+      "required": true,
+      "value": {
+        "baselinePath": "/versions/2025-01-10.html",
+        "currentPath": "/versions/2025-08-29.html",
+        "baselineLabel": "January record",
+        "currentLabel": "August record",
+        "baselineDate": "2025-01-10",
+        "currentDate": "2025-08-29"
+      }
+    },
+    {
+      "key": "version_change_payload",
+      "valueType": "page-version-payload",
+      "description": "The message revealed by comparing the static page versions.",
+      "required": true,
+      "value": "Daniel Price"
+    }
+  ],
+  "outputs": [
+    {
+      "key": "revealed_message",
+      "valueType": "plain-text",
+      "description": "The text recovered from the meaningful difference between page versions.",
+      "value": "Daniel Price"
+    }
+  ],
+  "artifact": {
+    "kind": "html",
+    "mediaType": "text/html",
+    "entryPath": "/index.html",
+    "files": [
+      {
+        "path": "/index.html",
+        "mediaType": "text/html",
+        "source": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <title>Northline Survey tenant registry record — page history</title>\n  </head>\n  <body>\n    <main>\n      <h1>Northline Survey tenant registry record page history</h1>\n      <p>Two dated snapshots are available for comparison.</p>\n      <p><time datetime=\"2025-08-29\">August 29, 2025</time> — August record: <code>/versions/2025-08-29.html</code></p>\n      <p><time datetime=\"2025-01-10\">January 10, 2025</time> — January record: <code>/versions/2025-01-10.html</code></p>\n    </main>\n  </body>\n</html>"
+      },
+      {
+        "path": "/versions/2025-01-10.html",
+        "mediaType": "text/html",
+        "source": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <title>Northline Survey tenant registry record — 2025-01-10</title>\n  </head>\n  <body>\n    <main>\n      <h1>Northline Survey tenant registry record</h1>\n      <p class=\"version-label\"><time datetime=\"2025-01-10\">January 10, 2025</time> — January record</p>\n      <p>Tenant: Northline Survey. Unit: Unit 3. Lease status: active. Responsible manager: pending annual review. The property office keeps dated versions of tenant records.</p>\n      <dl>\n        <dt>Release marker</dt>\n        <dd>Pending review</dd>\n      </dl>\n    </main>\n  </body>\n</html>"
+      },
+      {
+        "path": "/versions/2025-08-29.html",
+        "mediaType": "text/html",
+        "source": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <title>Northline Survey tenant registry record — 2025-08-29</title>\n  </head>\n  <body>\n    <main>\n      <h1>Northline Survey tenant registry record</h1>\n      <p class=\"version-label\"><time datetime=\"2025-08-29\">August 29, 2025</time> — August record</p>\n      <p>Tenant: Northline Survey. Unit: Unit 3. Lease status: active. Responsible manager: <span data-puzzle-role=\"page-version-payload\">Daniel Price</span>. Annual review completed by the property office.</p>\n    </main>\n  </body>\n</html>"
+      }
+    ]
+  },
+  "prompt": "Open the webpage artifact and compare the included page versions to recover the hidden message.",
+  "solution": {
+    "valueType": "text",
+    "canonical": "Daniel Price",
+    "normalization": [
+      "trim",
+      "collapse-whitespace"
+    ]
+  },
+  "validator": {
+    "kind": "normalized-text",
+    "mode": "deterministic",
+    "options": {
+      "trim": true,
+      "caseInsensitive": false,
+      "collapseWhitespace": true
+    }
+  },
+  "externalKnowledge": {
+    "required": false
+  },
+  "extensions": {
+    "pageVersion": {
+      "templateVersion": "safe-static-page-version-v2",
+      "changeKind": "changed-field",
+      "baselinePath": "/versions/2025-01-10.html",
+      "currentPath": "/versions/2025-08-29.html",
+      "comparisonMode": "static-file-comparison",
+      "requiresJavaScriptExecution": false,
+      "liveNavigationSupported": false,
+      "artifactSha256": "3c95c69bf3a8dcd514494f089698a718386f503c0432aeb12be599b5fcc7bf55"
+    }
+  }
+}
